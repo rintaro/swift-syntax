@@ -116,10 +116,7 @@ extension Raw${node.name} {
   }
 
   public static func make(arena: SyntaxArena, elements: [Raw${node.collection_element_type}]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 

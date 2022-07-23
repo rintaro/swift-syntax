@@ -4988,10 +4988,7 @@ extension RawCodeBlockItemListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawCodeBlockItemSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5021,10 +5018,7 @@ extension RawTupleExprElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawTupleExprElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5054,10 +5048,7 @@ extension RawArrayElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawArrayElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5087,10 +5078,7 @@ extension RawDictionaryElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawDictionaryElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5120,10 +5108,7 @@ extension RawStringLiteralSegmentsSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5153,10 +5138,7 @@ extension RawDeclNameArgumentListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawDeclNameArgumentSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5186,10 +5168,7 @@ extension RawExprListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawExprSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5219,10 +5198,7 @@ extension RawClosureCaptureItemListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawClosureCaptureItemSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5252,10 +5228,7 @@ extension RawClosureParamListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawClosureParamSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5285,10 +5258,7 @@ extension RawMultipleTrailingClosureElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawMultipleTrailingClosureElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5318,10 +5288,7 @@ extension RawObjcNameSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawObjcNamePieceSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5351,10 +5318,7 @@ extension RawFunctionParameterListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawFunctionParameterSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5384,10 +5348,7 @@ extension RawIfConfigClauseListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawIfConfigClauseSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5417,10 +5378,7 @@ extension RawInheritedTypeListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawInheritedTypeSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5450,10 +5408,7 @@ extension RawMemberDeclListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawMemberDeclListItemSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5483,10 +5438,7 @@ extension RawModifierListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawDeclModifierSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5516,10 +5468,7 @@ extension RawAccessPathSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawAccessPathComponentSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5549,10 +5498,7 @@ extension RawAccessorListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawAccessorDeclSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5582,10 +5528,7 @@ extension RawPatternBindingListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawPatternBindingSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5615,10 +5558,7 @@ extension RawEnumCaseElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawEnumCaseElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5648,10 +5588,7 @@ extension RawIdentifierListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawTokenSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5681,10 +5618,7 @@ extension RawPrecedenceGroupAttributeListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5714,10 +5648,7 @@ extension RawPrecedenceGroupNameListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawPrecedenceGroupNameElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5747,10 +5678,7 @@ extension RawTokenListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawTokenSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5780,10 +5708,7 @@ extension RawNonEmptyTokenListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawTokenSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5813,10 +5738,7 @@ extension RawAttributeListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5846,10 +5768,7 @@ extension RawSpecializeAttributeSpecListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5879,10 +5798,7 @@ extension RawObjCSelectorSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawObjCSelectorPieceSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5912,10 +5828,7 @@ extension RawDifferentiabilityParamListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawDifferentiabilityParamSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5945,10 +5858,7 @@ extension RawBackDeployVersionListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawBackDeployVersionArgumentSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -5978,10 +5888,7 @@ extension RawSwitchCaseListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6011,10 +5918,7 @@ extension RawCatchClauseListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawCatchClauseSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6044,10 +5948,7 @@ extension RawCaseItemListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawCaseItemSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6077,10 +5978,7 @@ extension RawCatchItemListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawCatchItemSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6110,10 +6008,7 @@ extension RawConditionElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawConditionElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6143,10 +6038,7 @@ extension RawGenericRequirementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawGenericRequirementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6176,10 +6068,7 @@ extension RawGenericParameterListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawGenericParameterSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6209,10 +6098,7 @@ extension RawPrimaryAssociatedTypeListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawPrimaryAssociatedTypeSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6242,10 +6128,7 @@ extension RawCompositionTypeElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawCompositionTypeElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6275,10 +6158,7 @@ extension RawTupleTypeElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawTupleTypeElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6308,10 +6188,7 @@ extension RawGenericArgumentListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawGenericArgumentSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6341,10 +6218,7 @@ extension RawTuplePatternElementListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawTuplePatternElementSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 
@@ -6374,10 +6248,7 @@ extension RawAvailabilitySpecListSyntax {
   }
 
   public static func make(arena: SyntaxArena, elements: [RawAvailabilityArgumentSyntax]) -> Self {
-    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind,
-                                   uninitializedCount: elements.count) { layout in
-      _ = layout.initialize(from: elements.map { $0.raw })
-    }
+    let raw = RawSyntax.makeLayout(arena: arena, kind: syntaxKind, from: elements.map { $0.raw })
     return .init(raw: raw)
   }
 

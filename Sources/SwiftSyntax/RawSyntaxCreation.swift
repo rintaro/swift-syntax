@@ -175,6 +175,17 @@ extension RawSyntax {
       byteLength: 0, descendantCount: 0)
   }
 
+  @_spi(RawSyntax)
+  public static func makeLayout<C: Collection>(
+    arena: SyntaxArena,
+    kind: SyntaxKind,
+    from collection: C
+  ) -> RawSyntax where C.Element == RawSyntax? {
+    .makeLayout(arena: arena, kind: kind, uninitializedCount: collection.count) {
+      _ = $0.initialize(from: collection)
+    }
+  }
+
   func replacingChild(
     at index: Int,
     with newChild: RawSyntax?,

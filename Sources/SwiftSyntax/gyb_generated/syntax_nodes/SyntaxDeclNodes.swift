@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 
+
 // MARK: - UnknownDeclSyntax
 
 public struct UnknownDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
@@ -34,10 +35,8 @@ public struct UnknownDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `UnknownDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `UnknownDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -80,10 +79,8 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `TypealiasDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `TypealiasDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -109,7 +106,7 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -144,7 +141,7 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -291,10 +288,8 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
   /// Creates a `AssociatedtypeDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `AssociatedtypeDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -320,7 +315,7 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -355,7 +350,7 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -496,10 +491,8 @@ public struct IfConfigDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `IfConfigDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `IfConfigDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -525,7 +518,7 @@ public struct IfConfigDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.clauses.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .ifConfigClauseList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .ifConfigClauseList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.clauses.rawValue,
                                      with: collection, arena: arena)
@@ -595,10 +588,8 @@ public struct PoundErrorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `PoundErrorDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundErrorDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -714,10 +705,8 @@ public struct PoundWarningDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable
   /// Creates a `PoundWarningDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundWarningDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -833,10 +822,8 @@ public struct PoundSourceLocationSyntax: DeclSyntaxProtocol, Hashable, Identifia
   /// Creates a `PoundSourceLocationSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundSourceLocationSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -955,10 +942,8 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ClassDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ClassDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -984,7 +969,7 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -1019,7 +1004,7 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -1185,10 +1170,8 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ActorDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ActorDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1214,7 +1197,7 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -1249,7 +1232,7 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -1415,10 +1398,8 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `StructDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `StructDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1444,7 +1425,7 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -1479,7 +1460,7 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -1645,10 +1626,8 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ProtocolDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ProtocolDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1674,7 +1653,7 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -1709,7 +1688,7 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -1874,10 +1853,8 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ExtensionDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ExtensionDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1903,7 +1880,7 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -1938,7 +1915,7 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -2086,10 +2063,8 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `FunctionDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `FunctionDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2115,7 +2090,7 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -2150,7 +2125,7 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -2316,10 +2291,8 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `InitializerDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `InitializerDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2345,7 +2318,7 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -2380,7 +2353,7 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -2541,10 +2514,8 @@ public struct DeinitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiabl
   /// Creates a `DeinitializerDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `DeinitializerDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2570,7 +2541,7 @@ public struct DeinitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiabl
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -2605,7 +2576,7 @@ public struct DeinitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiabl
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -2697,10 +2668,8 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `SubscriptDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `SubscriptDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2726,7 +2695,7 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -2761,7 +2730,7 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -2924,10 +2893,8 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ImportDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ImportDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2953,7 +2920,7 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -2988,7 +2955,7 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -3058,7 +3025,7 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.path.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .accessPath)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .accessPath, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.path.rawValue,
                                      with: collection, arena: arena)
@@ -3116,10 +3083,8 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `AccessorDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `AccessorDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3145,7 +3110,7 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -3304,10 +3269,8 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `VariableDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `VariableDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3333,7 +3296,7 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -3368,7 +3331,7 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -3421,7 +3384,7 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.bindings.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .patternBindingList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .patternBindingList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.bindings.rawValue,
                                      with: collection, arena: arena)
@@ -3480,10 +3443,8 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `EnumCaseDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `EnumCaseDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3512,7 +3473,7 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -3550,7 +3511,7 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -3605,7 +3566,7 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.elements.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .enumCaseElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .enumCaseElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.elements.rawValue,
                                      with: collection, arena: arena)
@@ -3664,10 +3625,8 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `EnumDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `EnumDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3696,7 +3655,7 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -3734,7 +3693,7 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -3918,10 +3877,8 @@ public struct OperatorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `OperatorDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `OperatorDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3950,7 +3907,7 @@ public struct OperatorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -3989,7 +3946,7 @@ public struct OperatorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -4103,10 +4060,8 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
   /// Creates a `PrecedenceGroupDeclSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PrecedenceGroupDeclSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -4135,7 +4090,7 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
     if let col = raw.children[Cursor.attributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .attributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .attributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.attributes.rawValue,
                                      with: collection, arena: arena)
@@ -4174,7 +4129,7 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
     if let col = raw.children[Cursor.modifiers.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .modifierList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .modifierList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.modifiers.rawValue,
                                      with: collection, arena: arena)
@@ -4269,7 +4224,7 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
     if let col = raw.children[Cursor.groupAttributes.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .precedenceGroupAttributeList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .precedenceGroupAttributeList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.groupAttributes.rawValue,
                                      with: collection, arena: arena)

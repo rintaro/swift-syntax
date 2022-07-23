@@ -18,6 +18,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+%{
+ """
+ This gyb-file generates the syntax nodes for SwiftSyntax. To keep the generated
+ files at a managable file size, it is to be invoked multiple times with the
+ global variable EMIT_KIND set to a base kind listed in
+ gyb_syntax_support/kinds.py:SYNTAX_BASE_KINDES. It then only emits those syntax
+ nodes whose base kind are that specified kind.
+ """
+ }%
+
 % for node in SYNTAX_NODES:
 %   base_type = node.base_type
 %   if node.is_base():
@@ -50,9 +60,9 @@ public struct ${node.name}: ${node.base_type}Protocol, Hashable, Identifiable {
   }
 %     end
 
-%   # ==============
-%   # Initialization
-%   # ==============
+%     # ==============
+%     # Initialization
+%     # ==============
 %
   public static func isValid(syntaxKind: SyntaxKind) -> Bool {
     Raw${node.name}.isValid(syntaxKind: syntaxKind)
@@ -70,10 +80,8 @@ public struct ${node.name}: ${node.base_type}Protocol, Hashable, Identifiable {
   /// Creates a `${node.name}` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `${node.name}` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -122,7 +130,7 @@ public struct ${node.name}: ${node.base_type}Protocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.${child.swift_name}.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .${child_node.swift_syntax_kind})
+      collection = RawSyntax.makeLayout(arena: arena, kind: .${child_node.swift_syntax_kind}, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.${child.swift_name}.rawValue,
                                      with: collection, arena: arena)

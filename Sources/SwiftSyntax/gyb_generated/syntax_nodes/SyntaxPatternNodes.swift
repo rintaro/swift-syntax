@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 
+
 // MARK: - UnknownPatternSyntax
 
 public struct UnknownPatternSyntax: PatternSyntaxProtocol, Hashable, Identifiable {
@@ -34,10 +35,8 @@ public struct UnknownPatternSyntax: PatternSyntaxProtocol, Hashable, Identifiabl
   /// Creates a `UnknownPatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `UnknownPatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -77,10 +76,8 @@ public struct EnumCasePatternSyntax: PatternSyntaxProtocol, Hashable, Identifiab
   /// Creates a `EnumCasePatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `EnumCasePatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -192,10 +189,8 @@ public struct IsTypePatternSyntax: PatternSyntaxProtocol, Hashable, Identifiable
   /// Creates a `IsTypePatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `IsTypePatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -271,10 +266,8 @@ public struct OptionalPatternSyntax: PatternSyntaxProtocol, Hashable, Identifiab
   /// Creates a `OptionalPatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `OptionalPatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -349,10 +342,8 @@ public struct IdentifierPatternSyntax: PatternSyntaxProtocol, Hashable, Identifi
   /// Creates a `IdentifierPatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `IdentifierPatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -410,10 +401,8 @@ public struct AsTypePatternSyntax: PatternSyntaxProtocol, Hashable, Identifiable
   /// Creates a `AsTypePatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `AsTypePatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -509,10 +498,8 @@ public struct TuplePatternSyntax: PatternSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `TuplePatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `TuplePatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -556,7 +543,7 @@ public struct TuplePatternSyntax: PatternSyntaxProtocol, Hashable, Identifiable 
     if let col = raw.children[Cursor.elements.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .tuplePatternElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .tuplePatternElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.elements.rawValue,
                                      with: collection, arena: arena)
@@ -625,10 +612,8 @@ public struct WildcardPatternSyntax: PatternSyntaxProtocol, Hashable, Identifiab
   /// Creates a `WildcardPatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `WildcardPatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -702,10 +687,8 @@ public struct ExpressionPatternSyntax: PatternSyntaxProtocol, Hashable, Identifi
   /// Creates a `ExpressionPatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ExpressionPatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -762,10 +745,8 @@ public struct ValueBindingPatternSyntax: PatternSyntaxProtocol, Hashable, Identi
   /// Creates a `ValueBindingPatternSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ValueBindingPatternSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }

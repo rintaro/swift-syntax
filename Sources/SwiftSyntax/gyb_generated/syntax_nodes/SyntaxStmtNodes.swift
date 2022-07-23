@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 
+
 // MARK: - UnknownStmtSyntax
 
 public struct UnknownStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
@@ -34,10 +35,8 @@ public struct UnknownStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `UnknownStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `UnknownStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -75,10 +74,8 @@ public struct ContinueStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ContinueStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ContinueStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -156,10 +153,8 @@ public struct WhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `WhileStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `WhileStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -237,7 +232,7 @@ public struct WhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.conditions.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .conditionElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .conditionElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.conditions.rawValue,
                                      with: collection, arena: arena)
@@ -308,10 +303,8 @@ public struct DeferStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `DeferStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `DeferStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -386,10 +379,8 @@ public struct ExpressionStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ExpressionStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ExpressionStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -450,10 +441,8 @@ public struct RepeatWhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `RepeatWhileStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `RepeatWhileStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -605,10 +594,8 @@ public struct GuardStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `GuardStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `GuardStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -652,7 +639,7 @@ public struct GuardStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.conditions.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .conditionElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .conditionElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.conditions.rawValue,
                                      with: collection, arena: arena)
@@ -750,10 +737,8 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ForInStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ForInStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1017,10 +1002,8 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `SwitchStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `SwitchStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1134,7 +1117,7 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.cases.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .switchCaseList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .switchCaseList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.cases.rawValue,
                                      with: collection, arena: arena)
@@ -1210,10 +1193,8 @@ public struct DoStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `DoStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `DoStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1309,7 +1290,7 @@ public struct DoStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.catchClauses.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .catchClauseList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .catchClauseList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.catchClauses.rawValue,
                                      with: collection, arena: arena)
@@ -1361,10 +1342,8 @@ public struct ReturnStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ReturnStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ReturnStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1439,10 +1418,8 @@ public struct YieldStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `YieldStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `YieldStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1517,10 +1494,8 @@ public struct FallthroughStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `FallthroughStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `FallthroughStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1577,10 +1552,8 @@ public struct BreakStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `BreakStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `BreakStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1654,10 +1627,8 @@ public struct DeclarationStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `DeclarationStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `DeclarationStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1714,10 +1685,8 @@ public struct ThrowStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ThrowStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ThrowStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1798,10 +1767,8 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `IfStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `IfStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1879,7 +1846,7 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.conditions.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .conditionElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .conditionElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.conditions.rawValue,
                                      with: collection, arena: arena)
@@ -1990,10 +1957,8 @@ public struct PoundAssertStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `PoundAssertStmtSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundAssertStmtSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }

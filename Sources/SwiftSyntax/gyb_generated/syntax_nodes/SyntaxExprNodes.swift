@@ -13,6 +13,7 @@
 //===----------------------------------------------------------------------===//
 
 
+
 // MARK: - UnknownExprSyntax
 
 public struct UnknownExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
@@ -34,10 +35,8 @@ public struct UnknownExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `UnknownExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `UnknownExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -75,10 +74,8 @@ public struct InOutExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `InOutExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `InOutExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -153,10 +150,8 @@ public struct PoundColumnExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `PoundColumnExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundColumnExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -214,10 +209,8 @@ public struct TryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `TryExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `TryExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -311,10 +304,8 @@ public struct AwaitExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `AwaitExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `AwaitExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -390,10 +381,8 @@ public struct IdentifierExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `IdentifierExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `IdentifierExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -467,10 +456,8 @@ public struct SuperRefExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `SuperRefExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `SuperRefExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -526,10 +513,8 @@ public struct NilLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `NilLiteralExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `NilLiteralExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -585,10 +570,8 @@ public struct DiscardAssignmentExprSyntax: ExprSyntaxProtocol, Hashable, Identif
   /// Creates a `DiscardAssignmentExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `DiscardAssignmentExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -644,10 +627,8 @@ public struct AssignmentExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `AssignmentExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `AssignmentExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -703,10 +684,8 @@ public struct SequenceExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `SequenceExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `SequenceExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -732,7 +711,7 @@ public struct SequenceExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.elements.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .exprList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .exprList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.elements.rawValue,
                                      with: collection, arena: arena)
@@ -780,10 +759,8 @@ public struct PoundLineExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `PoundLineExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundLineExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -839,10 +816,8 @@ public struct PoundFileExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `PoundFileExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundFileExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -898,10 +873,8 @@ public struct PoundFileIDExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `PoundFileIDExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundFileIDExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -957,10 +930,8 @@ public struct PoundFilePathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
   /// Creates a `PoundFilePathExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundFilePathExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1016,10 +987,8 @@ public struct PoundFunctionExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
   /// Creates a `PoundFunctionExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundFunctionExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1075,10 +1044,8 @@ public struct PoundDsohandleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
   /// Creates a `PoundDsohandleExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PoundDsohandleExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1135,10 +1102,8 @@ public struct SymbolicReferenceExprSyntax: ExprSyntaxProtocol, Hashable, Identif
   /// Creates a `SymbolicReferenceExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `SymbolicReferenceExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1213,10 +1178,8 @@ public struct PrefixOperatorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
   /// Creates a `PrefixOperatorExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PrefixOperatorExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1290,10 +1253,8 @@ public struct BinaryOperatorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
   /// Creates a `BinaryOperatorExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `BinaryOperatorExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1351,10 +1312,8 @@ public struct ArrowExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ArrowExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ArrowExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1446,10 +1405,8 @@ public struct FloatLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
   /// Creates a `FloatLiteralExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `FloatLiteralExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1507,10 +1464,8 @@ public struct TupleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `TupleExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `TupleExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1554,7 +1509,7 @@ public struct TupleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.elementList.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .tupleExprElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .tupleExprElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.elementList.rawValue,
                                      with: collection, arena: arena)
@@ -1624,10 +1579,8 @@ public struct ArrayExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ArrayExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ArrayExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1671,7 +1624,7 @@ public struct ArrayExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.elements.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .arrayElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .arrayElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.elements.rawValue,
                                      with: collection, arena: arena)
@@ -1741,10 +1694,8 @@ public struct DictionaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `DictionaryExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `DictionaryExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1838,10 +1789,8 @@ public struct IntegerLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
   /// Creates a `IntegerLiteralExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `IntegerLiteralExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1897,10 +1846,8 @@ public struct BooleanLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
   /// Creates a `BooleanLiteralExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `BooleanLiteralExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -1960,10 +1907,8 @@ public struct TernaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `TernaryExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `TernaryExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2098,10 +2043,8 @@ public struct MemberAccessExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
   /// Creates a `MemberAccessExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `MemberAccessExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2213,10 +2156,8 @@ public struct IsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `IsExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `IsExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2293,10 +2234,8 @@ public struct AsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `AsExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `AsExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2389,10 +2328,8 @@ public struct TypeExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `TypeExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `TypeExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2451,10 +2388,8 @@ public struct ClosureExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `ClosureExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ClosureExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2515,7 +2450,7 @@ public struct ClosureExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.statements.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .codeBlockItemList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .codeBlockItemList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.statements.rawValue,
                                      with: collection, arena: arena)
@@ -2584,10 +2519,8 @@ public struct UnresolvedPatternExprSyntax: ExprSyntaxProtocol, Hashable, Identif
   /// Creates a `UnresolvedPatternExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `UnresolvedPatternExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2648,10 +2581,8 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
   /// Creates a `FunctionCallExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `FunctionCallExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2712,7 +2643,7 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
     if let col = raw.children[Cursor.argumentList.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .tupleExprElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .tupleExprElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.argumentList.rawValue,
                                      with: collection, arena: arena)
@@ -2782,7 +2713,7 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
     if let col = raw.children[Cursor.additionalTrailingClosures.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .multipleTrailingClosureElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .multipleTrailingClosureElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.additionalTrailingClosures.rawValue,
                                      with: collection, arena: arena)
@@ -2839,10 +2770,8 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `SubscriptExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `SubscriptExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -2904,7 +2833,7 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.argumentList.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .tupleExprElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .tupleExprElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.argumentList.rawValue,
                                      with: collection, arena: arena)
@@ -2975,7 +2904,7 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
     if let col = raw.children[Cursor.additionalTrailingClosures.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .multipleTrailingClosureElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .multipleTrailingClosureElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.additionalTrailingClosures.rawValue,
                                      with: collection, arena: arena)
@@ -3028,10 +2957,8 @@ public struct OptionalChainingExprSyntax: ExprSyntaxProtocol, Hashable, Identifi
   /// Creates a `OptionalChainingExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `OptionalChainingExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3107,10 +3034,8 @@ public struct ForcedValueExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `ForcedValueExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ForcedValueExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3186,10 +3111,8 @@ public struct PostfixUnaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
   /// Creates a `PostfixUnaryExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PostfixUnaryExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3265,10 +3188,8 @@ public struct SpecializeExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `SpecializeExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `SpecializeExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3347,10 +3268,8 @@ public struct StringLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
   /// Creates a `StringLiteralExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `StringLiteralExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3411,7 +3330,7 @@ public struct StringLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
     if let col = raw.children[Cursor.segments.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .stringLiteralSegments)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .stringLiteralSegments, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.segments.rawValue,
                                      with: collection, arena: arena)
@@ -3498,10 +3417,8 @@ public struct RegexLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
   /// Creates a `RegexLiteralExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `RegexLiteralExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3559,10 +3476,8 @@ public struct KeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
   /// Creates a `KeyPathExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `KeyPathExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3655,10 +3570,8 @@ public struct KeyPathBaseExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `KeyPathBaseExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `KeyPathBaseExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3717,10 +3630,8 @@ public struct ObjcKeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
   /// Creates a `ObjcKeyPathExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ObjcKeyPathExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -3782,7 +3693,7 @@ public struct ObjcKeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
     if let col = raw.children[Cursor.name.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .objcName)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .objcName, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.name.rawValue,
                                      with: collection, arena: arena)
@@ -3856,10 +3767,8 @@ public struct ObjcSelectorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
   /// Creates a `ObjcSelectorExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ObjcSelectorExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -4009,10 +3918,8 @@ public struct PostfixIfConfigExprSyntax: ExprSyntaxProtocol, Hashable, Identifia
   /// Creates a `PostfixIfConfigExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `PostfixIfConfigExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -4086,10 +3993,8 @@ public struct EditorPlaceholderExprSyntax: ExprSyntaxProtocol, Hashable, Identif
   /// Creates a `EditorPlaceholderExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `EditorPlaceholderExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -4148,10 +4053,8 @@ public struct ObjectLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
   /// Creates a `ObjectLiteralExprSyntax` node from the given `SyntaxData`. This assumes
   /// that the `SyntaxData` is of the correct kind. If it is not, the behaviour
   /// is undefined.
-  /// FIXME:
-  /// Initialize `ObjectLiteralExprSyntax` unsafely assuming `syntax` is valid.
   @usableFromInline
-  init(data: SyntaxData) {
+  internal init(data: SyntaxData) {
     assert(Self.isValid(syntaxKind: data.raw.syntaxKind))
     self.syntax = Syntax(data: data)
   }
@@ -4213,7 +4116,7 @@ public struct ObjectLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
     if let col = raw.children[Cursor.arguments.rawValue] {
       collection = col.appending(element.raw, arena: self.arena)
     } else {
-      collection = RawSyntax.makeEmptyLayout(arena: arena, kind: .tupleExprElementList)
+      collection = RawSyntax.makeLayout(arena: arena, kind: .tupleExprElementList, from: [element.raw])
     }
     let newRaw = raw.replacingChild(at: Cursor.arguments.rawValue,
                                      with: collection, arena: arena)
