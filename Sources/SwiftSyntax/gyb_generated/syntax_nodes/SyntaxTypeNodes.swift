@@ -89,7 +89,12 @@ public struct SimpleTypeIdentifierSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withName(value)
     }
   }
-  public func withName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `name` replaced.
+  /// - param newChild: The new `name` to replace the node's
+  ///                   current `name`, if present.
+  public func withName(
+    _ newChild: TokenSyntax?) -> SimpleTypeIdentifierSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -107,7 +112,12 @@ public struct SimpleTypeIdentifierSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withGenericArgumentClause(value)
     }
   }
-  public func withGenericArgumentClause(_ newChild: GenericArgumentClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericArgumentClause` replaced.
+  /// - param newChild: The new `genericArgumentClause` to replace the node's
+  ///                   current `genericArgumentClause`, if present.
+  public func withGenericArgumentClause(
+    _ newChild: GenericArgumentClauseSyntax?) -> SimpleTypeIdentifierSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -119,7 +129,7 @@ public struct SimpleTypeIdentifierSyntax: TypeSyntaxProtocol, Hashable, Identifi
 extension SimpleTypeIdentifierSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "name": Syntax(name).asProtocol(SyntaxProtocol.self) as Any,
+      "name": Syntax(name).asProtocol(SyntaxProtocol.self),
       "genericArgumentClause": genericArgumentClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -167,7 +177,12 @@ public struct MemberTypeIdentifierSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withBaseType(value)
     }
   }
-  public func withBaseType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `baseType` replaced.
+  /// - param newChild: The new `baseType` to replace the node's
+  ///                   current `baseType`, if present.
+  public func withBaseType(
+    _ newChild: TypeSyntax?) -> MemberTypeIdentifierSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -185,7 +200,12 @@ public struct MemberTypeIdentifierSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withPeriod(value)
     }
   }
-  public func withPeriod(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `period` replaced.
+  /// - param newChild: The new `period` to replace the node's
+  ///                   current `period`, if present.
+  public func withPeriod(
+    _ newChild: TokenSyntax?) -> MemberTypeIdentifierSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .period).raw
 
@@ -203,7 +223,12 @@ public struct MemberTypeIdentifierSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withName(value)
     }
   }
-  public func withName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `name` replaced.
+  /// - param newChild: The new `name` to replace the node's
+  ///                   current `name`, if present.
+  public func withName(
+    _ newChild: TokenSyntax?) -> MemberTypeIdentifierSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -221,7 +246,12 @@ public struct MemberTypeIdentifierSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withGenericArgumentClause(value)
     }
   }
-  public func withGenericArgumentClause(_ newChild: GenericArgumentClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericArgumentClause` replaced.
+  /// - param newChild: The new `genericArgumentClause` to replace the node's
+  ///                   current `genericArgumentClause`, if present.
+  public func withGenericArgumentClause(
+    _ newChild: GenericArgumentClauseSyntax?) -> MemberTypeIdentifierSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -233,9 +263,9 @@ public struct MemberTypeIdentifierSyntax: TypeSyntaxProtocol, Hashable, Identifi
 extension MemberTypeIdentifierSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "baseType": Syntax(baseType).asProtocol(SyntaxProtocol.self) as Any,
-      "period": Syntax(period).asProtocol(SyntaxProtocol.self) as Any,
-      "name": Syntax(name).asProtocol(SyntaxProtocol.self) as Any,
+      "baseType": Syntax(baseType).asProtocol(SyntaxProtocol.self),
+      "period": Syntax(period).asProtocol(SyntaxProtocol.self),
+      "name": Syntax(name).asProtocol(SyntaxProtocol.self),
       "genericArgumentClause": genericArgumentClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -280,7 +310,12 @@ public struct ClassRestrictionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withClassKeyword(value)
     }
   }
-  public func withClassKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `classKeyword` replaced.
+  /// - param newChild: The new `classKeyword` to replace the node's
+  ///                   current `classKeyword`, if present.
+  public func withClassKeyword(
+    _ newChild: TokenSyntax?) -> ClassRestrictionTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .classKeyword).raw
 
@@ -293,7 +328,7 @@ public struct ClassRestrictionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifi
 extension ClassRestrictionTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "classKeyword": Syntax(classKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "classKeyword": Syntax(classKeyword).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -339,7 +374,12 @@ public struct ArrayTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withLeftSquareBracket(value)
     }
   }
-  public func withLeftSquareBracket(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftSquareBracket` replaced.
+  /// - param newChild: The new `leftSquareBracket` to replace the node's
+  ///                   current `leftSquareBracket`, if present.
+  public func withLeftSquareBracket(
+    _ newChild: TokenSyntax?) -> ArrayTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftSquareBracket).raw
 
@@ -357,7 +397,12 @@ public struct ArrayTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withElementType(value)
     }
   }
-  public func withElementType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elementType` replaced.
+  /// - param newChild: The new `elementType` to replace the node's
+  ///                   current `elementType`, if present.
+  public func withElementType(
+    _ newChild: TypeSyntax?) -> ArrayTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -375,7 +420,12 @@ public struct ArrayTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withRightSquareBracket(value)
     }
   }
-  public func withRightSquareBracket(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightSquareBracket` replaced.
+  /// - param newChild: The new `rightSquareBracket` to replace the node's
+  ///                   current `rightSquareBracket`, if present.
+  public func withRightSquareBracket(
+    _ newChild: TokenSyntax?) -> ArrayTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightSquareBracket).raw
 
@@ -388,9 +438,9 @@ public struct ArrayTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
 extension ArrayTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "leftSquareBracket": Syntax(leftSquareBracket).asProtocol(SyntaxProtocol.self) as Any,
-      "elementType": Syntax(elementType).asProtocol(SyntaxProtocol.self) as Any,
-      "rightSquareBracket": Syntax(rightSquareBracket).asProtocol(SyntaxProtocol.self) as Any,
+      "leftSquareBracket": Syntax(leftSquareBracket).asProtocol(SyntaxProtocol.self),
+      "elementType": Syntax(elementType).asProtocol(SyntaxProtocol.self),
+      "rightSquareBracket": Syntax(rightSquareBracket).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -438,7 +488,12 @@ public struct DictionaryTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withLeftSquareBracket(value)
     }
   }
-  public func withLeftSquareBracket(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftSquareBracket` replaced.
+  /// - param newChild: The new `leftSquareBracket` to replace the node's
+  ///                   current `leftSquareBracket`, if present.
+  public func withLeftSquareBracket(
+    _ newChild: TokenSyntax?) -> DictionaryTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftSquareBracket).raw
 
@@ -456,7 +511,12 @@ public struct DictionaryTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withKeyType(value)
     }
   }
-  public func withKeyType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `keyType` replaced.
+  /// - param newChild: The new `keyType` to replace the node's
+  ///                   current `keyType`, if present.
+  public func withKeyType(
+    _ newChild: TypeSyntax?) -> DictionaryTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -474,7 +534,12 @@ public struct DictionaryTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withColon(value)
     }
   }
-  public func withColon(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `colon` replaced.
+  /// - param newChild: The new `colon` to replace the node's
+  ///                   current `colon`, if present.
+  public func withColon(
+    _ newChild: TokenSyntax?) -> DictionaryTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .colon).raw
 
@@ -492,7 +557,12 @@ public struct DictionaryTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withValueType(value)
     }
   }
-  public func withValueType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `valueType` replaced.
+  /// - param newChild: The new `valueType` to replace the node's
+  ///                   current `valueType`, if present.
+  public func withValueType(
+    _ newChild: TypeSyntax?) -> DictionaryTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -510,7 +580,12 @@ public struct DictionaryTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withRightSquareBracket(value)
     }
   }
-  public func withRightSquareBracket(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightSquareBracket` replaced.
+  /// - param newChild: The new `rightSquareBracket` to replace the node's
+  ///                   current `rightSquareBracket`, if present.
+  public func withRightSquareBracket(
+    _ newChild: TokenSyntax?) -> DictionaryTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightSquareBracket).raw
 
@@ -523,11 +598,11 @@ public struct DictionaryTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
 extension DictionaryTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "leftSquareBracket": Syntax(leftSquareBracket).asProtocol(SyntaxProtocol.self) as Any,
-      "keyType": Syntax(keyType).asProtocol(SyntaxProtocol.self) as Any,
-      "colon": Syntax(colon).asProtocol(SyntaxProtocol.self) as Any,
-      "valueType": Syntax(valueType).asProtocol(SyntaxProtocol.self) as Any,
-      "rightSquareBracket": Syntax(rightSquareBracket).asProtocol(SyntaxProtocol.self) as Any,
+      "leftSquareBracket": Syntax(leftSquareBracket).asProtocol(SyntaxProtocol.self),
+      "keyType": Syntax(keyType).asProtocol(SyntaxProtocol.self),
+      "colon": Syntax(colon).asProtocol(SyntaxProtocol.self),
+      "valueType": Syntax(valueType).asProtocol(SyntaxProtocol.self),
+      "rightSquareBracket": Syntax(rightSquareBracket).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -573,7 +648,12 @@ public struct MetatypeTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withBaseType(value)
     }
   }
-  public func withBaseType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `baseType` replaced.
+  /// - param newChild: The new `baseType` to replace the node's
+  ///                   current `baseType`, if present.
+  public func withBaseType(
+    _ newChild: TypeSyntax?) -> MetatypeTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -591,7 +671,12 @@ public struct MetatypeTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withPeriod(value)
     }
   }
-  public func withPeriod(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `period` replaced.
+  /// - param newChild: The new `period` to replace the node's
+  ///                   current `period`, if present.
+  public func withPeriod(
+    _ newChild: TokenSyntax?) -> MetatypeTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .period).raw
 
@@ -609,7 +694,12 @@ public struct MetatypeTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withTypeOrProtocol(value)
     }
   }
-  public func withTypeOrProtocol(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `typeOrProtocol` replaced.
+  /// - param newChild: The new `typeOrProtocol` to replace the node's
+  ///                   current `typeOrProtocol`, if present.
+  public func withTypeOrProtocol(
+    _ newChild: TokenSyntax?) -> MetatypeTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -622,9 +712,9 @@ public struct MetatypeTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
 extension MetatypeTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "baseType": Syntax(baseType).asProtocol(SyntaxProtocol.self) as Any,
-      "period": Syntax(period).asProtocol(SyntaxProtocol.self) as Any,
-      "typeOrProtocol": Syntax(typeOrProtocol).asProtocol(SyntaxProtocol.self) as Any,
+      "baseType": Syntax(baseType).asProtocol(SyntaxProtocol.self),
+      "period": Syntax(period).asProtocol(SyntaxProtocol.self),
+      "typeOrProtocol": Syntax(typeOrProtocol).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -669,7 +759,12 @@ public struct OptionalTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withWrappedType(value)
     }
   }
-  public func withWrappedType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `wrappedType` replaced.
+  /// - param newChild: The new `wrappedType` to replace the node's
+  ///                   current `wrappedType`, if present.
+  public func withWrappedType(
+    _ newChild: TypeSyntax?) -> OptionalTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -687,7 +782,12 @@ public struct OptionalTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withQuestionMark(value)
     }
   }
-  public func withQuestionMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `questionMark` replaced.
+  /// - param newChild: The new `questionMark` to replace the node's
+  ///                   current `questionMark`, if present.
+  public func withQuestionMark(
+    _ newChild: TokenSyntax?) -> OptionalTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .postfixQuestionMark).raw
 
@@ -700,8 +800,8 @@ public struct OptionalTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
 extension OptionalTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "wrappedType": Syntax(wrappedType).asProtocol(SyntaxProtocol.self) as Any,
-      "questionMark": Syntax(questionMark).asProtocol(SyntaxProtocol.self) as Any,
+      "wrappedType": Syntax(wrappedType).asProtocol(SyntaxProtocol.self),
+      "questionMark": Syntax(questionMark).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -746,7 +846,12 @@ public struct ConstrainedSugarTypeSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withSomeOrAnySpecifier(value)
     }
   }
-  public func withSomeOrAnySpecifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `someOrAnySpecifier` replaced.
+  /// - param newChild: The new `someOrAnySpecifier` to replace the node's
+  ///                   current `someOrAnySpecifier`, if present.
+  public func withSomeOrAnySpecifier(
+    _ newChild: TokenSyntax?) -> ConstrainedSugarTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -764,7 +869,12 @@ public struct ConstrainedSugarTypeSyntax: TypeSyntaxProtocol, Hashable, Identifi
       self = withBaseType(value)
     }
   }
-  public func withBaseType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `baseType` replaced.
+  /// - param newChild: The new `baseType` to replace the node's
+  ///                   current `baseType`, if present.
+  public func withBaseType(
+    _ newChild: TypeSyntax?) -> ConstrainedSugarTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -777,8 +887,8 @@ public struct ConstrainedSugarTypeSyntax: TypeSyntaxProtocol, Hashable, Identifi
 extension ConstrainedSugarTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "someOrAnySpecifier": Syntax(someOrAnySpecifier).asProtocol(SyntaxProtocol.self) as Any,
-      "baseType": Syntax(baseType).asProtocol(SyntaxProtocol.self) as Any,
+      "someOrAnySpecifier": Syntax(someOrAnySpecifier).asProtocol(SyntaxProtocol.self),
+      "baseType": Syntax(baseType).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -823,7 +933,12 @@ public struct ImplicitlyUnwrappedOptionalTypeSyntax: TypeSyntaxProtocol, Hashabl
       self = withWrappedType(value)
     }
   }
-  public func withWrappedType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `wrappedType` replaced.
+  /// - param newChild: The new `wrappedType` to replace the node's
+  ///                   current `wrappedType`, if present.
+  public func withWrappedType(
+    _ newChild: TypeSyntax?) -> ImplicitlyUnwrappedOptionalTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -841,7 +956,12 @@ public struct ImplicitlyUnwrappedOptionalTypeSyntax: TypeSyntaxProtocol, Hashabl
       self = withExclamationMark(value)
     }
   }
-  public func withExclamationMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `exclamationMark` replaced.
+  /// - param newChild: The new `exclamationMark` to replace the node's
+  ///                   current `exclamationMark`, if present.
+  public func withExclamationMark(
+    _ newChild: TokenSyntax?) -> ImplicitlyUnwrappedOptionalTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .exclamationMark).raw
 
@@ -854,8 +974,8 @@ public struct ImplicitlyUnwrappedOptionalTypeSyntax: TypeSyntaxProtocol, Hashabl
 extension ImplicitlyUnwrappedOptionalTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "wrappedType": Syntax(wrappedType).asProtocol(SyntaxProtocol.self) as Any,
-      "exclamationMark": Syntax(exclamationMark).asProtocol(SyntaxProtocol.self) as Any,
+      "wrappedType": Syntax(wrappedType).asProtocol(SyntaxProtocol.self),
+      "exclamationMark": Syntax(exclamationMark).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -917,7 +1037,12 @@ public struct CompositionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable 
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withElements(_ newChild: CompositionTypeElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elements` replaced.
+  /// - param newChild: The new `elements` to replace the node's
+  ///                   current `elements`, if present.
+  public func withElements(
+    _ newChild: CompositionTypeElementListSyntax?) -> CompositionTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCompositionTypeElementListSyntax.makeBlank(arena: arena).raw
 
@@ -930,7 +1055,7 @@ public struct CompositionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable 
 extension CompositionTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self) as Any,
+      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -976,7 +1101,12 @@ public struct TupleTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> TupleTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -1012,7 +1142,12 @@ public struct TupleTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withElements(_ newChild: TupleTypeElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elements` replaced.
+  /// - param newChild: The new `elements` to replace the node's
+  ///                   current `elements`, if present.
+  public func withElements(
+    _ newChild: TupleTypeElementListSyntax?) -> TupleTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTupleTypeElementListSyntax.makeBlank(arena: arena).raw
 
@@ -1030,7 +1165,12 @@ public struct TupleTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> TupleTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -1043,9 +1183,9 @@ public struct TupleTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
 extension TupleTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
-      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
+      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self),
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1095,7 +1235,12 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> FunctionTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -1131,7 +1276,12 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withArguments(_ newChild: TupleTypeElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `arguments` replaced.
+  /// - param newChild: The new `arguments` to replace the node's
+  ///                   current `arguments`, if present.
+  public func withArguments(
+    _ newChild: TupleTypeElementListSyntax?) -> FunctionTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTupleTypeElementListSyntax.makeBlank(arena: arena).raw
 
@@ -1149,7 +1299,12 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> FunctionTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -1167,7 +1322,12 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withAsyncKeyword(value)
     }
   }
-  public func withAsyncKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `asyncKeyword` replaced.
+  /// - param newChild: The new `asyncKeyword` to replace the node's
+  ///                   current `asyncKeyword`, if present.
+  public func withAsyncKeyword(
+    _ newChild: TokenSyntax?) -> FunctionTypeSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1184,7 +1344,12 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withThrowsOrRethrowsKeyword(value)
     }
   }
-  public func withThrowsOrRethrowsKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `throwsOrRethrowsKeyword` replaced.
+  /// - param newChild: The new `throwsOrRethrowsKeyword` to replace the node's
+  ///                   current `throwsOrRethrowsKeyword`, if present.
+  public func withThrowsOrRethrowsKeyword(
+    _ newChild: TokenSyntax?) -> FunctionTypeSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1201,7 +1366,12 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withArrow(value)
     }
   }
-  public func withArrow(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `arrow` replaced.
+  /// - param newChild: The new `arrow` to replace the node's
+  ///                   current `arrow`, if present.
+  public func withArrow(
+    _ newChild: TokenSyntax?) -> FunctionTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .arrow).raw
 
@@ -1219,7 +1389,12 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withReturnType(value)
     }
   }
-  public func withReturnType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `returnType` replaced.
+  /// - param newChild: The new `returnType` to replace the node's
+  ///                   current `returnType`, if present.
+  public func withReturnType(
+    _ newChild: TypeSyntax?) -> FunctionTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -1232,13 +1407,13 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
 extension FunctionTypeSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
-      "arguments": Syntax(arguments).asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
+      "arguments": Syntax(arguments).asProtocol(SyntaxProtocol.self),
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
       "asyncKeyword": asyncKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "throwsOrRethrowsKeyword": throwsOrRethrowsKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "arrow": Syntax(arrow).asProtocol(SyntaxProtocol.self) as Any,
-      "returnType": Syntax(returnType).asProtocol(SyntaxProtocol.self) as Any,
+      "arrow": Syntax(arrow).asProtocol(SyntaxProtocol.self),
+      "returnType": Syntax(returnType).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1284,7 +1459,12 @@ public struct AttributedTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withSpecifier(value)
     }
   }
-  public func withSpecifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `specifier` replaced.
+  /// - param newChild: The new `specifier` to replace the node's
+  ///                   current `specifier`, if present.
+  public func withSpecifier(
+    _ newChild: TokenSyntax?) -> AttributedTypeSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1319,7 +1499,12 @@ public struct AttributedTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> AttributedTypeSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1336,7 +1521,12 @@ public struct AttributedTypeSyntax: TypeSyntaxProtocol, Hashable, Identifiable {
       self = withBaseType(value)
     }
   }
-  public func withBaseType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `baseType` replaced.
+  /// - param newChild: The new `baseType` to replace the node's
+  ///                   current `baseType`, if present.
+  public func withBaseType(
+    _ newChild: TypeSyntax?) -> AttributedTypeSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -1351,7 +1541,7 @@ extension AttributedTypeSyntax: CustomReflectable {
     return Mirror(self, children: [
       "specifier": specifier.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "baseType": Syntax(baseType).asProtocol(SyntaxProtocol.self) as Any,
+      "baseType": Syntax(baseType).asProtocol(SyntaxProtocol.self),
     ])
   }
 }

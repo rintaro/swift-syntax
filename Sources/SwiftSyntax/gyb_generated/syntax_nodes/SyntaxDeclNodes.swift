@@ -112,7 +112,12 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> TypealiasDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -147,7 +152,12 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> TypealiasDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -164,7 +174,12 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withTypealiasKeyword(value)
     }
   }
-  public func withTypealiasKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `typealiasKeyword` replaced.
+  /// - param newChild: The new `typealiasKeyword` to replace the node's
+  ///                   current `typealiasKeyword`, if present.
+  public func withTypealiasKeyword(
+    _ newChild: TokenSyntax?) -> TypealiasDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .typealiasKeyword).raw
 
@@ -182,7 +197,12 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> TypealiasDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -200,7 +220,12 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericParameterClause(value)
     }
   }
-  public func withGenericParameterClause(_ newChild: GenericParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericParameterClause` replaced.
+  /// - param newChild: The new `genericParameterClause` to replace the node's
+  ///                   current `genericParameterClause`, if present.
+  public func withGenericParameterClause(
+    _ newChild: GenericParameterClauseSyntax?) -> TypealiasDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -217,7 +242,12 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withInitializer(value)
     }
   }
-  public func withInitializer(_ newChild: TypeInitializerClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `initializer` replaced.
+  /// - param newChild: The new `initializer` to replace the node's
+  ///                   current `initializer`, if present.
+  public func withInitializer(
+    _ newChild: TypeInitializerClauseSyntax?) -> TypealiasDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeInitializerClauseSyntax.makeBlank(arena: arena).raw
 
@@ -235,7 +265,12 @@ public struct TypealiasDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> TypealiasDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -249,10 +284,10 @@ extension TypealiasDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "typealiasKeyword": Syntax(typealiasKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "typealiasKeyword": Syntax(typealiasKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "genericParameterClause": genericParameterClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "initializer": Syntax(initializer).asProtocol(SyntaxProtocol.self) as Any,
+      "initializer": Syntax(initializer).asProtocol(SyntaxProtocol.self),
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -321,7 +356,12 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> AssociatedtypeDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -356,7 +396,12 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> AssociatedtypeDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -373,7 +418,12 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
       self = withAssociatedtypeKeyword(value)
     }
   }
-  public func withAssociatedtypeKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `associatedtypeKeyword` replaced.
+  /// - param newChild: The new `associatedtypeKeyword` to replace the node's
+  ///                   current `associatedtypeKeyword`, if present.
+  public func withAssociatedtypeKeyword(
+    _ newChild: TokenSyntax?) -> AssociatedtypeDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .associatedtypeKeyword).raw
 
@@ -391,7 +441,12 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> AssociatedtypeDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -409,7 +464,12 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
       self = withInheritanceClause(value)
     }
   }
-  public func withInheritanceClause(_ newChild: TypeInheritanceClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `inheritanceClause` replaced.
+  /// - param newChild: The new `inheritanceClause` to replace the node's
+  ///                   current `inheritanceClause`, if present.
+  public func withInheritanceClause(
+    _ newChild: TypeInheritanceClauseSyntax?) -> AssociatedtypeDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -426,7 +486,12 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
       self = withInitializer(value)
     }
   }
-  public func withInitializer(_ newChild: TypeInitializerClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `initializer` replaced.
+  /// - param newChild: The new `initializer` to replace the node's
+  ///                   current `initializer`, if present.
+  public func withInitializer(
+    _ newChild: TypeInitializerClauseSyntax?) -> AssociatedtypeDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -443,7 +508,12 @@ public struct AssociatedtypeDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiab
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> AssociatedtypeDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -457,8 +527,8 @@ extension AssociatedtypeDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "associatedtypeKeyword": Syntax(associatedtypeKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "associatedtypeKeyword": Syntax(associatedtypeKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "inheritanceClause": inheritanceClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "initializer": initializer.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
@@ -524,7 +594,12 @@ public struct IfConfigDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withClauses(_ newChild: IfConfigClauseListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `clauses` replaced.
+  /// - param newChild: The new `clauses` to replace the node's
+  ///                   current `clauses`, if present.
+  public func withClauses(
+    _ newChild: IfConfigClauseListSyntax?) -> IfConfigDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawIfConfigClauseListSyntax.makeBlank(arena: arena).raw
 
@@ -542,7 +617,12 @@ public struct IfConfigDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withPoundEndif(value)
     }
   }
-  public func withPoundEndif(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundEndif` replaced.
+  /// - param newChild: The new `poundEndif` to replace the node's
+  ///                   current `poundEndif`, if present.
+  public func withPoundEndif(
+    _ newChild: TokenSyntax?) -> IfConfigDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundEndifKeyword).raw
 
@@ -555,8 +635,8 @@ public struct IfConfigDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
 extension IfConfigDeclSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "clauses": Syntax(clauses).asProtocol(SyntaxProtocol.self) as Any,
-      "poundEndif": Syntax(poundEndif).asProtocol(SyntaxProtocol.self) as Any,
+      "clauses": Syntax(clauses).asProtocol(SyntaxProtocol.self),
+      "poundEndif": Syntax(poundEndif).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -603,7 +683,12 @@ public struct PoundErrorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withPoundError(value)
     }
   }
-  public func withPoundError(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundError` replaced.
+  /// - param newChild: The new `poundError` to replace the node's
+  ///                   current `poundError`, if present.
+  public func withPoundError(
+    _ newChild: TokenSyntax?) -> PoundErrorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundErrorKeyword).raw
 
@@ -621,7 +706,12 @@ public struct PoundErrorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> PoundErrorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -639,7 +729,12 @@ public struct PoundErrorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withMessage(value)
     }
   }
-  public func withMessage(_ newChild: StringLiteralExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `message` replaced.
+  /// - param newChild: The new `message` to replace the node's
+  ///                   current `message`, if present.
+  public func withMessage(
+    _ newChild: StringLiteralExprSyntax?) -> PoundErrorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawStringLiteralExprSyntax.makeBlank(arena: arena).raw
 
@@ -657,7 +752,12 @@ public struct PoundErrorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> PoundErrorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -670,10 +770,10 @@ public struct PoundErrorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
 extension PoundErrorDeclSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundError": Syntax(poundError).asProtocol(SyntaxProtocol.self) as Any,
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
-      "message": Syntax(message).asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "poundError": Syntax(poundError).asProtocol(SyntaxProtocol.self),
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
+      "message": Syntax(message).asProtocol(SyntaxProtocol.self),
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -720,7 +820,12 @@ public struct PoundWarningDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable
       self = withPoundWarning(value)
     }
   }
-  public func withPoundWarning(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundWarning` replaced.
+  /// - param newChild: The new `poundWarning` to replace the node's
+  ///                   current `poundWarning`, if present.
+  public func withPoundWarning(
+    _ newChild: TokenSyntax?) -> PoundWarningDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundWarningKeyword).raw
 
@@ -738,7 +843,12 @@ public struct PoundWarningDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> PoundWarningDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -756,7 +866,12 @@ public struct PoundWarningDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable
       self = withMessage(value)
     }
   }
-  public func withMessage(_ newChild: StringLiteralExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `message` replaced.
+  /// - param newChild: The new `message` to replace the node's
+  ///                   current `message`, if present.
+  public func withMessage(
+    _ newChild: StringLiteralExprSyntax?) -> PoundWarningDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawStringLiteralExprSyntax.makeBlank(arena: arena).raw
 
@@ -774,7 +889,12 @@ public struct PoundWarningDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> PoundWarningDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -787,10 +907,10 @@ public struct PoundWarningDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable
 extension PoundWarningDeclSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundWarning": Syntax(poundWarning).asProtocol(SyntaxProtocol.self) as Any,
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
-      "message": Syntax(message).asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "poundWarning": Syntax(poundWarning).asProtocol(SyntaxProtocol.self),
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
+      "message": Syntax(message).asProtocol(SyntaxProtocol.self),
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -837,7 +957,12 @@ public struct PoundSourceLocationSyntax: DeclSyntaxProtocol, Hashable, Identifia
       self = withPoundSourceLocation(value)
     }
   }
-  public func withPoundSourceLocation(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundSourceLocation` replaced.
+  /// - param newChild: The new `poundSourceLocation` to replace the node's
+  ///                   current `poundSourceLocation`, if present.
+  public func withPoundSourceLocation(
+    _ newChild: TokenSyntax?) -> PoundSourceLocationSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundSourceLocationKeyword).raw
 
@@ -855,7 +980,12 @@ public struct PoundSourceLocationSyntax: DeclSyntaxProtocol, Hashable, Identifia
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> PoundSourceLocationSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -873,7 +1003,12 @@ public struct PoundSourceLocationSyntax: DeclSyntaxProtocol, Hashable, Identifia
       self = withArgs(value)
     }
   }
-  public func withArgs(_ newChild: PoundSourceLocationArgsSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `args` replaced.
+  /// - param newChild: The new `args` to replace the node's
+  ///                   current `args`, if present.
+  public func withArgs(
+    _ newChild: PoundSourceLocationArgsSyntax?) -> PoundSourceLocationSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -890,7 +1025,12 @@ public struct PoundSourceLocationSyntax: DeclSyntaxProtocol, Hashable, Identifia
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> PoundSourceLocationSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -903,10 +1043,10 @@ public struct PoundSourceLocationSyntax: DeclSyntaxProtocol, Hashable, Identifia
 extension PoundSourceLocationSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundSourceLocation": Syntax(poundSourceLocation).asProtocol(SyntaxProtocol.self) as Any,
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
+      "poundSourceLocation": Syntax(poundSourceLocation).asProtocol(SyntaxProtocol.self),
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
       "args": args.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -975,7 +1115,12 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> ClassDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1010,7 +1155,12 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> ClassDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1027,7 +1177,12 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withClassKeyword(value)
     }
   }
-  public func withClassKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `classKeyword` replaced.
+  /// - param newChild: The new `classKeyword` to replace the node's
+  ///                   current `classKeyword`, if present.
+  public func withClassKeyword(
+    _ newChild: TokenSyntax?) -> ClassDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .classKeyword).raw
 
@@ -1045,7 +1200,12 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> ClassDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -1063,7 +1223,12 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericParameterClause(value)
     }
   }
-  public func withGenericParameterClause(_ newChild: GenericParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericParameterClause` replaced.
+  /// - param newChild: The new `genericParameterClause` to replace the node's
+  ///                   current `genericParameterClause`, if present.
+  public func withGenericParameterClause(
+    _ newChild: GenericParameterClauseSyntax?) -> ClassDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1080,7 +1245,12 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withInheritanceClause(value)
     }
   }
-  public func withInheritanceClause(_ newChild: TypeInheritanceClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `inheritanceClause` replaced.
+  /// - param newChild: The new `inheritanceClause` to replace the node's
+  ///                   current `inheritanceClause`, if present.
+  public func withInheritanceClause(
+    _ newChild: TypeInheritanceClauseSyntax?) -> ClassDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1097,7 +1267,12 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> ClassDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1114,7 +1289,12 @@ public struct ClassDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withMembers(value)
     }
   }
-  public func withMembers(_ newChild: MemberDeclBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `members` replaced.
+  /// - param newChild: The new `members` to replace the node's
+  ///                   current `members`, if present.
+  public func withMembers(
+    _ newChild: MemberDeclBlockSyntax?) -> ClassDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawMemberDeclBlockSyntax.makeBlank(arena: arena).raw
 
@@ -1129,12 +1309,12 @@ extension ClassDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "classKeyword": Syntax(classKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "classKeyword": Syntax(classKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "genericParameterClause": genericParameterClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "inheritanceClause": inheritanceClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "members": Syntax(members).asProtocol(SyntaxProtocol.self) as Any,
+      "members": Syntax(members).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1203,7 +1383,12 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> ActorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1238,7 +1423,12 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> ActorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1255,7 +1445,12 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withActorKeyword(value)
     }
   }
-  public func withActorKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `actorKeyword` replaced.
+  /// - param newChild: The new `actorKeyword` to replace the node's
+  ///                   current `actorKeyword`, if present.
+  public func withActorKeyword(
+    _ newChild: TokenSyntax?) -> ActorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .contextualKeyword).raw
 
@@ -1273,7 +1468,12 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> ActorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -1291,7 +1491,12 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericParameterClause(value)
     }
   }
-  public func withGenericParameterClause(_ newChild: GenericParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericParameterClause` replaced.
+  /// - param newChild: The new `genericParameterClause` to replace the node's
+  ///                   current `genericParameterClause`, if present.
+  public func withGenericParameterClause(
+    _ newChild: GenericParameterClauseSyntax?) -> ActorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1308,7 +1513,12 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withInheritanceClause(value)
     }
   }
-  public func withInheritanceClause(_ newChild: TypeInheritanceClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `inheritanceClause` replaced.
+  /// - param newChild: The new `inheritanceClause` to replace the node's
+  ///                   current `inheritanceClause`, if present.
+  public func withInheritanceClause(
+    _ newChild: TypeInheritanceClauseSyntax?) -> ActorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1325,7 +1535,12 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> ActorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1342,7 +1557,12 @@ public struct ActorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withMembers(value)
     }
   }
-  public func withMembers(_ newChild: MemberDeclBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `members` replaced.
+  /// - param newChild: The new `members` to replace the node's
+  ///                   current `members`, if present.
+  public func withMembers(
+    _ newChild: MemberDeclBlockSyntax?) -> ActorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawMemberDeclBlockSyntax.makeBlank(arena: arena).raw
 
@@ -1357,12 +1577,12 @@ extension ActorDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "actorKeyword": Syntax(actorKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "actorKeyword": Syntax(actorKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "genericParameterClause": genericParameterClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "inheritanceClause": inheritanceClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "members": Syntax(members).asProtocol(SyntaxProtocol.self) as Any,
+      "members": Syntax(members).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1431,7 +1651,12 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> StructDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1466,7 +1691,12 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> StructDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1483,7 +1713,12 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withStructKeyword(value)
     }
   }
-  public func withStructKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `structKeyword` replaced.
+  /// - param newChild: The new `structKeyword` to replace the node's
+  ///                   current `structKeyword`, if present.
+  public func withStructKeyword(
+    _ newChild: TokenSyntax?) -> StructDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .structKeyword).raw
 
@@ -1501,7 +1736,12 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> StructDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -1519,7 +1759,12 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericParameterClause(value)
     }
   }
-  public func withGenericParameterClause(_ newChild: GenericParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericParameterClause` replaced.
+  /// - param newChild: The new `genericParameterClause` to replace the node's
+  ///                   current `genericParameterClause`, if present.
+  public func withGenericParameterClause(
+    _ newChild: GenericParameterClauseSyntax?) -> StructDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1536,7 +1781,12 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withInheritanceClause(value)
     }
   }
-  public func withInheritanceClause(_ newChild: TypeInheritanceClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `inheritanceClause` replaced.
+  /// - param newChild: The new `inheritanceClause` to replace the node's
+  ///                   current `inheritanceClause`, if present.
+  public func withInheritanceClause(
+    _ newChild: TypeInheritanceClauseSyntax?) -> StructDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1553,7 +1803,12 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> StructDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1570,7 +1825,12 @@ public struct StructDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withMembers(value)
     }
   }
-  public func withMembers(_ newChild: MemberDeclBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `members` replaced.
+  /// - param newChild: The new `members` to replace the node's
+  ///                   current `members`, if present.
+  public func withMembers(
+    _ newChild: MemberDeclBlockSyntax?) -> StructDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawMemberDeclBlockSyntax.makeBlank(arena: arena).raw
 
@@ -1585,12 +1845,12 @@ extension StructDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "structKeyword": Syntax(structKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "structKeyword": Syntax(structKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "genericParameterClause": genericParameterClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "inheritanceClause": inheritanceClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "members": Syntax(members).asProtocol(SyntaxProtocol.self) as Any,
+      "members": Syntax(members).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1659,7 +1919,12 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> ProtocolDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1694,7 +1959,12 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> ProtocolDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1711,7 +1981,12 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withProtocolKeyword(value)
     }
   }
-  public func withProtocolKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `protocolKeyword` replaced.
+  /// - param newChild: The new `protocolKeyword` to replace the node's
+  ///                   current `protocolKeyword`, if present.
+  public func withProtocolKeyword(
+    _ newChild: TokenSyntax?) -> ProtocolDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .protocolKeyword).raw
 
@@ -1729,7 +2004,12 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> ProtocolDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -1747,7 +2027,12 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withPrimaryAssociatedTypeClause(value)
     }
   }
-  public func withPrimaryAssociatedTypeClause(_ newChild: PrimaryAssociatedTypeClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `primaryAssociatedTypeClause` replaced.
+  /// - param newChild: The new `primaryAssociatedTypeClause` to replace the node's
+  ///                   current `primaryAssociatedTypeClause`, if present.
+  public func withPrimaryAssociatedTypeClause(
+    _ newChild: PrimaryAssociatedTypeClauseSyntax?) -> ProtocolDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1764,7 +2049,12 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withInheritanceClause(value)
     }
   }
-  public func withInheritanceClause(_ newChild: TypeInheritanceClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `inheritanceClause` replaced.
+  /// - param newChild: The new `inheritanceClause` to replace the node's
+  ///                   current `inheritanceClause`, if present.
+  public func withInheritanceClause(
+    _ newChild: TypeInheritanceClauseSyntax?) -> ProtocolDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1781,7 +2071,12 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> ProtocolDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1798,7 +2093,12 @@ public struct ProtocolDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withMembers(value)
     }
   }
-  public func withMembers(_ newChild: MemberDeclBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `members` replaced.
+  /// - param newChild: The new `members` to replace the node's
+  ///                   current `members`, if present.
+  public func withMembers(
+    _ newChild: MemberDeclBlockSyntax?) -> ProtocolDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawMemberDeclBlockSyntax.makeBlank(arena: arena).raw
 
@@ -1813,12 +2113,12 @@ extension ProtocolDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "protocolKeyword": Syntax(protocolKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "protocolKeyword": Syntax(protocolKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "primaryAssociatedTypeClause": primaryAssociatedTypeClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "inheritanceClause": inheritanceClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "members": Syntax(members).asProtocol(SyntaxProtocol.self) as Any,
+      "members": Syntax(members).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1886,7 +2186,12 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> ExtensionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1921,7 +2226,12 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> ExtensionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1938,7 +2248,12 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withExtensionKeyword(value)
     }
   }
-  public func withExtensionKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `extensionKeyword` replaced.
+  /// - param newChild: The new `extensionKeyword` to replace the node's
+  ///                   current `extensionKeyword`, if present.
+  public func withExtensionKeyword(
+    _ newChild: TokenSyntax?) -> ExtensionDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .extensionKeyword).raw
 
@@ -1956,7 +2271,12 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withExtendedType(value)
     }
   }
-  public func withExtendedType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `extendedType` replaced.
+  /// - param newChild: The new `extendedType` to replace the node's
+  ///                   current `extendedType`, if present.
+  public func withExtendedType(
+    _ newChild: TypeSyntax?) -> ExtensionDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -1974,7 +2294,12 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withInheritanceClause(value)
     }
   }
-  public func withInheritanceClause(_ newChild: TypeInheritanceClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `inheritanceClause` replaced.
+  /// - param newChild: The new `inheritanceClause` to replace the node's
+  ///                   current `inheritanceClause`, if present.
+  public func withInheritanceClause(
+    _ newChild: TypeInheritanceClauseSyntax?) -> ExtensionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1991,7 +2316,12 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> ExtensionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2008,7 +2338,12 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withMembers(value)
     }
   }
-  public func withMembers(_ newChild: MemberDeclBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `members` replaced.
+  /// - param newChild: The new `members` to replace the node's
+  ///                   current `members`, if present.
+  public func withMembers(
+    _ newChild: MemberDeclBlockSyntax?) -> ExtensionDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawMemberDeclBlockSyntax.makeBlank(arena: arena).raw
 
@@ -2023,11 +2358,11 @@ extension ExtensionDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "extensionKeyword": Syntax(extensionKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "extendedType": Syntax(extendedType).asProtocol(SyntaxProtocol.self) as Any,
+      "extensionKeyword": Syntax(extensionKeyword).asProtocol(SyntaxProtocol.self),
+      "extendedType": Syntax(extendedType).asProtocol(SyntaxProtocol.self),
       "inheritanceClause": inheritanceClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "members": Syntax(members).asProtocol(SyntaxProtocol.self) as Any,
+      "members": Syntax(members).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -2096,7 +2431,12 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> FunctionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2131,7 +2471,12 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> FunctionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2148,7 +2493,12 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withFuncKeyword(value)
     }
   }
-  public func withFuncKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `funcKeyword` replaced.
+  /// - param newChild: The new `funcKeyword` to replace the node's
+  ///                   current `funcKeyword`, if present.
+  public func withFuncKeyword(
+    _ newChild: TokenSyntax?) -> FunctionDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .funcKeyword).raw
 
@@ -2166,7 +2516,12 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> FunctionDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -2184,7 +2539,12 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericParameterClause(value)
     }
   }
-  public func withGenericParameterClause(_ newChild: GenericParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericParameterClause` replaced.
+  /// - param newChild: The new `genericParameterClause` to replace the node's
+  ///                   current `genericParameterClause`, if present.
+  public func withGenericParameterClause(
+    _ newChild: GenericParameterClauseSyntax?) -> FunctionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2201,7 +2561,12 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withSignature(value)
     }
   }
-  public func withSignature(_ newChild: FunctionSignatureSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `signature` replaced.
+  /// - param newChild: The new `signature` to replace the node's
+  ///                   current `signature`, if present.
+  public func withSignature(
+    _ newChild: FunctionSignatureSyntax?) -> FunctionDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawFunctionSignatureSyntax.makeBlank(arena: arena).raw
 
@@ -2219,7 +2584,12 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> FunctionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2236,7 +2606,12 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> FunctionDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2250,10 +2625,10 @@ extension FunctionDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "funcKeyword": Syntax(funcKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "funcKeyword": Syntax(funcKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "genericParameterClause": genericParameterClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "signature": Syntax(signature).asProtocol(SyntaxProtocol.self) as Any,
+      "signature": Syntax(signature).asProtocol(SyntaxProtocol.self),
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "body": body.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
@@ -2324,7 +2699,12 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> InitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2359,7 +2739,12 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> InitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2376,7 +2761,12 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
       self = withInitKeyword(value)
     }
   }
-  public func withInitKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `initKeyword` replaced.
+  /// - param newChild: The new `initKeyword` to replace the node's
+  ///                   current `initKeyword`, if present.
+  public func withInitKeyword(
+    _ newChild: TokenSyntax?) -> InitializerDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .initKeyword).raw
 
@@ -2394,7 +2784,12 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
       self = withOptionalMark(value)
     }
   }
-  public func withOptionalMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `optionalMark` replaced.
+  /// - param newChild: The new `optionalMark` to replace the node's
+  ///                   current `optionalMark`, if present.
+  public func withOptionalMark(
+    _ newChild: TokenSyntax?) -> InitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2411,7 +2806,12 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
       self = withGenericParameterClause(value)
     }
   }
-  public func withGenericParameterClause(_ newChild: GenericParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericParameterClause` replaced.
+  /// - param newChild: The new `genericParameterClause` to replace the node's
+  ///                   current `genericParameterClause`, if present.
+  public func withGenericParameterClause(
+    _ newChild: GenericParameterClauseSyntax?) -> InitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2428,7 +2828,12 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
       self = withSignature(value)
     }
   }
-  public func withSignature(_ newChild: FunctionSignatureSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `signature` replaced.
+  /// - param newChild: The new `signature` to replace the node's
+  ///                   current `signature`, if present.
+  public func withSignature(
+    _ newChild: FunctionSignatureSyntax?) -> InitializerDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawFunctionSignatureSyntax.makeBlank(arena: arena).raw
 
@@ -2446,7 +2851,12 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> InitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2463,7 +2873,12 @@ public struct InitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable 
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> InitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2477,10 +2892,10 @@ extension InitializerDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "initKeyword": Syntax(initKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "initKeyword": Syntax(initKeyword).asProtocol(SyntaxProtocol.self),
       "optionalMark": optionalMark.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "genericParameterClause": genericParameterClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "signature": Syntax(signature).asProtocol(SyntaxProtocol.self) as Any,
+      "signature": Syntax(signature).asProtocol(SyntaxProtocol.self),
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "body": body.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
@@ -2547,7 +2962,12 @@ public struct DeinitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiabl
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> DeinitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2582,7 +3002,12 @@ public struct DeinitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiabl
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> DeinitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2599,7 +3024,12 @@ public struct DeinitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiabl
       self = withDeinitKeyword(value)
     }
   }
-  public func withDeinitKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `deinitKeyword` replaced.
+  /// - param newChild: The new `deinitKeyword` to replace the node's
+  ///                   current `deinitKeyword`, if present.
+  public func withDeinitKeyword(
+    _ newChild: TokenSyntax?) -> DeinitializerDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .deinitKeyword).raw
 
@@ -2617,7 +3047,12 @@ public struct DeinitializerDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiabl
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> DeinitializerDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2631,7 +3066,7 @@ extension DeinitializerDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "deinitKeyword": Syntax(deinitKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "deinitKeyword": Syntax(deinitKeyword).asProtocol(SyntaxProtocol.self),
       "body": body.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -2701,7 +3136,12 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> SubscriptDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2736,7 +3176,12 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> SubscriptDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2753,7 +3198,12 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withSubscriptKeyword(value)
     }
   }
-  public func withSubscriptKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `subscriptKeyword` replaced.
+  /// - param newChild: The new `subscriptKeyword` to replace the node's
+  ///                   current `subscriptKeyword`, if present.
+  public func withSubscriptKeyword(
+    _ newChild: TokenSyntax?) -> SubscriptDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .subscriptKeyword).raw
 
@@ -2771,7 +3221,12 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericParameterClause(value)
     }
   }
-  public func withGenericParameterClause(_ newChild: GenericParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericParameterClause` replaced.
+  /// - param newChild: The new `genericParameterClause` to replace the node's
+  ///                   current `genericParameterClause`, if present.
+  public func withGenericParameterClause(
+    _ newChild: GenericParameterClauseSyntax?) -> SubscriptDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2788,7 +3243,12 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIndices(value)
     }
   }
-  public func withIndices(_ newChild: ParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `indices` replaced.
+  /// - param newChild: The new `indices` to replace the node's
+  ///                   current `indices`, if present.
+  public func withIndices(
+    _ newChild: ParameterClauseSyntax?) -> SubscriptDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawParameterClauseSyntax.makeBlank(arena: arena).raw
 
@@ -2806,7 +3266,12 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withResult(value)
     }
   }
-  public func withResult(_ newChild: ReturnClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `result` replaced.
+  /// - param newChild: The new `result` to replace the node's
+  ///                   current `result`, if present.
+  public func withResult(
+    _ newChild: ReturnClauseSyntax?) -> SubscriptDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawReturnClauseSyntax.makeBlank(arena: arena).raw
 
@@ -2824,7 +3289,12 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> SubscriptDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2841,7 +3311,12 @@ public struct SubscriptDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withAccessor(value)
     }
   }
-  public func withAccessor(_ newChild: Syntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `accessor` replaced.
+  /// - param newChild: The new `accessor` to replace the node's
+  ///                   current `accessor`, if present.
+  public func withAccessor(
+    _ newChild: Syntax?) -> SubscriptDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2855,10 +3330,10 @@ extension SubscriptDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "subscriptKeyword": Syntax(subscriptKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "subscriptKeyword": Syntax(subscriptKeyword).asProtocol(SyntaxProtocol.self),
       "genericParameterClause": genericParameterClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "indices": Syntax(indices).asProtocol(SyntaxProtocol.self) as Any,
-      "result": Syntax(result).asProtocol(SyntaxProtocol.self) as Any,
+      "indices": Syntax(indices).asProtocol(SyntaxProtocol.self),
+      "result": Syntax(result).asProtocol(SyntaxProtocol.self),
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "accessor": accessor.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
@@ -2926,7 +3401,12 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> ImportDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2961,7 +3441,12 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> ImportDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2978,7 +3463,12 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withImportTok(value)
     }
   }
-  public func withImportTok(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `importTok` replaced.
+  /// - param newChild: The new `importTok` to replace the node's
+  ///                   current `importTok`, if present.
+  public func withImportTok(
+    _ newChild: TokenSyntax?) -> ImportDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .importKeyword).raw
 
@@ -2996,7 +3486,12 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withImportKind(value)
     }
   }
-  public func withImportKind(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `importKind` replaced.
+  /// - param newChild: The new `importKind` to replace the node's
+  ///                   current `importKind`, if present.
+  public func withImportKind(
+    _ newChild: TokenSyntax?) -> ImportDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3031,7 +3526,12 @@ public struct ImportDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withPath(_ newChild: AccessPathSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `path` replaced.
+  /// - param newChild: The new `path` to replace the node's
+  ///                   current `path`, if present.
+  public func withPath(
+    _ newChild: AccessPathSyntax?) -> ImportDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawAccessPathSyntax.makeBlank(arena: arena).raw
 
@@ -3046,9 +3546,9 @@ extension ImportDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "importTok": Syntax(importTok).asProtocol(SyntaxProtocol.self) as Any,
+      "importTok": Syntax(importTok).asProtocol(SyntaxProtocol.self),
       "importKind": importKind.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "path": Syntax(path).asProtocol(SyntaxProtocol.self) as Any,
+      "path": Syntax(path).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3116,7 +3616,12 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> AccessorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3133,7 +3638,12 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withModifier(value)
     }
   }
-  public func withModifier(_ newChild: DeclModifierSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifier` replaced.
+  /// - param newChild: The new `modifier` to replace the node's
+  ///                   current `modifier`, if present.
+  public func withModifier(
+    _ newChild: DeclModifierSyntax?) -> AccessorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3150,7 +3660,12 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withAccessorKind(value)
     }
   }
-  public func withAccessorKind(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `accessorKind` replaced.
+  /// - param newChild: The new `accessorKind` to replace the node's
+  ///                   current `accessorKind`, if present.
+  public func withAccessorKind(
+    _ newChild: TokenSyntax?) -> AccessorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .unknown).raw
 
@@ -3168,7 +3683,12 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withParameter(value)
     }
   }
-  public func withParameter(_ newChild: AccessorParameterSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `parameter` replaced.
+  /// - param newChild: The new `parameter` to replace the node's
+  ///                   current `parameter`, if present.
+  public func withParameter(
+    _ newChild: AccessorParameterSyntax?) -> AccessorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3185,7 +3705,12 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withAsyncKeyword(value)
     }
   }
-  public func withAsyncKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `asyncKeyword` replaced.
+  /// - param newChild: The new `asyncKeyword` to replace the node's
+  ///                   current `asyncKeyword`, if present.
+  public func withAsyncKeyword(
+    _ newChild: TokenSyntax?) -> AccessorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3202,7 +3727,12 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withThrowsKeyword(value)
     }
   }
-  public func withThrowsKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `throwsKeyword` replaced.
+  /// - param newChild: The new `throwsKeyword` to replace the node's
+  ///                   current `throwsKeyword`, if present.
+  public func withThrowsKeyword(
+    _ newChild: TokenSyntax?) -> AccessorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3219,7 +3749,12 @@ public struct AccessorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> AccessorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3233,7 +3768,7 @@ extension AccessorDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifier": modifier.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "accessorKind": Syntax(accessorKind).asProtocol(SyntaxProtocol.self) as Any,
+      "accessorKind": Syntax(accessorKind).asProtocol(SyntaxProtocol.self),
       "parameter": parameter.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "asyncKeyword": asyncKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "throwsKeyword": throwsKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
@@ -3302,7 +3837,12 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> VariableDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3337,7 +3877,12 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> VariableDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3354,7 +3899,12 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withLetOrVarKeyword(value)
     }
   }
-  public func withLetOrVarKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `letOrVarKeyword` replaced.
+  /// - param newChild: The new `letOrVarKeyword` to replace the node's
+  ///                   current `letOrVarKeyword`, if present.
+  public func withLetOrVarKeyword(
+    _ newChild: TokenSyntax?) -> VariableDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .letKeyword).raw
 
@@ -3390,7 +3940,12 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withBindings(_ newChild: PatternBindingListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `bindings` replaced.
+  /// - param newChild: The new `bindings` to replace the node's
+  ///                   current `bindings`, if present.
+  public func withBindings(
+    _ newChild: PatternBindingListSyntax?) -> VariableDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawPatternBindingListSyntax.makeBlank(arena: arena).raw
 
@@ -3405,8 +3960,8 @@ extension VariableDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "letOrVarKeyword": Syntax(letOrVarKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "bindings": Syntax(bindings).asProtocol(SyntaxProtocol.self) as Any,
+      "letOrVarKeyword": Syntax(letOrVarKeyword).asProtocol(SyntaxProtocol.self),
+      "bindings": Syntax(bindings).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3479,7 +4034,12 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> EnumCaseDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3517,7 +4077,12 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> EnumCaseDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3535,7 +4100,12 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withCaseKeyword(value)
     }
   }
-  public func withCaseKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `caseKeyword` replaced.
+  /// - param newChild: The new `caseKeyword` to replace the node's
+  ///                   current `caseKeyword`, if present.
+  public func withCaseKeyword(
+    _ newChild: TokenSyntax?) -> EnumCaseDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .caseKeyword).raw
 
@@ -3572,7 +4142,12 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withElements(_ newChild: EnumCaseElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elements` replaced.
+  /// - param newChild: The new `elements` to replace the node's
+  ///                   current `elements`, if present.
+  public func withElements(
+    _ newChild: EnumCaseElementListSyntax?) -> EnumCaseDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawEnumCaseElementListSyntax.makeBlank(arena: arena).raw
 
@@ -3587,8 +4162,8 @@ extension EnumCaseDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "caseKeyword": Syntax(caseKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self) as Any,
+      "caseKeyword": Syntax(caseKeyword).asProtocol(SyntaxProtocol.self),
+      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3661,7 +4236,12 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> EnumDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3699,7 +4279,12 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> EnumDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3719,7 +4304,12 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withEnumKeyword(value)
     }
   }
-  public func withEnumKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `enumKeyword` replaced.
+  /// - param newChild: The new `enumKeyword` to replace the node's
+  ///                   current `enumKeyword`, if present.
+  public func withEnumKeyword(
+    _ newChild: TokenSyntax?) -> EnumDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .enumKeyword).raw
 
@@ -3740,7 +4330,12 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> EnumDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -3761,7 +4356,12 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericParameters(value)
     }
   }
-  public func withGenericParameters(_ newChild: GenericParameterClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericParameters` replaced.
+  /// - param newChild: The new `genericParameters` to replace the node's
+  ///                   current `genericParameters`, if present.
+  public func withGenericParameters(
+    _ newChild: GenericParameterClauseSyntax?) -> EnumDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3782,7 +4382,12 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withInheritanceClause(value)
     }
   }
-  public func withInheritanceClause(_ newChild: TypeInheritanceClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `inheritanceClause` replaced.
+  /// - param newChild: The new `inheritanceClause` to replace the node's
+  ///                   current `inheritanceClause`, if present.
+  public func withInheritanceClause(
+    _ newChild: TypeInheritanceClauseSyntax?) -> EnumDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3803,7 +4408,12 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withGenericWhereClause(value)
     }
   }
-  public func withGenericWhereClause(_ newChild: GenericWhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericWhereClause` replaced.
+  /// - param newChild: The new `genericWhereClause` to replace the node's
+  ///                   current `genericWhereClause`, if present.
+  public func withGenericWhereClause(
+    _ newChild: GenericWhereClauseSyntax?) -> EnumDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3823,7 +4433,12 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withMembers(value)
     }
   }
-  public func withMembers(_ newChild: MemberDeclBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `members` replaced.
+  /// - param newChild: The new `members` to replace the node's
+  ///                   current `members`, if present.
+  public func withMembers(
+    _ newChild: MemberDeclBlockSyntax?) -> EnumDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawMemberDeclBlockSyntax.makeBlank(arena: arena).raw
 
@@ -3838,12 +4453,12 @@ extension EnumDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "enumKeyword": Syntax(enumKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "enumKeyword": Syntax(enumKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "genericParameters": genericParameters.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "inheritanceClause": inheritanceClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "genericWhereClause": genericWhereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "members": Syntax(members).asProtocol(SyntaxProtocol.self) as Any,
+      "members": Syntax(members).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3913,7 +4528,12 @@ public struct OperatorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> OperatorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3952,7 +4572,12 @@ public struct OperatorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> OperatorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3969,7 +4594,12 @@ public struct OperatorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withOperatorKeyword(value)
     }
   }
-  public func withOperatorKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `operatorKeyword` replaced.
+  /// - param newChild: The new `operatorKeyword` to replace the node's
+  ///                   current `operatorKeyword`, if present.
+  public func withOperatorKeyword(
+    _ newChild: TokenSyntax?) -> OperatorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .operatorKeyword).raw
 
@@ -3987,7 +4617,12 @@ public struct OperatorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> OperatorDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .unspacedBinaryOperator).raw
 
@@ -4008,7 +4643,12 @@ public struct OperatorDeclSyntax: DeclSyntaxProtocol, Hashable, Identifiable {
       self = withOperatorPrecedenceAndTypes(value)
     }
   }
-  public func withOperatorPrecedenceAndTypes(_ newChild: OperatorPrecedenceAndTypesSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `operatorPrecedenceAndTypes` replaced.
+  /// - param newChild: The new `operatorPrecedenceAndTypes` to replace the node's
+  ///                   current `operatorPrecedenceAndTypes`, if present.
+  public func withOperatorPrecedenceAndTypes(
+    _ newChild: OperatorPrecedenceAndTypesSyntax?) -> OperatorDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -4022,8 +4662,8 @@ extension OperatorDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "operatorKeyword": Syntax(operatorKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "operatorKeyword": Syntax(operatorKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "operatorPrecedenceAndTypes": operatorPrecedenceAndTypes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -4096,7 +4736,12 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAttributes(_ newChild: AttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `attributes` replaced.
+  /// - param newChild: The new `attributes` to replace the node's
+  ///                   current `attributes`, if present.
+  public func withAttributes(
+    _ newChild: AttributeListSyntax?) -> PrecedenceGroupDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -4135,7 +4780,12 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withModifiers(_ newChild: ModifierListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `modifiers` replaced.
+  /// - param newChild: The new `modifiers` to replace the node's
+  ///                   current `modifiers`, if present.
+  public func withModifiers(
+    _ newChild: ModifierListSyntax?) -> PrecedenceGroupDeclSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -4152,7 +4802,12 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
       self = withPrecedencegroupKeyword(value)
     }
   }
-  public func withPrecedencegroupKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `precedencegroupKeyword` replaced.
+  /// - param newChild: The new `precedencegroupKeyword` to replace the node's
+  ///                   current `precedencegroupKeyword`, if present.
+  public func withPrecedencegroupKeyword(
+    _ newChild: TokenSyntax?) -> PrecedenceGroupDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .precedencegroupKeyword).raw
 
@@ -4173,7 +4828,12 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> PrecedenceGroupDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -4191,7 +4851,12 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
       self = withLeftBrace(value)
     }
   }
-  public func withLeftBrace(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftBrace` replaced.
+  /// - param newChild: The new `leftBrace` to replace the node's
+  ///                   current `leftBrace`, if present.
+  public func withLeftBrace(
+    _ newChild: TokenSyntax?) -> PrecedenceGroupDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftBrace).raw
 
@@ -4230,7 +4895,12 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withGroupAttributes(_ newChild: PrecedenceGroupAttributeListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `groupAttributes` replaced.
+  /// - param newChild: The new `groupAttributes` to replace the node's
+  ///                   current `groupAttributes`, if present.
+  public func withGroupAttributes(
+    _ newChild: PrecedenceGroupAttributeListSyntax?) -> PrecedenceGroupDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawPrecedenceGroupAttributeListSyntax.makeBlank(arena: arena).raw
 
@@ -4248,7 +4918,12 @@ public struct PrecedenceGroupDeclSyntax: DeclSyntaxProtocol, Hashable, Identifia
       self = withRightBrace(value)
     }
   }
-  public func withRightBrace(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightBrace` replaced.
+  /// - param newChild: The new `rightBrace` to replace the node's
+  ///                   current `rightBrace`, if present.
+  public func withRightBrace(
+    _ newChild: TokenSyntax?) -> PrecedenceGroupDeclSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightBrace).raw
 
@@ -4263,11 +4938,11 @@ extension PrecedenceGroupDeclSyntax: CustomReflectable {
     return Mirror(self, children: [
       "attributes": attributes.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "modifiers": modifiers.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "precedencegroupKeyword": Syntax(precedencegroupKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
-      "leftBrace": Syntax(leftBrace).asProtocol(SyntaxProtocol.self) as Any,
-      "groupAttributes": Syntax(groupAttributes).asProtocol(SyntaxProtocol.self) as Any,
-      "rightBrace": Syntax(rightBrace).asProtocol(SyntaxProtocol.self) as Any,
+      "precedencegroupKeyword": Syntax(precedencegroupKeyword).asProtocol(SyntaxProtocol.self),
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
+      "leftBrace": Syntax(leftBrace).asProtocol(SyntaxProtocol.self),
+      "groupAttributes": Syntax(groupAttributes).asProtocol(SyntaxProtocol.self),
+      "rightBrace": Syntax(rightBrace).asProtocol(SyntaxProtocol.self),
     ])
   }
 }

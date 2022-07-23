@@ -89,7 +89,12 @@ public struct ContinueStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withContinueKeyword(value)
     }
   }
-  public func withContinueKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `continueKeyword` replaced.
+  /// - param newChild: The new `continueKeyword` to replace the node's
+  ///                   current `continueKeyword`, if present.
+  public func withContinueKeyword(
+    _ newChild: TokenSyntax?) -> ContinueStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .continueKeyword).raw
 
@@ -107,7 +112,12 @@ public struct ContinueStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabel(value)
     }
   }
-  public func withLabel(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `label` replaced.
+  /// - param newChild: The new `label` to replace the node's
+  ///                   current `label`, if present.
+  public func withLabel(
+    _ newChild: TokenSyntax?) -> ContinueStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -119,7 +129,7 @@ public struct ContinueStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
 extension ContinueStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "continueKeyword": Syntax(continueKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "continueKeyword": Syntax(continueKeyword).asProtocol(SyntaxProtocol.self),
       "label": label.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -168,7 +178,12 @@ public struct WhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelName(value)
     }
   }
-  public func withLabelName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelName` replaced.
+  /// - param newChild: The new `labelName` to replace the node's
+  ///                   current `labelName`, if present.
+  public func withLabelName(
+    _ newChild: TokenSyntax?) -> WhileStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -185,7 +200,12 @@ public struct WhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelColon(value)
     }
   }
-  public func withLabelColon(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelColon` replaced.
+  /// - param newChild: The new `labelColon` to replace the node's
+  ///                   current `labelColon`, if present.
+  public func withLabelColon(
+    _ newChild: TokenSyntax?) -> WhileStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -202,7 +222,12 @@ public struct WhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withWhileKeyword(value)
     }
   }
-  public func withWhileKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `whileKeyword` replaced.
+  /// - param newChild: The new `whileKeyword` to replace the node's
+  ///                   current `whileKeyword`, if present.
+  public func withWhileKeyword(
+    _ newChild: TokenSyntax?) -> WhileStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .whileKeyword).raw
 
@@ -238,7 +263,12 @@ public struct WhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withConditions(_ newChild: ConditionElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `conditions` replaced.
+  /// - param newChild: The new `conditions` to replace the node's
+  ///                   current `conditions`, if present.
+  public func withConditions(
+    _ newChild: ConditionElementListSyntax?) -> WhileStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawConditionElementListSyntax.makeBlank(arena: arena).raw
 
@@ -256,7 +286,12 @@ public struct WhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> WhileStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCodeBlockSyntax.makeBlank(arena: arena).raw
 
@@ -271,9 +306,9 @@ extension WhileStmtSyntax: CustomReflectable {
     return Mirror(self, children: [
       "labelName": labelName.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "labelColon": labelColon.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "whileKeyword": Syntax(whileKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "conditions": Syntax(conditions).asProtocol(SyntaxProtocol.self) as Any,
-      "body": Syntax(body).asProtocol(SyntaxProtocol.self) as Any,
+      "whileKeyword": Syntax(whileKeyword).asProtocol(SyntaxProtocol.self),
+      "conditions": Syntax(conditions).asProtocol(SyntaxProtocol.self),
+      "body": Syntax(body).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -318,7 +353,12 @@ public struct DeferStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withDeferKeyword(value)
     }
   }
-  public func withDeferKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `deferKeyword` replaced.
+  /// - param newChild: The new `deferKeyword` to replace the node's
+  ///                   current `deferKeyword`, if present.
+  public func withDeferKeyword(
+    _ newChild: TokenSyntax?) -> DeferStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .deferKeyword).raw
 
@@ -336,7 +376,12 @@ public struct DeferStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> DeferStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCodeBlockSyntax.makeBlank(arena: arena).raw
 
@@ -349,8 +394,8 @@ public struct DeferStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
 extension DeferStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "deferKeyword": Syntax(deferKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "body": Syntax(body).asProtocol(SyntaxProtocol.self) as Any,
+      "deferKeyword": Syntax(deferKeyword).asProtocol(SyntaxProtocol.self),
+      "body": Syntax(body).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -394,7 +439,12 @@ public struct ExpressionStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> ExpressionStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -407,7 +457,7 @@ public struct ExpressionStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
 extension ExpressionStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -456,7 +506,12 @@ public struct RepeatWhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withLabelName(value)
     }
   }
-  public func withLabelName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelName` replaced.
+  /// - param newChild: The new `labelName` to replace the node's
+  ///                   current `labelName`, if present.
+  public func withLabelName(
+    _ newChild: TokenSyntax?) -> RepeatWhileStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -473,7 +528,12 @@ public struct RepeatWhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withLabelColon(value)
     }
   }
-  public func withLabelColon(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelColon` replaced.
+  /// - param newChild: The new `labelColon` to replace the node's
+  ///                   current `labelColon`, if present.
+  public func withLabelColon(
+    _ newChild: TokenSyntax?) -> RepeatWhileStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -490,7 +550,12 @@ public struct RepeatWhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withRepeatKeyword(value)
     }
   }
-  public func withRepeatKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `repeatKeyword` replaced.
+  /// - param newChild: The new `repeatKeyword` to replace the node's
+  ///                   current `repeatKeyword`, if present.
+  public func withRepeatKeyword(
+    _ newChild: TokenSyntax?) -> RepeatWhileStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .repeatKeyword).raw
 
@@ -508,7 +573,12 @@ public struct RepeatWhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> RepeatWhileStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCodeBlockSyntax.makeBlank(arena: arena).raw
 
@@ -526,7 +596,12 @@ public struct RepeatWhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withWhileKeyword(value)
     }
   }
-  public func withWhileKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `whileKeyword` replaced.
+  /// - param newChild: The new `whileKeyword` to replace the node's
+  ///                   current `whileKeyword`, if present.
+  public func withWhileKeyword(
+    _ newChild: TokenSyntax?) -> RepeatWhileStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .whileKeyword).raw
 
@@ -544,7 +619,12 @@ public struct RepeatWhileStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withCondition(value)
     }
   }
-  public func withCondition(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `condition` replaced.
+  /// - param newChild: The new `condition` to replace the node's
+  ///                   current `condition`, if present.
+  public func withCondition(
+    _ newChild: ExprSyntax?) -> RepeatWhileStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -559,10 +639,10 @@ extension RepeatWhileStmtSyntax: CustomReflectable {
     return Mirror(self, children: [
       "labelName": labelName.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "labelColon": labelColon.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "repeatKeyword": Syntax(repeatKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "body": Syntax(body).asProtocol(SyntaxProtocol.self) as Any,
-      "whileKeyword": Syntax(whileKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "condition": Syntax(condition).asProtocol(SyntaxProtocol.self) as Any,
+      "repeatKeyword": Syntax(repeatKeyword).asProtocol(SyntaxProtocol.self),
+      "body": Syntax(body).asProtocol(SyntaxProtocol.self),
+      "whileKeyword": Syntax(whileKeyword).asProtocol(SyntaxProtocol.self),
+      "condition": Syntax(condition).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -609,7 +689,12 @@ public struct GuardStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withGuardKeyword(value)
     }
   }
-  public func withGuardKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `guardKeyword` replaced.
+  /// - param newChild: The new `guardKeyword` to replace the node's
+  ///                   current `guardKeyword`, if present.
+  public func withGuardKeyword(
+    _ newChild: TokenSyntax?) -> GuardStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .guardKeyword).raw
 
@@ -645,7 +730,12 @@ public struct GuardStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withConditions(_ newChild: ConditionElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `conditions` replaced.
+  /// - param newChild: The new `conditions` to replace the node's
+  ///                   current `conditions`, if present.
+  public func withConditions(
+    _ newChild: ConditionElementListSyntax?) -> GuardStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawConditionElementListSyntax.makeBlank(arena: arena).raw
 
@@ -663,7 +753,12 @@ public struct GuardStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withElseKeyword(value)
     }
   }
-  public func withElseKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elseKeyword` replaced.
+  /// - param newChild: The new `elseKeyword` to replace the node's
+  ///                   current `elseKeyword`, if present.
+  public func withElseKeyword(
+    _ newChild: TokenSyntax?) -> GuardStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .elseKeyword).raw
 
@@ -681,7 +776,12 @@ public struct GuardStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> GuardStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCodeBlockSyntax.makeBlank(arena: arena).raw
 
@@ -694,10 +794,10 @@ public struct GuardStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
 extension GuardStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "guardKeyword": Syntax(guardKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "conditions": Syntax(conditions).asProtocol(SyntaxProtocol.self) as Any,
-      "elseKeyword": Syntax(elseKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "body": Syntax(body).asProtocol(SyntaxProtocol.self) as Any,
+      "guardKeyword": Syntax(guardKeyword).asProtocol(SyntaxProtocol.self),
+      "conditions": Syntax(conditions).asProtocol(SyntaxProtocol.self),
+      "elseKeyword": Syntax(elseKeyword).asProtocol(SyntaxProtocol.self),
+      "body": Syntax(body).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -752,7 +852,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelName(value)
     }
   }
-  public func withLabelName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelName` replaced.
+  /// - param newChild: The new `labelName` to replace the node's
+  ///                   current `labelName`, if present.
+  public func withLabelName(
+    _ newChild: TokenSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -769,7 +874,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelColon(value)
     }
   }
-  public func withLabelColon(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelColon` replaced.
+  /// - param newChild: The new `labelColon` to replace the node's
+  ///                   current `labelColon`, if present.
+  public func withLabelColon(
+    _ newChild: TokenSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -786,7 +896,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withForKeyword(value)
     }
   }
-  public func withForKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `forKeyword` replaced.
+  /// - param newChild: The new `forKeyword` to replace the node's
+  ///                   current `forKeyword`, if present.
+  public func withForKeyword(
+    _ newChild: TokenSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .forKeyword).raw
 
@@ -804,7 +919,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withTryKeyword(value)
     }
   }
-  public func withTryKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `tryKeyword` replaced.
+  /// - param newChild: The new `tryKeyword` to replace the node's
+  ///                   current `tryKeyword`, if present.
+  public func withTryKeyword(
+    _ newChild: TokenSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -821,7 +941,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withAwaitKeyword(value)
     }
   }
-  public func withAwaitKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `awaitKeyword` replaced.
+  /// - param newChild: The new `awaitKeyword` to replace the node's
+  ///                   current `awaitKeyword`, if present.
+  public func withAwaitKeyword(
+    _ newChild: TokenSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -838,7 +963,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withCaseKeyword(value)
     }
   }
-  public func withCaseKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `caseKeyword` replaced.
+  /// - param newChild: The new `caseKeyword` to replace the node's
+  ///                   current `caseKeyword`, if present.
+  public func withCaseKeyword(
+    _ newChild: TokenSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -855,7 +985,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withPattern(value)
     }
   }
-  public func withPattern(_ newChild: PatternSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `pattern` replaced.
+  /// - param newChild: The new `pattern` to replace the node's
+  ///                   current `pattern`, if present.
+  public func withPattern(
+    _ newChild: PatternSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawPatternSyntax.makeBlank(arena: arena).raw
 
@@ -873,7 +1008,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withTypeAnnotation(value)
     }
   }
-  public func withTypeAnnotation(_ newChild: TypeAnnotationSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `typeAnnotation` replaced.
+  /// - param newChild: The new `typeAnnotation` to replace the node's
+  ///                   current `typeAnnotation`, if present.
+  public func withTypeAnnotation(
+    _ newChild: TypeAnnotationSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -890,7 +1030,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withInKeyword(value)
     }
   }
-  public func withInKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `inKeyword` replaced.
+  /// - param newChild: The new `inKeyword` to replace the node's
+  ///                   current `inKeyword`, if present.
+  public func withInKeyword(
+    _ newChild: TokenSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .inKeyword).raw
 
@@ -908,7 +1053,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withSequenceExpr(value)
     }
   }
-  public func withSequenceExpr(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `sequenceExpr` replaced.
+  /// - param newChild: The new `sequenceExpr` to replace the node's
+  ///                   current `sequenceExpr`, if present.
+  public func withSequenceExpr(
+    _ newChild: ExprSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -926,7 +1076,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withWhereClause(value)
     }
   }
-  public func withWhereClause(_ newChild: WhereClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `whereClause` replaced.
+  /// - param newChild: The new `whereClause` to replace the node's
+  ///                   current `whereClause`, if present.
+  public func withWhereClause(
+    _ newChild: WhereClauseSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -943,7 +1098,12 @@ public struct ForInStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> ForInStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCodeBlockSyntax.makeBlank(arena: arena).raw
 
@@ -958,16 +1118,16 @@ extension ForInStmtSyntax: CustomReflectable {
     return Mirror(self, children: [
       "labelName": labelName.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "labelColon": labelColon.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "forKeyword": Syntax(forKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "forKeyword": Syntax(forKeyword).asProtocol(SyntaxProtocol.self),
       "tryKeyword": tryKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "awaitKeyword": awaitKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "caseKeyword": caseKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "pattern": Syntax(pattern).asProtocol(SyntaxProtocol.self) as Any,
+      "pattern": Syntax(pattern).asProtocol(SyntaxProtocol.self),
       "typeAnnotation": typeAnnotation.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "inKeyword": Syntax(inKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "sequenceExpr": Syntax(sequenceExpr).asProtocol(SyntaxProtocol.self) as Any,
+      "inKeyword": Syntax(inKeyword).asProtocol(SyntaxProtocol.self),
+      "sequenceExpr": Syntax(sequenceExpr).asProtocol(SyntaxProtocol.self),
       "whereClause": whereClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "body": Syntax(body).asProtocol(SyntaxProtocol.self) as Any,
+      "body": Syntax(body).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1017,7 +1177,12 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelName(value)
     }
   }
-  public func withLabelName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelName` replaced.
+  /// - param newChild: The new `labelName` to replace the node's
+  ///                   current `labelName`, if present.
+  public func withLabelName(
+    _ newChild: TokenSyntax?) -> SwitchStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1034,7 +1199,12 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelColon(value)
     }
   }
-  public func withLabelColon(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelColon` replaced.
+  /// - param newChild: The new `labelColon` to replace the node's
+  ///                   current `labelColon`, if present.
+  public func withLabelColon(
+    _ newChild: TokenSyntax?) -> SwitchStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1051,7 +1221,12 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withSwitchKeyword(value)
     }
   }
-  public func withSwitchKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `switchKeyword` replaced.
+  /// - param newChild: The new `switchKeyword` to replace the node's
+  ///                   current `switchKeyword`, if present.
+  public func withSwitchKeyword(
+    _ newChild: TokenSyntax?) -> SwitchStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .switchKeyword).raw
 
@@ -1069,7 +1244,12 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> SwitchStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -1087,7 +1267,12 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLeftBrace(value)
     }
   }
-  public func withLeftBrace(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftBrace` replaced.
+  /// - param newChild: The new `leftBrace` to replace the node's
+  ///                   current `leftBrace`, if present.
+  public func withLeftBrace(
+    _ newChild: TokenSyntax?) -> SwitchStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftBrace).raw
 
@@ -1123,7 +1308,12 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withCases(_ newChild: SwitchCaseListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `cases` replaced.
+  /// - param newChild: The new `cases` to replace the node's
+  ///                   current `cases`, if present.
+  public func withCases(
+    _ newChild: SwitchCaseListSyntax?) -> SwitchStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawSwitchCaseListSyntax.makeBlank(arena: arena).raw
 
@@ -1141,7 +1331,12 @@ public struct SwitchStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withRightBrace(value)
     }
   }
-  public func withRightBrace(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightBrace` replaced.
+  /// - param newChild: The new `rightBrace` to replace the node's
+  ///                   current `rightBrace`, if present.
+  public func withRightBrace(
+    _ newChild: TokenSyntax?) -> SwitchStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightBrace).raw
 
@@ -1156,11 +1351,11 @@ extension SwitchStmtSyntax: CustomReflectable {
     return Mirror(self, children: [
       "labelName": labelName.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "labelColon": labelColon.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "switchKeyword": Syntax(switchKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
-      "leftBrace": Syntax(leftBrace).asProtocol(SyntaxProtocol.self) as Any,
-      "cases": Syntax(cases).asProtocol(SyntaxProtocol.self) as Any,
-      "rightBrace": Syntax(rightBrace).asProtocol(SyntaxProtocol.self) as Any,
+      "switchKeyword": Syntax(switchKeyword).asProtocol(SyntaxProtocol.self),
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
+      "leftBrace": Syntax(leftBrace).asProtocol(SyntaxProtocol.self),
+      "cases": Syntax(cases).asProtocol(SyntaxProtocol.self),
+      "rightBrace": Syntax(rightBrace).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1208,7 +1403,12 @@ public struct DoStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelName(value)
     }
   }
-  public func withLabelName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelName` replaced.
+  /// - param newChild: The new `labelName` to replace the node's
+  ///                   current `labelName`, if present.
+  public func withLabelName(
+    _ newChild: TokenSyntax?) -> DoStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1225,7 +1425,12 @@ public struct DoStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelColon(value)
     }
   }
-  public func withLabelColon(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelColon` replaced.
+  /// - param newChild: The new `labelColon` to replace the node's
+  ///                   current `labelColon`, if present.
+  public func withLabelColon(
+    _ newChild: TokenSyntax?) -> DoStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1242,7 +1447,12 @@ public struct DoStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withDoKeyword(value)
     }
   }
-  public func withDoKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `doKeyword` replaced.
+  /// - param newChild: The new `doKeyword` to replace the node's
+  ///                   current `doKeyword`, if present.
+  public func withDoKeyword(
+    _ newChild: TokenSyntax?) -> DoStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .doKeyword).raw
 
@@ -1260,7 +1470,12 @@ public struct DoStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> DoStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCodeBlockSyntax.makeBlank(arena: arena).raw
 
@@ -1296,7 +1511,12 @@ public struct DoStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withCatchClauses(_ newChild: CatchClauseListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `catchClauses` replaced.
+  /// - param newChild: The new `catchClauses` to replace the node's
+  ///                   current `catchClauses`, if present.
+  public func withCatchClauses(
+    _ newChild: CatchClauseListSyntax?) -> DoStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1310,8 +1530,8 @@ extension DoStmtSyntax: CustomReflectable {
     return Mirror(self, children: [
       "labelName": labelName.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "labelColon": labelColon.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "doKeyword": Syntax(doKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "body": Syntax(body).asProtocol(SyntaxProtocol.self) as Any,
+      "doKeyword": Syntax(doKeyword).asProtocol(SyntaxProtocol.self),
+      "body": Syntax(body).asProtocol(SyntaxProtocol.self),
       "catchClauses": catchClauses.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -1357,7 +1577,12 @@ public struct ReturnStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withReturnKeyword(value)
     }
   }
-  public func withReturnKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `returnKeyword` replaced.
+  /// - param newChild: The new `returnKeyword` to replace the node's
+  ///                   current `returnKeyword`, if present.
+  public func withReturnKeyword(
+    _ newChild: TokenSyntax?) -> ReturnStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .returnKeyword).raw
 
@@ -1375,7 +1600,12 @@ public struct ReturnStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> ReturnStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1387,7 +1617,7 @@ public struct ReturnStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
 extension ReturnStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "returnKeyword": Syntax(returnKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "returnKeyword": Syntax(returnKeyword).asProtocol(SyntaxProtocol.self),
       "expression": expression.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -1433,7 +1663,12 @@ public struct YieldStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withYieldKeyword(value)
     }
   }
-  public func withYieldKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `yieldKeyword` replaced.
+  /// - param newChild: The new `yieldKeyword` to replace the node's
+  ///                   current `yieldKeyword`, if present.
+  public func withYieldKeyword(
+    _ newChild: TokenSyntax?) -> YieldStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .yield).raw
 
@@ -1451,7 +1686,12 @@ public struct YieldStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withYields(value)
     }
   }
-  public func withYields(_ newChild: Syntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `yields` replaced.
+  /// - param newChild: The new `yields` to replace the node's
+  ///                   current `yields`, if present.
+  public func withYields(
+    _ newChild: Syntax?) -> YieldStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawSyntax.makeBlank(arena: arena).raw
 
@@ -1464,8 +1704,8 @@ public struct YieldStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
 extension YieldStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "yieldKeyword": Syntax(yieldKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "yields": Syntax(yields).asProtocol(SyntaxProtocol.self) as Any,
+      "yieldKeyword": Syntax(yieldKeyword).asProtocol(SyntaxProtocol.self),
+      "yields": Syntax(yields).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1509,7 +1749,12 @@ public struct FallthroughStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withFallthroughKeyword(value)
     }
   }
-  public func withFallthroughKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `fallthroughKeyword` replaced.
+  /// - param newChild: The new `fallthroughKeyword` to replace the node's
+  ///                   current `fallthroughKeyword`, if present.
+  public func withFallthroughKeyword(
+    _ newChild: TokenSyntax?) -> FallthroughStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .fallthroughKeyword).raw
 
@@ -1522,7 +1767,7 @@ public struct FallthroughStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
 extension FallthroughStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "fallthroughKeyword": Syntax(fallthroughKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "fallthroughKeyword": Syntax(fallthroughKeyword).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1567,7 +1812,12 @@ public struct BreakStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withBreakKeyword(value)
     }
   }
-  public func withBreakKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `breakKeyword` replaced.
+  /// - param newChild: The new `breakKeyword` to replace the node's
+  ///                   current `breakKeyword`, if present.
+  public func withBreakKeyword(
+    _ newChild: TokenSyntax?) -> BreakStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .breakKeyword).raw
 
@@ -1585,7 +1835,12 @@ public struct BreakStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabel(value)
     }
   }
-  public func withLabel(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `label` replaced.
+  /// - param newChild: The new `label` to replace the node's
+  ///                   current `label`, if present.
+  public func withLabel(
+    _ newChild: TokenSyntax?) -> BreakStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1597,7 +1852,7 @@ public struct BreakStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
 extension BreakStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "breakKeyword": Syntax(breakKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "breakKeyword": Syntax(breakKeyword).asProtocol(SyntaxProtocol.self),
       "label": label.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -1642,7 +1897,12 @@ public struct DeclarationStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withDeclaration(value)
     }
   }
-  public func withDeclaration(_ newChild: DeclSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `declaration` replaced.
+  /// - param newChild: The new `declaration` to replace the node's
+  ///                   current `declaration`, if present.
+  public func withDeclaration(
+    _ newChild: DeclSyntax?) -> DeclarationStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawDeclSyntax.makeBlank(arena: arena).raw
 
@@ -1655,7 +1915,7 @@ public struct DeclarationStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
 extension DeclarationStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "declaration": Syntax(declaration).asProtocol(SyntaxProtocol.self) as Any,
+      "declaration": Syntax(declaration).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1700,7 +1960,12 @@ public struct ThrowStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withThrowKeyword(value)
     }
   }
-  public func withThrowKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `throwKeyword` replaced.
+  /// - param newChild: The new `throwKeyword` to replace the node's
+  ///                   current `throwKeyword`, if present.
+  public func withThrowKeyword(
+    _ newChild: TokenSyntax?) -> ThrowStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .throwKeyword).raw
 
@@ -1718,7 +1983,12 @@ public struct ThrowStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> ThrowStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -1731,8 +2001,8 @@ public struct ThrowStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
 extension ThrowStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "throwKeyword": Syntax(throwKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
+      "throwKeyword": Syntax(throwKeyword).asProtocol(SyntaxProtocol.self),
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1782,7 +2052,12 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelName(value)
     }
   }
-  public func withLabelName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelName` replaced.
+  /// - param newChild: The new `labelName` to replace the node's
+  ///                   current `labelName`, if present.
+  public func withLabelName(
+    _ newChild: TokenSyntax?) -> IfStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1799,7 +2074,12 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withLabelColon(value)
     }
   }
-  public func withLabelColon(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `labelColon` replaced.
+  /// - param newChild: The new `labelColon` to replace the node's
+  ///                   current `labelColon`, if present.
+  public func withLabelColon(
+    _ newChild: TokenSyntax?) -> IfStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1816,7 +2096,12 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withIfKeyword(value)
     }
   }
-  public func withIfKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `ifKeyword` replaced.
+  /// - param newChild: The new `ifKeyword` to replace the node's
+  ///                   current `ifKeyword`, if present.
+  public func withIfKeyword(
+    _ newChild: TokenSyntax?) -> IfStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .ifKeyword).raw
 
@@ -1852,7 +2137,12 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withConditions(_ newChild: ConditionElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `conditions` replaced.
+  /// - param newChild: The new `conditions` to replace the node's
+  ///                   current `conditions`, if present.
+  public func withConditions(
+    _ newChild: ConditionElementListSyntax?) -> IfStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawConditionElementListSyntax.makeBlank(arena: arena).raw
 
@@ -1870,7 +2160,12 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withBody(value)
     }
   }
-  public func withBody(_ newChild: CodeBlockSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `body` replaced.
+  /// - param newChild: The new `body` to replace the node's
+  ///                   current `body`, if present.
+  public func withBody(
+    _ newChild: CodeBlockSyntax?) -> IfStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCodeBlockSyntax.makeBlank(arena: arena).raw
 
@@ -1888,7 +2183,12 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withElseKeyword(value)
     }
   }
-  public func withElseKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elseKeyword` replaced.
+  /// - param newChild: The new `elseKeyword` to replace the node's
+  ///                   current `elseKeyword`, if present.
+  public func withElseKeyword(
+    _ newChild: TokenSyntax?) -> IfStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1905,7 +2205,12 @@ public struct IfStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable {
       self = withElseBody(value)
     }
   }
-  public func withElseBody(_ newChild: Syntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elseBody` replaced.
+  /// - param newChild: The new `elseBody` to replace the node's
+  ///                   current `elseBody`, if present.
+  public func withElseBody(
+    _ newChild: Syntax?) -> IfStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1919,9 +2224,9 @@ extension IfStmtSyntax: CustomReflectable {
     return Mirror(self, children: [
       "labelName": labelName.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "labelColon": labelColon.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "ifKeyword": Syntax(ifKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "conditions": Syntax(conditions).asProtocol(SyntaxProtocol.self) as Any,
-      "body": Syntax(body).asProtocol(SyntaxProtocol.self) as Any,
+      "ifKeyword": Syntax(ifKeyword).asProtocol(SyntaxProtocol.self),
+      "conditions": Syntax(conditions).asProtocol(SyntaxProtocol.self),
+      "body": Syntax(body).asProtocol(SyntaxProtocol.self),
       "elseKeyword": elseKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "elseBody": elseBody.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
@@ -1972,7 +2277,12 @@ public struct PoundAssertStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withPoundAssert(value)
     }
   }
-  public func withPoundAssert(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundAssert` replaced.
+  /// - param newChild: The new `poundAssert` to replace the node's
+  ///                   current `poundAssert`, if present.
+  public func withPoundAssert(
+    _ newChild: TokenSyntax?) -> PoundAssertStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundAssertKeyword).raw
 
@@ -1990,7 +2300,12 @@ public struct PoundAssertStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> PoundAssertStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -2009,7 +2324,12 @@ public struct PoundAssertStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withCondition(value)
     }
   }
-  public func withCondition(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `condition` replaced.
+  /// - param newChild: The new `condition` to replace the node's
+  ///                   current `condition`, if present.
+  public func withCondition(
+    _ newChild: ExprSyntax?) -> PoundAssertStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -2028,7 +2348,12 @@ public struct PoundAssertStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withComma(value)
     }
   }
-  public func withComma(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `comma` replaced.
+  /// - param newChild: The new `comma` to replace the node's
+  ///                   current `comma`, if present.
+  public func withComma(
+    _ newChild: TokenSyntax?) -> PoundAssertStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2046,7 +2371,12 @@ public struct PoundAssertStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withMessage(value)
     }
   }
-  public func withMessage(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `message` replaced.
+  /// - param newChild: The new `message` to replace the node's
+  ///                   current `message`, if present.
+  public func withMessage(
+    _ newChild: TokenSyntax?) -> PoundAssertStmtSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2063,7 +2393,12 @@ public struct PoundAssertStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> PoundAssertStmtSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -2076,12 +2411,12 @@ public struct PoundAssertStmtSyntax: StmtSyntaxProtocol, Hashable, Identifiable 
 extension PoundAssertStmtSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundAssert": Syntax(poundAssert).asProtocol(SyntaxProtocol.self) as Any,
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
-      "condition": Syntax(condition).asProtocol(SyntaxProtocol.self) as Any,
+      "poundAssert": Syntax(poundAssert).asProtocol(SyntaxProtocol.self),
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
+      "condition": Syntax(condition).asProtocol(SyntaxProtocol.self),
       "comma": comma.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "message": message.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }

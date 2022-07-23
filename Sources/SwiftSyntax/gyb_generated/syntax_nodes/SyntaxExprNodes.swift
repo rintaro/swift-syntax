@@ -89,7 +89,12 @@ public struct InOutExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withAmpersand(value)
     }
   }
-  public func withAmpersand(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `ampersand` replaced.
+  /// - param newChild: The new `ampersand` to replace the node's
+  ///                   current `ampersand`, if present.
+  public func withAmpersand(
+    _ newChild: TokenSyntax?) -> InOutExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .prefixAmpersand).raw
 
@@ -107,7 +112,12 @@ public struct InOutExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> InOutExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -120,8 +130,8 @@ public struct InOutExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension InOutExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "ampersand": Syntax(ampersand).asProtocol(SyntaxProtocol.self) as Any,
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
+      "ampersand": Syntax(ampersand).asProtocol(SyntaxProtocol.self),
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -165,7 +175,12 @@ public struct PoundColumnExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
       self = withPoundColumn(value)
     }
   }
-  public func withPoundColumn(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundColumn` replaced.
+  /// - param newChild: The new `poundColumn` to replace the node's
+  ///                   current `poundColumn`, if present.
+  public func withPoundColumn(
+    _ newChild: TokenSyntax?) -> PoundColumnExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundColumnKeyword).raw
 
@@ -178,7 +193,7 @@ public struct PoundColumnExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
 extension PoundColumnExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundColumn": Syntax(poundColumn).asProtocol(SyntaxProtocol.self) as Any,
+      "poundColumn": Syntax(poundColumn).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -224,7 +239,12 @@ public struct TryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withTryKeyword(value)
     }
   }
-  public func withTryKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `tryKeyword` replaced.
+  /// - param newChild: The new `tryKeyword` to replace the node's
+  ///                   current `tryKeyword`, if present.
+  public func withTryKeyword(
+    _ newChild: TokenSyntax?) -> TryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .tryKeyword).raw
 
@@ -242,7 +262,12 @@ public struct TryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withQuestionOrExclamationMark(value)
     }
   }
-  public func withQuestionOrExclamationMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `questionOrExclamationMark` replaced.
+  /// - param newChild: The new `questionOrExclamationMark` to replace the node's
+  ///                   current `questionOrExclamationMark`, if present.
+  public func withQuestionOrExclamationMark(
+    _ newChild: TokenSyntax?) -> TryExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -259,7 +284,12 @@ public struct TryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> TryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -272,9 +302,9 @@ public struct TryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension TryExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "tryKeyword": Syntax(tryKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "tryKeyword": Syntax(tryKeyword).asProtocol(SyntaxProtocol.self),
       "questionOrExclamationMark": questionOrExclamationMark.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -319,7 +349,12 @@ public struct AwaitExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withAwaitKeyword(value)
     }
   }
-  public func withAwaitKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `awaitKeyword` replaced.
+  /// - param newChild: The new `awaitKeyword` to replace the node's
+  ///                   current `awaitKeyword`, if present.
+  public func withAwaitKeyword(
+    _ newChild: TokenSyntax?) -> AwaitExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -337,7 +372,12 @@ public struct AwaitExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> AwaitExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -350,8 +390,8 @@ public struct AwaitExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension AwaitExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "awaitKeyword": Syntax(awaitKeyword).asProtocol(SyntaxProtocol.self) as Any,
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
+      "awaitKeyword": Syntax(awaitKeyword).asProtocol(SyntaxProtocol.self),
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -396,7 +436,12 @@ public struct IdentifierExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> IdentifierExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -414,7 +459,12 @@ public struct IdentifierExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withDeclNameArguments(value)
     }
   }
-  public func withDeclNameArguments(_ newChild: DeclNameArgumentsSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `declNameArguments` replaced.
+  /// - param newChild: The new `declNameArguments` to replace the node's
+  ///                   current `declNameArguments`, if present.
+  public func withDeclNameArguments(
+    _ newChild: DeclNameArgumentsSyntax?) -> IdentifierExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -426,7 +476,7 @@ public struct IdentifierExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension IdentifierExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "declNameArguments": declNameArguments.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -471,7 +521,12 @@ public struct SuperRefExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withSuperKeyword(value)
     }
   }
-  public func withSuperKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `superKeyword` replaced.
+  /// - param newChild: The new `superKeyword` to replace the node's
+  ///                   current `superKeyword`, if present.
+  public func withSuperKeyword(
+    _ newChild: TokenSyntax?) -> SuperRefExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .superKeyword).raw
 
@@ -484,7 +539,7 @@ public struct SuperRefExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension SuperRefExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "superKeyword": Syntax(superKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "superKeyword": Syntax(superKeyword).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -528,7 +583,12 @@ public struct NilLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withNilKeyword(value)
     }
   }
-  public func withNilKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `nilKeyword` replaced.
+  /// - param newChild: The new `nilKeyword` to replace the node's
+  ///                   current `nilKeyword`, if present.
+  public func withNilKeyword(
+    _ newChild: TokenSyntax?) -> NilLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .nilKeyword).raw
 
@@ -541,7 +601,7 @@ public struct NilLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension NilLiteralExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "nilKeyword": Syntax(nilKeyword).asProtocol(SyntaxProtocol.self) as Any,
+      "nilKeyword": Syntax(nilKeyword).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -585,7 +645,12 @@ public struct DiscardAssignmentExprSyntax: ExprSyntaxProtocol, Hashable, Identif
       self = withWildcard(value)
     }
   }
-  public func withWildcard(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `wildcard` replaced.
+  /// - param newChild: The new `wildcard` to replace the node's
+  ///                   current `wildcard`, if present.
+  public func withWildcard(
+    _ newChild: TokenSyntax?) -> DiscardAssignmentExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .wildcardKeyword).raw
 
@@ -598,7 +663,7 @@ public struct DiscardAssignmentExprSyntax: ExprSyntaxProtocol, Hashable, Identif
 extension DiscardAssignmentExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "wildcard": Syntax(wildcard).asProtocol(SyntaxProtocol.self) as Any,
+      "wildcard": Syntax(wildcard).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -642,7 +707,12 @@ public struct AssignmentExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withAssignToken(value)
     }
   }
-  public func withAssignToken(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `assignToken` replaced.
+  /// - param newChild: The new `assignToken` to replace the node's
+  ///                   current `assignToken`, if present.
+  public func withAssignToken(
+    _ newChild: TokenSyntax?) -> AssignmentExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .equal).raw
 
@@ -655,7 +725,7 @@ public struct AssignmentExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension AssignmentExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "assignToken": Syntax(assignToken).asProtocol(SyntaxProtocol.self) as Any,
+      "assignToken": Syntax(assignToken).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -717,7 +787,12 @@ public struct SequenceExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withElements(_ newChild: ExprListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elements` replaced.
+  /// - param newChild: The new `elements` to replace the node's
+  ///                   current `elements`, if present.
+  public func withElements(
+    _ newChild: ExprListSyntax?) -> SequenceExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprListSyntax.makeBlank(arena: arena).raw
 
@@ -730,7 +805,7 @@ public struct SequenceExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension SequenceExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self) as Any,
+      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -774,7 +849,12 @@ public struct PoundLineExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withPoundLine(value)
     }
   }
-  public func withPoundLine(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundLine` replaced.
+  /// - param newChild: The new `poundLine` to replace the node's
+  ///                   current `poundLine`, if present.
+  public func withPoundLine(
+    _ newChild: TokenSyntax?) -> PoundLineExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundLineKeyword).raw
 
@@ -787,7 +867,7 @@ public struct PoundLineExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension PoundLineExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundLine": Syntax(poundLine).asProtocol(SyntaxProtocol.self) as Any,
+      "poundLine": Syntax(poundLine).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -831,7 +911,12 @@ public struct PoundFileExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withPoundFile(value)
     }
   }
-  public func withPoundFile(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundFile` replaced.
+  /// - param newChild: The new `poundFile` to replace the node's
+  ///                   current `poundFile`, if present.
+  public func withPoundFile(
+    _ newChild: TokenSyntax?) -> PoundFileExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundFileKeyword).raw
 
@@ -844,7 +929,7 @@ public struct PoundFileExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension PoundFileExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundFile": Syntax(poundFile).asProtocol(SyntaxProtocol.self) as Any,
+      "poundFile": Syntax(poundFile).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -888,7 +973,12 @@ public struct PoundFileIDExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
       self = withPoundFileID(value)
     }
   }
-  public func withPoundFileID(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundFileID` replaced.
+  /// - param newChild: The new `poundFileID` to replace the node's
+  ///                   current `poundFileID`, if present.
+  public func withPoundFileID(
+    _ newChild: TokenSyntax?) -> PoundFileIDExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundFileIDKeyword).raw
 
@@ -901,7 +991,7 @@ public struct PoundFileIDExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
 extension PoundFileIDExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundFileID": Syntax(poundFileID).asProtocol(SyntaxProtocol.self) as Any,
+      "poundFileID": Syntax(poundFileID).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -945,7 +1035,12 @@ public struct PoundFilePathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withPoundFilePath(value)
     }
   }
-  public func withPoundFilePath(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundFilePath` replaced.
+  /// - param newChild: The new `poundFilePath` to replace the node's
+  ///                   current `poundFilePath`, if present.
+  public func withPoundFilePath(
+    _ newChild: TokenSyntax?) -> PoundFilePathExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundFilePathKeyword).raw
 
@@ -958,7 +1053,7 @@ public struct PoundFilePathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
 extension PoundFilePathExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundFilePath": Syntax(poundFilePath).asProtocol(SyntaxProtocol.self) as Any,
+      "poundFilePath": Syntax(poundFilePath).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1002,7 +1097,12 @@ public struct PoundFunctionExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withPoundFunction(value)
     }
   }
-  public func withPoundFunction(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundFunction` replaced.
+  /// - param newChild: The new `poundFunction` to replace the node's
+  ///                   current `poundFunction`, if present.
+  public func withPoundFunction(
+    _ newChild: TokenSyntax?) -> PoundFunctionExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundFunctionKeyword).raw
 
@@ -1015,7 +1115,7 @@ public struct PoundFunctionExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
 extension PoundFunctionExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundFunction": Syntax(poundFunction).asProtocol(SyntaxProtocol.self) as Any,
+      "poundFunction": Syntax(poundFunction).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1059,7 +1159,12 @@ public struct PoundDsohandleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
       self = withPoundDsohandle(value)
     }
   }
-  public func withPoundDsohandle(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundDsohandle` replaced.
+  /// - param newChild: The new `poundDsohandle` to replace the node's
+  ///                   current `poundDsohandle`, if present.
+  public func withPoundDsohandle(
+    _ newChild: TokenSyntax?) -> PoundDsohandleExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundDsohandleKeyword).raw
 
@@ -1072,7 +1177,7 @@ public struct PoundDsohandleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
 extension PoundDsohandleExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundDsohandle": Syntax(poundDsohandle).asProtocol(SyntaxProtocol.self) as Any,
+      "poundDsohandle": Syntax(poundDsohandle).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1117,7 +1222,12 @@ public struct SymbolicReferenceExprSyntax: ExprSyntaxProtocol, Hashable, Identif
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> SymbolicReferenceExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -1135,7 +1245,12 @@ public struct SymbolicReferenceExprSyntax: ExprSyntaxProtocol, Hashable, Identif
       self = withGenericArgumentClause(value)
     }
   }
-  public func withGenericArgumentClause(_ newChild: GenericArgumentClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericArgumentClause` replaced.
+  /// - param newChild: The new `genericArgumentClause` to replace the node's
+  ///                   current `genericArgumentClause`, if present.
+  public func withGenericArgumentClause(
+    _ newChild: GenericArgumentClauseSyntax?) -> SymbolicReferenceExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1147,7 +1262,7 @@ public struct SymbolicReferenceExprSyntax: ExprSyntaxProtocol, Hashable, Identif
 extension SymbolicReferenceExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
       "genericArgumentClause": genericArgumentClause.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -1193,7 +1308,12 @@ public struct PrefixOperatorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
       self = withOperatorToken(value)
     }
   }
-  public func withOperatorToken(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `operatorToken` replaced.
+  /// - param newChild: The new `operatorToken` to replace the node's
+  ///                   current `operatorToken`, if present.
+  public func withOperatorToken(
+    _ newChild: TokenSyntax?) -> PrefixOperatorExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1210,7 +1330,12 @@ public struct PrefixOperatorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
       self = withPostfixExpression(value)
     }
   }
-  public func withPostfixExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `postfixExpression` replaced.
+  /// - param newChild: The new `postfixExpression` to replace the node's
+  ///                   current `postfixExpression`, if present.
+  public func withPostfixExpression(
+    _ newChild: ExprSyntax?) -> PrefixOperatorExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -1224,7 +1349,7 @@ extension PrefixOperatorExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
       "operatorToken": operatorToken.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "postfixExpression": Syntax(postfixExpression).asProtocol(SyntaxProtocol.self) as Any,
+      "postfixExpression": Syntax(postfixExpression).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1268,7 +1393,12 @@ public struct BinaryOperatorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
       self = withOperatorToken(value)
     }
   }
-  public func withOperatorToken(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `operatorToken` replaced.
+  /// - param newChild: The new `operatorToken` to replace the node's
+  ///                   current `operatorToken`, if present.
+  public func withOperatorToken(
+    _ newChild: TokenSyntax?) -> BinaryOperatorExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .unknown).raw
 
@@ -1281,7 +1411,7 @@ public struct BinaryOperatorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
 extension BinaryOperatorExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "operatorToken": Syntax(operatorToken).asProtocol(SyntaxProtocol.self) as Any,
+      "operatorToken": Syntax(operatorToken).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1327,7 +1457,12 @@ public struct ArrowExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withAsyncKeyword(value)
     }
   }
-  public func withAsyncKeyword(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `asyncKeyword` replaced.
+  /// - param newChild: The new `asyncKeyword` to replace the node's
+  ///                   current `asyncKeyword`, if present.
+  public func withAsyncKeyword(
+    _ newChild: TokenSyntax?) -> ArrowExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1344,7 +1479,12 @@ public struct ArrowExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withThrowsToken(value)
     }
   }
-  public func withThrowsToken(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `throwsToken` replaced.
+  /// - param newChild: The new `throwsToken` to replace the node's
+  ///                   current `throwsToken`, if present.
+  public func withThrowsToken(
+    _ newChild: TokenSyntax?) -> ArrowExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -1361,7 +1501,12 @@ public struct ArrowExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withArrowToken(value)
     }
   }
-  public func withArrowToken(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `arrowToken` replaced.
+  /// - param newChild: The new `arrowToken` to replace the node's
+  ///                   current `arrowToken`, if present.
+  public func withArrowToken(
+    _ newChild: TokenSyntax?) -> ArrowExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .arrow).raw
 
@@ -1376,7 +1521,7 @@ extension ArrowExprSyntax: CustomReflectable {
     return Mirror(self, children: [
       "asyncKeyword": asyncKeyword.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "throwsToken": throwsToken.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "arrowToken": Syntax(arrowToken).asProtocol(SyntaxProtocol.self) as Any,
+      "arrowToken": Syntax(arrowToken).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1420,7 +1565,12 @@ public struct FloatLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withFloatingDigits(value)
     }
   }
-  public func withFloatingDigits(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `floatingDigits` replaced.
+  /// - param newChild: The new `floatingDigits` to replace the node's
+  ///                   current `floatingDigits`, if present.
+  public func withFloatingDigits(
+    _ newChild: TokenSyntax?) -> FloatLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .floatingLiteral).raw
 
@@ -1433,7 +1583,7 @@ public struct FloatLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
 extension FloatLiteralExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "floatingDigits": Syntax(floatingDigits).asProtocol(SyntaxProtocol.self) as Any,
+      "floatingDigits": Syntax(floatingDigits).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1479,7 +1629,12 @@ public struct TupleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> TupleExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -1515,7 +1670,12 @@ public struct TupleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withElementList(_ newChild: TupleExprElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elementList` replaced.
+  /// - param newChild: The new `elementList` to replace the node's
+  ///                   current `elementList`, if present.
+  public func withElementList(
+    _ newChild: TupleExprElementListSyntax?) -> TupleExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTupleExprElementListSyntax.makeBlank(arena: arena).raw
 
@@ -1533,7 +1693,12 @@ public struct TupleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> TupleExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -1546,9 +1711,9 @@ public struct TupleExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension TupleExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
-      "elementList": Syntax(elementList).asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
+      "elementList": Syntax(elementList).asProtocol(SyntaxProtocol.self),
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1594,7 +1759,12 @@ public struct ArrayExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withLeftSquare(value)
     }
   }
-  public func withLeftSquare(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftSquare` replaced.
+  /// - param newChild: The new `leftSquare` to replace the node's
+  ///                   current `leftSquare`, if present.
+  public func withLeftSquare(
+    _ newChild: TokenSyntax?) -> ArrayExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftSquareBracket).raw
 
@@ -1630,7 +1800,12 @@ public struct ArrayExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withElements(_ newChild: ArrayElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `elements` replaced.
+  /// - param newChild: The new `elements` to replace the node's
+  ///                   current `elements`, if present.
+  public func withElements(
+    _ newChild: ArrayElementListSyntax?) -> ArrayExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawArrayElementListSyntax.makeBlank(arena: arena).raw
 
@@ -1648,7 +1823,12 @@ public struct ArrayExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withRightSquare(value)
     }
   }
-  public func withRightSquare(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightSquare` replaced.
+  /// - param newChild: The new `rightSquare` to replace the node's
+  ///                   current `rightSquare`, if present.
+  public func withRightSquare(
+    _ newChild: TokenSyntax?) -> ArrayExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightSquareBracket).raw
 
@@ -1661,9 +1841,9 @@ public struct ArrayExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension ArrayExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "leftSquare": Syntax(leftSquare).asProtocol(SyntaxProtocol.self) as Any,
-      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self) as Any,
-      "rightSquare": Syntax(rightSquare).asProtocol(SyntaxProtocol.self) as Any,
+      "leftSquare": Syntax(leftSquare).asProtocol(SyntaxProtocol.self),
+      "elements": Syntax(elements).asProtocol(SyntaxProtocol.self),
+      "rightSquare": Syntax(rightSquare).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1709,7 +1889,12 @@ public struct DictionaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withLeftSquare(value)
     }
   }
-  public func withLeftSquare(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftSquare` replaced.
+  /// - param newChild: The new `leftSquare` to replace the node's
+  ///                   current `leftSquare`, if present.
+  public func withLeftSquare(
+    _ newChild: TokenSyntax?) -> DictionaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftSquareBracket).raw
 
@@ -1727,7 +1912,12 @@ public struct DictionaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withContent(value)
     }
   }
-  public func withContent(_ newChild: Syntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `content` replaced.
+  /// - param newChild: The new `content` to replace the node's
+  ///                   current `content`, if present.
+  public func withContent(
+    _ newChild: Syntax?) -> DictionaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawSyntax.makeBlank(arena: arena).raw
 
@@ -1745,7 +1935,12 @@ public struct DictionaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withRightSquare(value)
     }
   }
-  public func withRightSquare(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightSquare` replaced.
+  /// - param newChild: The new `rightSquare` to replace the node's
+  ///                   current `rightSquare`, if present.
+  public func withRightSquare(
+    _ newChild: TokenSyntax?) -> DictionaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightSquareBracket).raw
 
@@ -1758,9 +1953,9 @@ public struct DictionaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension DictionaryExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "leftSquare": Syntax(leftSquare).asProtocol(SyntaxProtocol.self) as Any,
-      "content": Syntax(content).asProtocol(SyntaxProtocol.self) as Any,
-      "rightSquare": Syntax(rightSquare).asProtocol(SyntaxProtocol.self) as Any,
+      "leftSquare": Syntax(leftSquare).asProtocol(SyntaxProtocol.self),
+      "content": Syntax(content).asProtocol(SyntaxProtocol.self),
+      "rightSquare": Syntax(rightSquare).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1804,7 +1999,12 @@ public struct IntegerLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
       self = withDigits(value)
     }
   }
-  public func withDigits(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `digits` replaced.
+  /// - param newChild: The new `digits` to replace the node's
+  ///                   current `digits`, if present.
+  public func withDigits(
+    _ newChild: TokenSyntax?) -> IntegerLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .integerLiteral).raw
 
@@ -1817,7 +2017,7 @@ public struct IntegerLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
 extension IntegerLiteralExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "digits": Syntax(digits).asProtocol(SyntaxProtocol.self) as Any,
+      "digits": Syntax(digits).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1861,7 +2061,12 @@ public struct BooleanLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
       self = withBooleanLiteral(value)
     }
   }
-  public func withBooleanLiteral(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `booleanLiteral` replaced.
+  /// - param newChild: The new `booleanLiteral` to replace the node's
+  ///                   current `booleanLiteral`, if present.
+  public func withBooleanLiteral(
+    _ newChild: TokenSyntax?) -> BooleanLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .trueKeyword).raw
 
@@ -1874,7 +2079,7 @@ public struct BooleanLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiab
 extension BooleanLiteralExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "booleanLiteral": Syntax(booleanLiteral).asProtocol(SyntaxProtocol.self) as Any,
+      "booleanLiteral": Syntax(booleanLiteral).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -1922,7 +2127,12 @@ public struct TernaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withConditionExpression(value)
     }
   }
-  public func withConditionExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `conditionExpression` replaced.
+  /// - param newChild: The new `conditionExpression` to replace the node's
+  ///                   current `conditionExpression`, if present.
+  public func withConditionExpression(
+    _ newChild: ExprSyntax?) -> TernaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -1940,7 +2150,12 @@ public struct TernaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withQuestionMark(value)
     }
   }
-  public func withQuestionMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `questionMark` replaced.
+  /// - param newChild: The new `questionMark` to replace the node's
+  ///                   current `questionMark`, if present.
+  public func withQuestionMark(
+    _ newChild: TokenSyntax?) -> TernaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .infixQuestionMark).raw
 
@@ -1958,7 +2173,12 @@ public struct TernaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withFirstChoice(value)
     }
   }
-  public func withFirstChoice(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `firstChoice` replaced.
+  /// - param newChild: The new `firstChoice` to replace the node's
+  ///                   current `firstChoice`, if present.
+  public func withFirstChoice(
+    _ newChild: ExprSyntax?) -> TernaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -1976,7 +2196,12 @@ public struct TernaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withColonMark(value)
     }
   }
-  public func withColonMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `colonMark` replaced.
+  /// - param newChild: The new `colonMark` to replace the node's
+  ///                   current `colonMark`, if present.
+  public func withColonMark(
+    _ newChild: TokenSyntax?) -> TernaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .colon).raw
 
@@ -1994,7 +2219,12 @@ public struct TernaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withSecondChoice(value)
     }
   }
-  public func withSecondChoice(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `secondChoice` replaced.
+  /// - param newChild: The new `secondChoice` to replace the node's
+  ///                   current `secondChoice`, if present.
+  public func withSecondChoice(
+    _ newChild: ExprSyntax?) -> TernaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -2007,11 +2237,11 @@ public struct TernaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension TernaryExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "conditionExpression": Syntax(conditionExpression).asProtocol(SyntaxProtocol.self) as Any,
-      "questionMark": Syntax(questionMark).asProtocol(SyntaxProtocol.self) as Any,
-      "firstChoice": Syntax(firstChoice).asProtocol(SyntaxProtocol.self) as Any,
-      "colonMark": Syntax(colonMark).asProtocol(SyntaxProtocol.self) as Any,
-      "secondChoice": Syntax(secondChoice).asProtocol(SyntaxProtocol.self) as Any,
+      "conditionExpression": Syntax(conditionExpression).asProtocol(SyntaxProtocol.self),
+      "questionMark": Syntax(questionMark).asProtocol(SyntaxProtocol.self),
+      "firstChoice": Syntax(firstChoice).asProtocol(SyntaxProtocol.self),
+      "colonMark": Syntax(colonMark).asProtocol(SyntaxProtocol.self),
+      "secondChoice": Syntax(secondChoice).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -2058,7 +2288,12 @@ public struct MemberAccessExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withBase(value)
     }
   }
-  public func withBase(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `base` replaced.
+  /// - param newChild: The new `base` to replace the node's
+  ///                   current `base`, if present.
+  public func withBase(
+    _ newChild: ExprSyntax?) -> MemberAccessExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2075,7 +2310,12 @@ public struct MemberAccessExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withDot(value)
     }
   }
-  public func withDot(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `dot` replaced.
+  /// - param newChild: The new `dot` to replace the node's
+  ///                   current `dot`, if present.
+  public func withDot(
+    _ newChild: TokenSyntax?) -> MemberAccessExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .period).raw
 
@@ -2093,7 +2333,12 @@ public struct MemberAccessExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withName(value)
     }
   }
-  public func withName(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `name` replaced.
+  /// - param newChild: The new `name` to replace the node's
+  ///                   current `name`, if present.
+  public func withName(
+    _ newChild: TokenSyntax?) -> MemberAccessExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .unknown).raw
 
@@ -2111,7 +2356,12 @@ public struct MemberAccessExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withDeclNameArguments(value)
     }
   }
-  public func withDeclNameArguments(_ newChild: DeclNameArgumentsSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `declNameArguments` replaced.
+  /// - param newChild: The new `declNameArguments` to replace the node's
+  ///                   current `declNameArguments`, if present.
+  public func withDeclNameArguments(
+    _ newChild: DeclNameArgumentsSyntax?) -> MemberAccessExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2124,8 +2374,8 @@ extension MemberAccessExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
       "base": base.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "dot": Syntax(dot).asProtocol(SyntaxProtocol.self) as Any,
-      "name": Syntax(name).asProtocol(SyntaxProtocol.self) as Any,
+      "dot": Syntax(dot).asProtocol(SyntaxProtocol.self),
+      "name": Syntax(name).asProtocol(SyntaxProtocol.self),
       "declNameArguments": declNameArguments.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -2171,7 +2421,12 @@ public struct IsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withIsTok(value)
     }
   }
-  public func withIsTok(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `isTok` replaced.
+  /// - param newChild: The new `isTok` to replace the node's
+  ///                   current `isTok`, if present.
+  public func withIsTok(
+    _ newChild: TokenSyntax?) -> IsExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .isKeyword).raw
 
@@ -2189,7 +2444,12 @@ public struct IsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withTypeName(value)
     }
   }
-  public func withTypeName(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `typeName` replaced.
+  /// - param newChild: The new `typeName` to replace the node's
+  ///                   current `typeName`, if present.
+  public func withTypeName(
+    _ newChild: TypeSyntax?) -> IsExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -2202,8 +2462,8 @@ public struct IsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension IsExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "isTok": Syntax(isTok).asProtocol(SyntaxProtocol.self) as Any,
-      "typeName": Syntax(typeName).asProtocol(SyntaxProtocol.self) as Any,
+      "isTok": Syntax(isTok).asProtocol(SyntaxProtocol.self),
+      "typeName": Syntax(typeName).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -2249,7 +2509,12 @@ public struct AsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withAsTok(value)
     }
   }
-  public func withAsTok(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `asTok` replaced.
+  /// - param newChild: The new `asTok` to replace the node's
+  ///                   current `asTok`, if present.
+  public func withAsTok(
+    _ newChild: TokenSyntax?) -> AsExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .asKeyword).raw
 
@@ -2267,7 +2532,12 @@ public struct AsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withQuestionOrExclamationMark(value)
     }
   }
-  public func withQuestionOrExclamationMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `questionOrExclamationMark` replaced.
+  /// - param newChild: The new `questionOrExclamationMark` to replace the node's
+  ///                   current `questionOrExclamationMark`, if present.
+  public func withQuestionOrExclamationMark(
+    _ newChild: TokenSyntax?) -> AsExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2284,7 +2554,12 @@ public struct AsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withTypeName(value)
     }
   }
-  public func withTypeName(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `typeName` replaced.
+  /// - param newChild: The new `typeName` to replace the node's
+  ///                   current `typeName`, if present.
+  public func withTypeName(
+    _ newChild: TypeSyntax?) -> AsExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -2297,9 +2572,9 @@ public struct AsExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension AsExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "asTok": Syntax(asTok).asProtocol(SyntaxProtocol.self) as Any,
+      "asTok": Syntax(asTok).asProtocol(SyntaxProtocol.self),
       "questionOrExclamationMark": questionOrExclamationMark.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "typeName": Syntax(typeName).asProtocol(SyntaxProtocol.self) as Any,
+      "typeName": Syntax(typeName).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -2343,7 +2618,12 @@ public struct TypeExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withType(value)
     }
   }
-  public func withType(_ newChild: TypeSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `type` replaced.
+  /// - param newChild: The new `type` to replace the node's
+  ///                   current `type`, if present.
+  public func withType(
+    _ newChild: TypeSyntax?) -> TypeExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTypeSyntax.makeBlank(arena: arena).raw
 
@@ -2356,7 +2636,7 @@ public struct TypeExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension TypeExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "type": Syntax(type).asProtocol(SyntaxProtocol.self) as Any,
+      "type": Syntax(type).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -2403,7 +2683,12 @@ public struct ClosureExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withLeftBrace(value)
     }
   }
-  public func withLeftBrace(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftBrace` replaced.
+  /// - param newChild: The new `leftBrace` to replace the node's
+  ///                   current `leftBrace`, if present.
+  public func withLeftBrace(
+    _ newChild: TokenSyntax?) -> ClosureExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftBrace).raw
 
@@ -2421,7 +2706,12 @@ public struct ClosureExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withSignature(value)
     }
   }
-  public func withSignature(_ newChild: ClosureSignatureSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `signature` replaced.
+  /// - param newChild: The new `signature` to replace the node's
+  ///                   current `signature`, if present.
+  public func withSignature(
+    _ newChild: ClosureSignatureSyntax?) -> ClosureExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2456,7 +2746,12 @@ public struct ClosureExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withStatements(_ newChild: CodeBlockItemListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `statements` replaced.
+  /// - param newChild: The new `statements` to replace the node's
+  ///                   current `statements`, if present.
+  public func withStatements(
+    _ newChild: CodeBlockItemListSyntax?) -> ClosureExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawCodeBlockItemListSyntax.makeBlank(arena: arena).raw
 
@@ -2474,7 +2769,12 @@ public struct ClosureExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withRightBrace(value)
     }
   }
-  public func withRightBrace(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightBrace` replaced.
+  /// - param newChild: The new `rightBrace` to replace the node's
+  ///                   current `rightBrace`, if present.
+  public func withRightBrace(
+    _ newChild: TokenSyntax?) -> ClosureExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightBrace).raw
 
@@ -2487,10 +2787,10 @@ public struct ClosureExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension ClosureExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "leftBrace": Syntax(leftBrace).asProtocol(SyntaxProtocol.self) as Any,
+      "leftBrace": Syntax(leftBrace).asProtocol(SyntaxProtocol.self),
       "signature": signature.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "statements": Syntax(statements).asProtocol(SyntaxProtocol.self) as Any,
-      "rightBrace": Syntax(rightBrace).asProtocol(SyntaxProtocol.self) as Any,
+      "statements": Syntax(statements).asProtocol(SyntaxProtocol.self),
+      "rightBrace": Syntax(rightBrace).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -2534,7 +2834,12 @@ public struct UnresolvedPatternExprSyntax: ExprSyntaxProtocol, Hashable, Identif
       self = withPattern(value)
     }
   }
-  public func withPattern(_ newChild: PatternSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `pattern` replaced.
+  /// - param newChild: The new `pattern` to replace the node's
+  ///                   current `pattern`, if present.
+  public func withPattern(
+    _ newChild: PatternSyntax?) -> UnresolvedPatternExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawPatternSyntax.makeBlank(arena: arena).raw
 
@@ -2547,7 +2852,7 @@ public struct UnresolvedPatternExprSyntax: ExprSyntaxProtocol, Hashable, Identif
 extension UnresolvedPatternExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "pattern": Syntax(pattern).asProtocol(SyntaxProtocol.self) as Any,
+      "pattern": Syntax(pattern).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -2596,7 +2901,12 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withCalledExpression(value)
     }
   }
-  public func withCalledExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `calledExpression` replaced.
+  /// - param newChild: The new `calledExpression` to replace the node's
+  ///                   current `calledExpression`, if present.
+  public func withCalledExpression(
+    _ newChild: ExprSyntax?) -> FunctionCallExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -2614,7 +2924,12 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> FunctionCallExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2649,7 +2964,12 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withArgumentList(_ newChild: TupleExprElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `argumentList` replaced.
+  /// - param newChild: The new `argumentList` to replace the node's
+  ///                   current `argumentList`, if present.
+  public func withArgumentList(
+    _ newChild: TupleExprElementListSyntax?) -> FunctionCallExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTupleExprElementListSyntax.makeBlank(arena: arena).raw
 
@@ -2667,7 +2987,12 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> FunctionCallExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2684,7 +3009,12 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withTrailingClosure(value)
     }
   }
-  public func withTrailingClosure(_ newChild: ClosureExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `trailingClosure` replaced.
+  /// - param newChild: The new `trailingClosure` to replace the node's
+  ///                   current `trailingClosure`, if present.
+  public func withTrailingClosure(
+    _ newChild: ClosureExprSyntax?) -> FunctionCallExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2719,7 +3049,12 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAdditionalTrailingClosures(_ newChild: MultipleTrailingClosureElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `additionalTrailingClosures` replaced.
+  /// - param newChild: The new `additionalTrailingClosures` to replace the node's
+  ///                   current `additionalTrailingClosures`, if present.
+  public func withAdditionalTrailingClosures(
+    _ newChild: MultipleTrailingClosureElementListSyntax?) -> FunctionCallExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2731,9 +3066,9 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
 extension FunctionCallExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "calledExpression": Syntax(calledExpression).asProtocol(SyntaxProtocol.self) as Any,
+      "calledExpression": Syntax(calledExpression).asProtocol(SyntaxProtocol.self),
       "leftParen": leftParen.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "argumentList": Syntax(argumentList).asProtocol(SyntaxProtocol.self) as Any,
+      "argumentList": Syntax(argumentList).asProtocol(SyntaxProtocol.self),
       "rightParen": rightParen.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "trailingClosure": trailingClosure.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "additionalTrailingClosures": additionalTrailingClosures.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
@@ -2785,7 +3120,12 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withCalledExpression(value)
     }
   }
-  public func withCalledExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `calledExpression` replaced.
+  /// - param newChild: The new `calledExpression` to replace the node's
+  ///                   current `calledExpression`, if present.
+  public func withCalledExpression(
+    _ newChild: ExprSyntax?) -> SubscriptExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -2803,7 +3143,12 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withLeftBracket(value)
     }
   }
-  public func withLeftBracket(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftBracket` replaced.
+  /// - param newChild: The new `leftBracket` to replace the node's
+  ///                   current `leftBracket`, if present.
+  public func withLeftBracket(
+    _ newChild: TokenSyntax?) -> SubscriptExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftSquareBracket).raw
 
@@ -2839,7 +3184,12 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withArgumentList(_ newChild: TupleExprElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `argumentList` replaced.
+  /// - param newChild: The new `argumentList` to replace the node's
+  ///                   current `argumentList`, if present.
+  public func withArgumentList(
+    _ newChild: TupleExprElementListSyntax?) -> SubscriptExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTupleExprElementListSyntax.makeBlank(arena: arena).raw
 
@@ -2857,7 +3207,12 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withRightBracket(value)
     }
   }
-  public func withRightBracket(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightBracket` replaced.
+  /// - param newChild: The new `rightBracket` to replace the node's
+  ///                   current `rightBracket`, if present.
+  public func withRightBracket(
+    _ newChild: TokenSyntax?) -> SubscriptExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightSquareBracket).raw
 
@@ -2875,7 +3230,12 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withTrailingClosure(value)
     }
   }
-  public func withTrailingClosure(_ newChild: ClosureExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `trailingClosure` replaced.
+  /// - param newChild: The new `trailingClosure` to replace the node's
+  ///                   current `trailingClosure`, if present.
+  public func withTrailingClosure(
+    _ newChild: ClosureExprSyntax?) -> SubscriptExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2910,7 +3270,12 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withAdditionalTrailingClosures(_ newChild: MultipleTrailingClosureElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `additionalTrailingClosures` replaced.
+  /// - param newChild: The new `additionalTrailingClosures` to replace the node's
+  ///                   current `additionalTrailingClosures`, if present.
+  public func withAdditionalTrailingClosures(
+    _ newChild: MultipleTrailingClosureElementListSyntax?) -> SubscriptExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -2922,10 +3287,10 @@ public struct SubscriptExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension SubscriptExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "calledExpression": Syntax(calledExpression).asProtocol(SyntaxProtocol.self) as Any,
-      "leftBracket": Syntax(leftBracket).asProtocol(SyntaxProtocol.self) as Any,
-      "argumentList": Syntax(argumentList).asProtocol(SyntaxProtocol.self) as Any,
-      "rightBracket": Syntax(rightBracket).asProtocol(SyntaxProtocol.self) as Any,
+      "calledExpression": Syntax(calledExpression).asProtocol(SyntaxProtocol.self),
+      "leftBracket": Syntax(leftBracket).asProtocol(SyntaxProtocol.self),
+      "argumentList": Syntax(argumentList).asProtocol(SyntaxProtocol.self),
+      "rightBracket": Syntax(rightBracket).asProtocol(SyntaxProtocol.self),
       "trailingClosure": trailingClosure.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "additionalTrailingClosures": additionalTrailingClosures.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
@@ -2972,7 +3337,12 @@ public struct OptionalChainingExprSyntax: ExprSyntaxProtocol, Hashable, Identifi
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> OptionalChainingExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -2990,7 +3360,12 @@ public struct OptionalChainingExprSyntax: ExprSyntaxProtocol, Hashable, Identifi
       self = withQuestionMark(value)
     }
   }
-  public func withQuestionMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `questionMark` replaced.
+  /// - param newChild: The new `questionMark` to replace the node's
+  ///                   current `questionMark`, if present.
+  public func withQuestionMark(
+    _ newChild: TokenSyntax?) -> OptionalChainingExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .postfixQuestionMark).raw
 
@@ -3003,8 +3378,8 @@ public struct OptionalChainingExprSyntax: ExprSyntaxProtocol, Hashable, Identifi
 extension OptionalChainingExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
-      "questionMark": Syntax(questionMark).asProtocol(SyntaxProtocol.self) as Any,
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
+      "questionMark": Syntax(questionMark).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3049,7 +3424,12 @@ public struct ForcedValueExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> ForcedValueExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -3067,7 +3447,12 @@ public struct ForcedValueExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
       self = withExclamationMark(value)
     }
   }
-  public func withExclamationMark(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `exclamationMark` replaced.
+  /// - param newChild: The new `exclamationMark` to replace the node's
+  ///                   current `exclamationMark`, if present.
+  public func withExclamationMark(
+    _ newChild: TokenSyntax?) -> ForcedValueExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .exclamationMark).raw
 
@@ -3080,8 +3465,8 @@ public struct ForcedValueExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
 extension ForcedValueExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
-      "exclamationMark": Syntax(exclamationMark).asProtocol(SyntaxProtocol.self) as Any,
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
+      "exclamationMark": Syntax(exclamationMark).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3126,7 +3511,12 @@ public struct PostfixUnaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> PostfixUnaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -3144,7 +3534,12 @@ public struct PostfixUnaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withOperatorToken(value)
     }
   }
-  public func withOperatorToken(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `operatorToken` replaced.
+  /// - param newChild: The new `operatorToken` to replace the node's
+  ///                   current `operatorToken`, if present.
+  public func withOperatorToken(
+    _ newChild: TokenSyntax?) -> PostfixUnaryExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .postfixOperator).raw
 
@@ -3157,8 +3552,8 @@ public struct PostfixUnaryExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
 extension PostfixUnaryExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
-      "operatorToken": Syntax(operatorToken).asProtocol(SyntaxProtocol.self) as Any,
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
+      "operatorToken": Syntax(operatorToken).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3203,7 +3598,12 @@ public struct SpecializeExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> SpecializeExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -3221,7 +3621,12 @@ public struct SpecializeExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withGenericArgumentClause(value)
     }
   }
-  public func withGenericArgumentClause(_ newChild: GenericArgumentClauseSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `genericArgumentClause` replaced.
+  /// - param newChild: The new `genericArgumentClause` to replace the node's
+  ///                   current `genericArgumentClause`, if present.
+  public func withGenericArgumentClause(
+    _ newChild: GenericArgumentClauseSyntax?) -> SpecializeExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawGenericArgumentClauseSyntax.makeBlank(arena: arena).raw
 
@@ -3234,8 +3639,8 @@ public struct SpecializeExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension SpecializeExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
-      "genericArgumentClause": Syntax(genericArgumentClause).asProtocol(SyntaxProtocol.self) as Any,
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
+      "genericArgumentClause": Syntax(genericArgumentClause).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3283,7 +3688,12 @@ public struct StringLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withOpenDelimiter(value)
     }
   }
-  public func withOpenDelimiter(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `openDelimiter` replaced.
+  /// - param newChild: The new `openDelimiter` to replace the node's
+  ///                   current `openDelimiter`, if present.
+  public func withOpenDelimiter(
+    _ newChild: TokenSyntax?) -> StringLiteralExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3300,7 +3710,12 @@ public struct StringLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withOpenQuote(value)
     }
   }
-  public func withOpenQuote(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `openQuote` replaced.
+  /// - param newChild: The new `openQuote` to replace the node's
+  ///                   current `openQuote`, if present.
+  public func withOpenQuote(
+    _ newChild: TokenSyntax?) -> StringLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .stringQuote).raw
 
@@ -3336,7 +3751,12 @@ public struct StringLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withSegments(_ newChild: StringLiteralSegmentsSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `segments` replaced.
+  /// - param newChild: The new `segments` to replace the node's
+  ///                   current `segments`, if present.
+  public func withSegments(
+    _ newChild: StringLiteralSegmentsSyntax?) -> StringLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawStringLiteralSegmentsSyntax.makeBlank(arena: arena).raw
 
@@ -3354,7 +3774,12 @@ public struct StringLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withCloseQuote(value)
     }
   }
-  public func withCloseQuote(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `closeQuote` replaced.
+  /// - param newChild: The new `closeQuote` to replace the node's
+  ///                   current `closeQuote`, if present.
+  public func withCloseQuote(
+    _ newChild: TokenSyntax?) -> StringLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .stringQuote).raw
 
@@ -3372,7 +3797,12 @@ public struct StringLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withCloseDelimiter(value)
     }
   }
-  public func withCloseDelimiter(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `closeDelimiter` replaced.
+  /// - param newChild: The new `closeDelimiter` to replace the node's
+  ///                   current `closeDelimiter`, if present.
+  public func withCloseDelimiter(
+    _ newChild: TokenSyntax?) -> StringLiteralExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3385,9 +3815,9 @@ extension StringLiteralExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
       "openDelimiter": openDelimiter.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "openQuote": Syntax(openQuote).asProtocol(SyntaxProtocol.self) as Any,
-      "segments": Syntax(segments).asProtocol(SyntaxProtocol.self) as Any,
-      "closeQuote": Syntax(closeQuote).asProtocol(SyntaxProtocol.self) as Any,
+      "openQuote": Syntax(openQuote).asProtocol(SyntaxProtocol.self),
+      "segments": Syntax(segments).asProtocol(SyntaxProtocol.self),
+      "closeQuote": Syntax(closeQuote).asProtocol(SyntaxProtocol.self),
       "closeDelimiter": closeDelimiter.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
     ])
   }
@@ -3432,7 +3862,12 @@ public struct RegexLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withRegex(value)
     }
   }
-  public func withRegex(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `regex` replaced.
+  /// - param newChild: The new `regex` to replace the node's
+  ///                   current `regex`, if present.
+  public func withRegex(
+    _ newChild: TokenSyntax?) -> RegexLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .regexLiteral).raw
 
@@ -3445,7 +3880,7 @@ public struct RegexLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
 extension RegexLiteralExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "regex": Syntax(regex).asProtocol(SyntaxProtocol.self) as Any,
+      "regex": Syntax(regex).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3491,7 +3926,12 @@ public struct KeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withBackslash(value)
     }
   }
-  public func withBackslash(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `backslash` replaced.
+  /// - param newChild: The new `backslash` to replace the node's
+  ///                   current `backslash`, if present.
+  public func withBackslash(
+    _ newChild: TokenSyntax?) -> KeyPathExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .backslash).raw
 
@@ -3509,7 +3949,12 @@ public struct KeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withRootExpr(value)
     }
   }
-  public func withRootExpr(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rootExpr` replaced.
+  /// - param newChild: The new `rootExpr` to replace the node's
+  ///                   current `rootExpr`, if present.
+  public func withRootExpr(
+    _ newChild: ExprSyntax?) -> KeyPathExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3526,7 +3971,12 @@ public struct KeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
       self = withExpression(value)
     }
   }
-  public func withExpression(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `expression` replaced.
+  /// - param newChild: The new `expression` to replace the node's
+  ///                   current `expression`, if present.
+  public func withExpression(
+    _ newChild: ExprSyntax?) -> KeyPathExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -3539,9 +3989,9 @@ public struct KeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable {
 extension KeyPathExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "backslash": Syntax(backslash).asProtocol(SyntaxProtocol.self) as Any,
+      "backslash": Syntax(backslash).asProtocol(SyntaxProtocol.self),
       "rootExpr": rootExpr.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self) as Any,
+      "expression": Syntax(expression).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3585,7 +4035,12 @@ public struct KeyPathBaseExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
       self = withPeriod(value)
     }
   }
-  public func withPeriod(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `period` replaced.
+  /// - param newChild: The new `period` to replace the node's
+  ///                   current `period`, if present.
+  public func withPeriod(
+    _ newChild: TokenSyntax?) -> KeyPathBaseExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .period).raw
 
@@ -3598,7 +4053,7 @@ public struct KeyPathBaseExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
 extension KeyPathBaseExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "period": Syntax(period).asProtocol(SyntaxProtocol.self) as Any,
+      "period": Syntax(period).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3645,7 +4100,12 @@ public struct ObjcKeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
       self = withKeyPath(value)
     }
   }
-  public func withKeyPath(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `keyPath` replaced.
+  /// - param newChild: The new `keyPath` to replace the node's
+  ///                   current `keyPath`, if present.
+  public func withKeyPath(
+    _ newChild: TokenSyntax?) -> ObjcKeyPathExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundKeyPathKeyword).raw
 
@@ -3663,7 +4123,12 @@ public struct ObjcKeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> ObjcKeyPathExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -3699,7 +4164,12 @@ public struct ObjcKeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withName(_ newChild: ObjcNameSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `name` replaced.
+  /// - param newChild: The new `name` to replace the node's
+  ///                   current `name`, if present.
+  public func withName(
+    _ newChild: ObjcNameSyntax?) -> ObjcKeyPathExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawObjcNameSyntax.makeBlank(arena: arena).raw
 
@@ -3717,7 +4187,12 @@ public struct ObjcKeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> ObjcKeyPathExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -3730,10 +4205,10 @@ public struct ObjcKeyPathExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable 
 extension ObjcKeyPathExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "keyPath": Syntax(keyPath).asProtocol(SyntaxProtocol.self) as Any,
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
-      "name": Syntax(name).asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "keyPath": Syntax(keyPath).asProtocol(SyntaxProtocol.self),
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
+      "name": Syntax(name).asProtocol(SyntaxProtocol.self),
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3782,7 +4257,12 @@ public struct ObjcSelectorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withPoundSelector(value)
     }
   }
-  public func withPoundSelector(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `poundSelector` replaced.
+  /// - param newChild: The new `poundSelector` to replace the node's
+  ///                   current `poundSelector`, if present.
+  public func withPoundSelector(
+    _ newChild: TokenSyntax?) -> ObjcSelectorExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundSelectorKeyword).raw
 
@@ -3800,7 +4280,12 @@ public struct ObjcSelectorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> ObjcSelectorExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -3818,7 +4303,12 @@ public struct ObjcSelectorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withKind(value)
     }
   }
-  public func withKind(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `kind` replaced.
+  /// - param newChild: The new `kind` to replace the node's
+  ///                   current `kind`, if present.
+  public func withKind(
+    _ newChild: TokenSyntax?) -> ObjcSelectorExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3835,7 +4325,12 @@ public struct ObjcSelectorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withColon(value)
     }
   }
-  public func withColon(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `colon` replaced.
+  /// - param newChild: The new `colon` to replace the node's
+  ///                   current `colon`, if present.
+  public func withColon(
+    _ newChild: TokenSyntax?) -> ObjcSelectorExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3852,7 +4347,12 @@ public struct ObjcSelectorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withName(value)
     }
   }
-  public func withName(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `name` replaced.
+  /// - param newChild: The new `name` to replace the node's
+  ///                   current `name`, if present.
+  public func withName(
+    _ newChild: ExprSyntax?) -> ObjcSelectorExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawExprSyntax.makeBlank(arena: arena).raw
 
@@ -3870,7 +4370,12 @@ public struct ObjcSelectorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> ObjcSelectorExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -3883,12 +4388,12 @@ public struct ObjcSelectorExprSyntax: ExprSyntaxProtocol, Hashable, Identifiable
 extension ObjcSelectorExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "poundSelector": Syntax(poundSelector).asProtocol(SyntaxProtocol.self) as Any,
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
+      "poundSelector": Syntax(poundSelector).asProtocol(SyntaxProtocol.self),
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
       "kind": kind.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
       "colon": colon.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "name": Syntax(name).asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "name": Syntax(name).asProtocol(SyntaxProtocol.self),
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -3933,7 +4438,12 @@ public struct PostfixIfConfigExprSyntax: ExprSyntaxProtocol, Hashable, Identifia
       self = withBase(value)
     }
   }
-  public func withBase(_ newChild: ExprSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `base` replaced.
+  /// - param newChild: The new `base` to replace the node's
+  ///                   current `base`, if present.
+  public func withBase(
+    _ newChild: ExprSyntax?) -> PostfixIfConfigExprSyntax {
     let newChildRaw = newChild?.raw
 
     let newRaw = raw.replacingChild(
@@ -3950,7 +4460,12 @@ public struct PostfixIfConfigExprSyntax: ExprSyntaxProtocol, Hashable, Identifia
       self = withConfig(value)
     }
   }
-  public func withConfig(_ newChild: IfConfigDeclSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `config` replaced.
+  /// - param newChild: The new `config` to replace the node's
+  ///                   current `config`, if present.
+  public func withConfig(
+    _ newChild: IfConfigDeclSyntax?) -> PostfixIfConfigExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawIfConfigDeclSyntax.makeBlank(arena: arena).raw
 
@@ -3964,7 +4479,7 @@ extension PostfixIfConfigExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
       "base": base.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
-      "config": Syntax(config).asProtocol(SyntaxProtocol.self) as Any,
+      "config": Syntax(config).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -4008,7 +4523,12 @@ public struct EditorPlaceholderExprSyntax: ExprSyntaxProtocol, Hashable, Identif
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> EditorPlaceholderExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .identifier).raw
 
@@ -4021,7 +4541,7 @@ public struct EditorPlaceholderExprSyntax: ExprSyntaxProtocol, Hashable, Identif
 extension EditorPlaceholderExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
     ])
   }
 }
@@ -4068,7 +4588,12 @@ public struct ObjectLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withIdentifier(value)
     }
   }
-  public func withIdentifier(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `identifier` replaced.
+  /// - param newChild: The new `identifier` to replace the node's
+  ///                   current `identifier`, if present.
+  public func withIdentifier(
+    _ newChild: TokenSyntax?) -> ObjectLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .poundColorLiteralKeyword).raw
 
@@ -4086,7 +4611,12 @@ public struct ObjectLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withLeftParen(value)
     }
   }
-  public func withLeftParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `leftParen` replaced.
+  /// - param newChild: The new `leftParen` to replace the node's
+  ///                   current `leftParen`, if present.
+  public func withLeftParen(
+    _ newChild: TokenSyntax?) -> ObjectLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .leftParen).raw
 
@@ -4122,7 +4652,12 @@ public struct ObjectLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
                                      with: collection, arena: arena)
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
-  public func withArguments(_ newChild: TupleExprElementListSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `arguments` replaced.
+  /// - param newChild: The new `arguments` to replace the node's
+  ///                   current `arguments`, if present.
+  public func withArguments(
+    _ newChild: TupleExprElementListSyntax?) -> ObjectLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTupleExprElementListSyntax.makeBlank(arena: arena).raw
 
@@ -4140,7 +4675,12 @@ public struct ObjectLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
       self = withRightParen(value)
     }
   }
-  public func withRightParen(_ newChild: TokenSyntax?) -> Self {
+
+  /// Returns a copy of the receiver with its `rightParen` replaced.
+  /// - param newChild: The new `rightParen` to replace the node's
+  ///                   current `rightParen`, if present.
+  public func withRightParen(
+    _ newChild: TokenSyntax?) -> ObjectLiteralExprSyntax {
     let newChildRaw = newChild?.raw
       ?? RawTokenSyntax.makeBlank(arena: arena, tokenKind: .rightParen).raw
 
@@ -4153,10 +4693,10 @@ public struct ObjectLiteralExprSyntax: ExprSyntaxProtocol, Hashable, Identifiabl
 extension ObjectLiteralExprSyntax: CustomReflectable {
   public var customMirror: Mirror {
     return Mirror(self, children: [
-      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self) as Any,
-      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self) as Any,
-      "arguments": Syntax(arguments).asProtocol(SyntaxProtocol.self) as Any,
-      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self) as Any,
+      "identifier": Syntax(identifier).asProtocol(SyntaxProtocol.self),
+      "leftParen": Syntax(leftParen).asProtocol(SyntaxProtocol.self),
+      "arguments": Syntax(arguments).asProtocol(SyntaxProtocol.self),
+      "rightParen": Syntax(rightParen).asProtocol(SyntaxProtocol.self),
     ])
   }
 }

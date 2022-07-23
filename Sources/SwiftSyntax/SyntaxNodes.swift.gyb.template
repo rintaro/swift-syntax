@@ -19,14 +19,14 @@
 //===----------------------------------------------------------------------===//
 
 %{
- """
- This gyb-file generates the syntax nodes for SwiftSyntax. To keep the generated
- files at a managable file size, it is to be invoked multiple times with the
- global variable EMIT_KIND set to a base kind listed in
- gyb_syntax_support/kinds.py:SYNTAX_BASE_KINDES. It then only emits those syntax
- nodes whose base kind are that specified kind.
- """
- }%
+"""
+This gyb-file generates the syntax nodes for SwiftSyntax. To keep the generated
+files at a managable file size, it is to be invoked multiple times with the
+global variable EMIT_KIND set to a base kind listed in
+gyb_syntax_support/kinds.py:SYNTAX_BASE_KINDES. It then only emits those syntax
+nodes whose base kind are that specified kind.
+"""
+}%
 
 % for node in SYNTAX_NODES:
 %   base_type = node.base_type
@@ -137,8 +137,15 @@ public struct ${node.name}: ${node.base_type}Protocol, Hashable, Identifiable {
     return Self(data: data.replacingSelf(with: newRaw, arena: arena))
   }
 %       end
-%
-  public func with${child.name}(_ newChild: ${child.type_name}?) -> Self {
+
+%       # ===================
+%       # Replacing children
+%       # ===================
+  /// Returns a copy of the receiver with its `${child.swift_name}` replaced.
+  /// - param newChild: The new `${child.swift_name}` to replace the node's
+  ///                   current `${child.swift_name}`, if present.
+  public func with${child.name}(
+    _ newChild: ${child.type_name}?) -> ${node.name} {
     let newChildRaw = newChild?.raw
 %       if not child.is_optional:
 %         if child.is_token():
@@ -164,7 +171,7 @@ extension ${node.name}: CustomReflectable {
 %       if child.is_optional:
       "${child.swift_name}": ${child.swift_name}.map(Syntax.init)?.asProtocol(SyntaxProtocol.self) as Any,
 %       else:
-      "${child.swift_name}": Syntax(${child.swift_name}).asProtocol(SyntaxProtocol.self) as Any,
+      "${child.swift_name}": Syntax(${child.swift_name}).asProtocol(SyntaxProtocol.self),
 %       end
 %     end
     ])
