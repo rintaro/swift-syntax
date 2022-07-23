@@ -63,6 +63,20 @@ public struct DeclSyntax: SyntaxProtocol, Hashable, Identifiable {
     // We know T is valid for this protocol.
     self.init(data: other.data)
   }
+
+  /// Syntax nodes always conform to `DeclSyntaxProtocol`. This API is just
+  /// added for consistency.
+  /// Note that this will incur an existential conversion.
+  @available(*, deprecated, message: "Expression always evaluates to true")
+  public func isProtocol(_: DeclSyntaxProtocol.Protocol) -> Bool {
+    return true
+  }
+
+  /// Return the non-type erased version of this syntax node.
+  /// Note that this will incur an existential conversion.
+  public func asProtocol(_: DeclSyntaxProtocol.Protocol) -> DeclSyntaxProtocol {
+    return Syntax(self).asProtocol(DeclSyntaxProtocol.self)!
+  }
 }
 
 extension DeclSyntax: CustomReflectable {
@@ -123,6 +137,20 @@ public struct ExprSyntax: SyntaxProtocol, Hashable, Identifiable {
   public init<Node: ExprSyntaxProtocol>(_ other: Node) {
     // We know T is valid for this protocol.
     self.init(data: other.data)
+  }
+
+  /// Syntax nodes always conform to `ExprSyntaxProtocol`. This API is just
+  /// added for consistency.
+  /// Note that this will incur an existential conversion.
+  @available(*, deprecated, message: "Expression always evaluates to true")
+  public func isProtocol(_: ExprSyntaxProtocol.Protocol) -> Bool {
+    return true
+  }
+
+  /// Return the non-type erased version of this syntax node.
+  /// Note that this will incur an existential conversion.
+  public func asProtocol(_: ExprSyntaxProtocol.Protocol) -> ExprSyntaxProtocol {
+    return Syntax(self).asProtocol(ExprSyntaxProtocol.self)!
   }
 }
 
@@ -185,6 +213,20 @@ public struct StmtSyntax: SyntaxProtocol, Hashable, Identifiable {
     // We know T is valid for this protocol.
     self.init(data: other.data)
   }
+
+  /// Syntax nodes always conform to `StmtSyntaxProtocol`. This API is just
+  /// added for consistency.
+  /// Note that this will incur an existential conversion.
+  @available(*, deprecated, message: "Expression always evaluates to true")
+  public func isProtocol(_: StmtSyntaxProtocol.Protocol) -> Bool {
+    return true
+  }
+
+  /// Return the non-type erased version of this syntax node.
+  /// Note that this will incur an existential conversion.
+  public func asProtocol(_: StmtSyntaxProtocol.Protocol) -> StmtSyntaxProtocol {
+    return Syntax(self).asProtocol(StmtSyntaxProtocol.self)!
+  }
 }
 
 extension StmtSyntax: CustomReflectable {
@@ -246,6 +288,20 @@ public struct TypeSyntax: SyntaxProtocol, Hashable, Identifiable {
     // We know T is valid for this protocol.
     self.init(data: other.data)
   }
+
+  /// Syntax nodes always conform to `TypeSyntaxProtocol`. This API is just
+  /// added for consistency.
+  /// Note that this will incur an existential conversion.
+  @available(*, deprecated, message: "Expression always evaluates to true")
+  public func isProtocol(_: TypeSyntaxProtocol.Protocol) -> Bool {
+    return true
+  }
+
+  /// Return the non-type erased version of this syntax node.
+  /// Note that this will incur an existential conversion.
+  public func asProtocol(_: TypeSyntaxProtocol.Protocol) -> TypeSyntaxProtocol {
+    return Syntax(self).asProtocol(TypeSyntaxProtocol.self)!
+  }
 }
 
 extension TypeSyntax: CustomReflectable {
@@ -306,6 +362,20 @@ public struct PatternSyntax: SyntaxProtocol, Hashable, Identifiable {
   public init<Node: PatternSyntaxProtocol>(_ other: Node) {
     // We know T is valid for this protocol.
     self.init(data: other.data)
+  }
+
+  /// Syntax nodes always conform to `PatternSyntaxProtocol`. This API is just
+  /// added for consistency.
+  /// Note that this will incur an existential conversion.
+  @available(*, deprecated, message: "Expression always evaluates to true")
+  public func isProtocol(_: PatternSyntaxProtocol.Protocol) -> Bool {
+    return true
+  }
+
+  /// Return the non-type erased version of this syntax node.
+  /// Note that this will incur an existential conversion.
+  public func asProtocol(_: PatternSyntaxProtocol.Protocol) -> PatternSyntaxProtocol {
+    return Syntax(self).asProtocol(PatternSyntaxProtocol.self)!
   }
 }
 

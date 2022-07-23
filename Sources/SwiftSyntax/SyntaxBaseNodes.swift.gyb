@@ -75,6 +75,20 @@ public struct ${node.name}: ${node.base_type}Protocol, Hashable, Identifiable {
     // We know T is valid for this protocol.
     self.init(data: other.data)
   }
+
+  /// Syntax nodes always conform to `${node.name}Protocol`. This API is just
+  /// added for consistency.
+  /// Note that this will incur an existential conversion.
+  @available(*, deprecated, message: "Expression always evaluates to true")
+  public func isProtocol(_: ${node.name}Protocol.Protocol) -> Bool {
+    return true
+  }
+
+  /// Return the non-type erased version of this syntax node.
+  /// Note that this will incur an existential conversion.
+  public func asProtocol(_: ${node.name}Protocol.Protocol) -> ${node.name}Protocol {
+    return Syntax(self).asProtocol(${node.name}Protocol.self)!
+  }
 }
 
 extension ${node.name}: CustomReflectable {

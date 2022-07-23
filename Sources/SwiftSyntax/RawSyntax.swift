@@ -334,7 +334,44 @@ extension RawSyntax {
 //    case .unparsed(_): return nil
     }
   }
+}
 
+extension RawSyntax {
+  var contentByteLength: Int {
+    var length = byteLength
+    if let firstToken = firstPresentToken {
+      length -= firstToken.leadingTriviaByteLength
+    }
+    if let lastToken = lastPresentToken {
+      length -= lastToken.trailingTriviaByteLength
+    }
+    assert(length >= 0)
+    return length
+  }
+
+  /// Return the first `present` token of a layout node or self if it is a token.
+  var firstPresentToken: RawSyntax? {
+    guard byteLength != 0 else { return nil }
+    if isToken { return self }
+    for case let child in children {
+      if let token = child?.firstPresentToken {
+        return token
+      }
+    }
+    return nil
+  }
+
+  /// Return the last `present` token of a layout node or self if it is a token.
+  var lastPresentToken: RawSyntax? {
+    guard byteLength != 0 else { return nil }
+    if isToken { return self }
+    for case let child in children.reversed() {
+      if let token = child?.lastPresentToken {
+        return token
+      }
+    }
+    return nil
+  }
 }
 
 extension RawSyntax: Identifiable {

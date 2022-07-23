@@ -293,4 +293,14 @@ extension SyntaxProtocol {
     var iterator = classifications.makeIterator()
     return iterator.next()
   }
+
+  /// The `SyntaxClassifiedRange` for an absolute position.
+  /// - Parameters:
+  ///   - at: The absolute position.
+  /// - Returns: The `SyntaxClassifiedRange` for the position or nil if the source text
+  ///   at the given position is unclassified.
+  public func classification(at position: AbsolutePosition) -> SyntaxClassifiedRange? {
+    let relativeOffset = position.utf8Offset - self.position.utf8Offset
+    return self.classification(at: relativeOffset)
+  }
 }

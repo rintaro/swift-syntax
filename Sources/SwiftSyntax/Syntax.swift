@@ -46,6 +46,15 @@ public struct Syntax: SyntaxProtocol, Hashable {
   public init<T: SyntaxProtocol>(_ other: T) {
     self.init(syntax: other.syntax)
   }
+
+  public init(fromProtocol syntax: SyntaxProtocol) {
+    self.init(syntax: syntax.syntax)
+  }
+
+  public init?(fromProtocol syntax: SyntaxProtocol?) {
+    guard let syntax = syntax else { return nil }
+    self.init(syntax: syntax.syntax)
+  }
 }
 
 extension Syntax: CustomReflectable {
@@ -64,6 +73,11 @@ public protocol SyntaxProtocol: TextOutputStreamable, CustomStringConvertible, C
 }
 
 public extension SyntaxProtocol {
+  init?<Node: SyntaxProtocol>(_ other: Node?) {
+    guard let other = other else { return nil }
+    self.init(other)
+  }
+
   @usableFromInline
   internal var data: SyntaxData {
     _read { yield syntax.data }
@@ -95,9 +109,13 @@ public extension SyntaxProtocol {
   var isUnknown: Bool {
     raw.isUnknown
   }
-  
+
   var byteLength: Int {
     raw.byteLength
+  }
+  
+  var contentByteLength: Int {
+    raw.contentByteLength
   }
 
   @available(*, deprecated, renamed: "byteLength")
@@ -105,15 +123,27 @@ public extension SyntaxProtocol {
     byteLength
   }
 
+  /// The textual byte length of this node exluding leading and trailing trivia.
+  @available(*, deprecated, renamed: "contentByteLength")
+  var byteSizeAfterTrimmingTrivia: Int {
+    contentByteLength
+  }
+
+  /// When isImplicit is true, the syntax node doesn't include any
+  /// underlying tokens, e.g. an empty CodeBlockItemList.
+  var isImplicit: Bool {
+    raw.byteLength == 0
+  }
+
   /// The byte source range of this node including leading and trailing trivia.
   var byteRange: ByteSourceRange {
-    return ByteSourceRange(offset: position.utf8Offset, length: byteLength)
+    ByteSourceRange(offset: position.utf8Offset, length: byteLength)
   }
 
   /// The length this node takes up spelled out in the source, excluding its
   /// leading or trailing trivia.
   var contentLength: SourceLength {
-    SourceLength(utf8Length: byteLength)
+    SourceLength(utf8Length: contentByteLength)
   }
 
   var root: Syntax {

@@ -57,3 +57,16 @@ extension Syntax {
     }
   }
 }
+
+public extension SyntaxProtocol {
+/// Returns the underlying syntax node type.
+  var syntaxNodeType: SyntaxProtocol.Type {
+    switch syntaxKind {
+     case .token: return TokenSyntax.self
+     case .unknown: return UnknownSyntax.self
+% for node in SYNTAX_NODES:
+    case .${node.swift_syntax_kind}: return ${node.name}.self
+% end
+    }
+  }
+}
