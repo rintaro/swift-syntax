@@ -72,13 +72,13 @@ extension RawTriviaPiece {
       kind = .lineComment
       text = txt
     case  .blockComment(let txt):
-      kind = .lineComment
+      kind = .blockComment
       text = txt
     case  .docLineComment(let txt):
-      kind = .lineComment
+      kind = .docLineComment
       text = txt
     case  .docBlockComment(let txt):
-      kind = .lineComment
+      kind = .docBlockComment
       text = txt
     default:
       return .init(kind: .none, range: .init(offset: offset, length: byteLength))
@@ -88,7 +88,7 @@ extension RawTriviaPiece {
 }
 
 private func getRawTriviaPieces(token: TokenSyntax, isTrailing: Bool) -> [RawTriviaPiece] {
-  let rawTrivia = isTrailing ? token.raw.trailingTrivia : token.raw.leadingTrivia
+  let rawTrivia = isTrailing ? token.raw.tokenTrailingTrivia : token.raw.tokenLeadingTrivia
   switch rawTrivia! {
   case .unparsed(let str):
     return token.raw.arena.parseTrivia(str, isTrailing: false)
@@ -168,7 +168,7 @@ public struct SyntaxClassifications: Sequence {
       contextualClassification: (SyntaxClassification, Bool)?
     ) {
       var tokenIterator = tokenIterator
-      while let next = tokenIterator.peek(), next.byteOffset < absRange.offset {
+      while let next = tokenIterator.peek(), next.byteOffset+next.byteLength < absRange.offset {
         _ = tokenIterator.next()
       }
       self.tokenIterator = tokenIterator
@@ -177,6 +177,9 @@ public struct SyntaxClassifications: Sequence {
       self.pendingClassification = nil
 
       self.pendingClassification = nextClassificationPiece()
+      while let pending = pendingClassification, pending.endOffset <= absRange.offset {
+        pendingClassification = nextClassificationPiece()
+      }
     }
 
     /// Returns consecutive classified ranges merging consecutive classified

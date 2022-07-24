@@ -291,22 +291,22 @@ extension RawSyntax {
   /// If the syntax tree did not contain a token and thus no trivia could be
   /// attached to it, `nil` is returned.
   /// - Parameters:
-  ///   - leadingTrivia: The trivia to attach.
+  ///   - newValue: The trivia to attach.
   func withLeadingTrivia(_ newValue: Trivia) -> RawSyntax? {
     if isToken {
       return .makeMaterializedToken(
         arena: arena, kind: tokenKind,
         text: String(stringRef: tokenText!),
         leadingTrivia: newValue,
-        trailingTrivia: Trivia.make(arena: arena, raw: trailingTrivia!))
-    } else {
-      for (index, raw) in children.enumerated() {
-        if let raw = raw, let newRaw = raw.withLeadingTrivia(newValue) {
-          return self.replacingChild(at: index, with: newRaw, arena: arena)
-        }
-      }
-      return nil
+        trailingTrivia: Trivia.make(arena: arena, raw: tokenTrailingTrivia!))
     }
+    
+    for (index, child) in children.enumerated() {
+      if let replaced = child?.withLeadingTrivia(newValue) {
+        return replacingChild(at: index, with: replaced, arena: arena)
+      }
+    }
+    return nil
   }
 
   /// Replaces the trailing trivia of the first token in this syntax tree by
@@ -320,15 +320,15 @@ extension RawSyntax {
       return .makeMaterializedToken(
         arena: arena, kind: tokenKind,
         text: String(stringRef: tokenText!),
-        leadingTrivia: Trivia.make(arena: arena, raw: leadingTrivia!),
+        leadingTrivia: Trivia.make(arena: arena, raw: tokenLeadingTrivia!),
         trailingTrivia: newValue)
-    } else {
-      for (index, raw) in children.enumerated().reversed() {
-        if let raw = raw, let newRaw = raw.withTrailingTrivia(newValue) {
-          return self.replacingChild(at: index, with: newRaw, arena: arena)
-        }
-      }
-      return nil
     }
+
+    for (index, child) in children.enumerated().reversed() {
+      if let replaced = child?.withTrailingTrivia(newValue) {
+        return replacingChild(at: index, with: replaced, arena: arena)
+      }
+    }
+    return nil
   }
 }

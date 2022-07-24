@@ -92,30 +92,30 @@ public struct TokenSyntax: SyntaxProtocol, Hashable {
   }
 
   public var leadingTriviaText: String {
-    get { String(describing: raw.leadingTrivia!) }
+    get { String(describing: raw.tokenLeadingTrivia!) }
     set { self = withLeadingTriviaText(newValue) }
   }
 
   public var trailingTriviaText: String {
-    get { String(describing: raw.trailingTrivia!) }
+    get { String(describing: raw.tokenTrailingTrivia!) }
     set { self = withTrailingTriviaText(newValue) }
   }
 
   public var leadingTriviaLength: Int {
-    raw.leadingTriviaByteLength
+    raw.tokenLeadingTriviaLength
   }
 
   public var trailingTriviaLength: Int {
-    raw.trailingTriviaByteLength
+    raw.tokenTrailingTriviaLength
   }
 
   public var leadingTrivia: Trivia {
-    get { Trivia.make(arena: raw.arena, raw: raw.leadingTrivia!) }
+    get { Trivia.make(arena: raw.arena, raw: raw.tokenLeadingTrivia!) }
     set { self = withLeadingTrivia(newValue) }
   }
 
   public var trailingTrivia: Trivia {
-    get { Trivia.make(arena: raw.arena, raw: raw.trailingTrivia!) }
+    get { Trivia.make(arena: raw.arena, raw: raw.tokenTrailingTrivia!) }
     set { self = withTrailingTrivia(newValue) }
   }
 

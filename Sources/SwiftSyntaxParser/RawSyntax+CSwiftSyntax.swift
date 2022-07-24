@@ -40,7 +40,7 @@ extension RawSyntax {
       let leadingTriviaInfo = UnsafeBufferPointer<swiftparse_trivia_piece_t>(
         start: cnode.token_data.leading_trivia, count: numericCast(cnode.token_data.leading_trivia_count))
       let trailingTriviaInfo = UnsafeBufferPointer<swiftparse_trivia_piece_t>(
-        start: cnode.token_data.leading_trivia, count: numericCast(cnode.token_data.trailing_trivia_count))
+        start: cnode.token_data.trailing_trivia, count: numericCast(cnode.token_data.trailing_trivia_count))
 
       let pieceBuffer = arena.allocateRawTriviaPieceBuffer(
         count: leadingTriviaInfo.count + trailingTriviaInfo.count)

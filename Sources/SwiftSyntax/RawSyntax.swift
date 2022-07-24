@@ -250,7 +250,7 @@ extension RawSyntax {
 
   @_spi(RawSyntax)
   public var isMissing: Bool {
-    self.byteLength == 0 && !self.isCollection && !self.isUnknown
+    self.byteLength == 0 && !self.isCollection && !self.isUnknown && !(self.tokenKind == .eof)
   }
   
   /// Token kind of this node if this node is a token. '.unknown' otherwise.
@@ -281,7 +281,7 @@ extension RawSyntax {
 
   /// Leading trivia text of this node if this node is a token. 'nil' otherwise.
   @_spi(RawSyntax)
-  var leadingTrivia: RawTrivia? {
+  var tokenLeadingTrivia: RawTrivia? {
     // FIXME: Should we trap if it's not a token?
     switch rawData.payload {
     case .materializedToken(let dat): return .materialized(dat.leadingTrivia)
@@ -294,7 +294,7 @@ extension RawSyntax {
 
   /// Trailing trivia text of this node if this node is a token. 'nil' otherwise.
   @_spi(RawSyntax)
-  var trailingTrivia: RawTrivia? {
+  var tokenTrailingTrivia: RawTrivia? {
     // FIXME: Should we trap if it's not a token?
     switch rawData.payload {
     case .materializedToken(let dat): return .materialized(dat.trailingTrivia)
@@ -306,7 +306,7 @@ extension RawSyntax {
   }
 
   /// Leading trivia text of this node if this node is a token. 'nil' otherwise.
-  var leadingTriviaByteLength: Int {
+  var tokenLeadingTriviaLength: Int {
     // FIXME: Should we trap if it's not a token?
     switch rawData.payload {
     case .materializedToken(let dat):
@@ -321,7 +321,7 @@ extension RawSyntax {
   }
 
   /// Leading trivia text of this node if this node is a token. 'nil' otherwise.
-  var trailingTriviaByteLength: Int {
+  var tokenTrailingTriviaLength: Int {
     // FIXME: Should we trap if it's not a token?
     switch rawData.payload {
     case .materializedToken(let dat):
@@ -337,23 +337,11 @@ extension RawSyntax {
 }
 
 extension RawSyntax {
-  var contentByteLength: Int {
-    var length = byteLength
-    if let firstToken = firstPresentToken {
-      length -= firstToken.leadingTriviaByteLength
-    }
-    if let lastToken = lastPresentToken {
-      length -= lastToken.trailingTriviaByteLength
-    }
-    assert(length >= 0)
-    return length
-  }
-
   /// Return the first `present` token of a layout node or self if it is a token.
   var firstPresentToken: RawSyntax? {
-    guard byteLength != 0 else { return nil }
+    guard byteLength != 0 || tokenKind == .eof else { return nil }
     if isToken { return self }
-    for case let child in children {
+    for child in children {
       if let token = child?.firstPresentToken {
         return token
       }
@@ -363,14 +351,36 @@ extension RawSyntax {
 
   /// Return the last `present` token of a layout node or self if it is a token.
   var lastPresentToken: RawSyntax? {
-    guard byteLength != 0 else { return nil }
+    guard byteLength != 0 || tokenKind == .eof else { return nil }
     if isToken { return self }
-    for case let child in children.reversed() {
+    for child in children.reversed() {
       if let token = child?.lastPresentToken {
         return token
       }
     }
     return nil
+  }
+
+  var leadingTrivia: RawTrivia? {
+    firstPresentToken?.tokenLeadingTrivia
+  }
+
+  var trailingTrivia: RawTrivia? {
+    lastPresentToken?.tokenTrailingTrivia
+  }
+
+  var leadingTriviaByteLength: Int {
+    firstPresentToken?.tokenLeadingTriviaLength ?? 0
+  }
+
+  var trailingTriviaByteLength: Int {
+    lastPresentToken?.tokenTrailingTriviaLength ?? 0
+  }
+
+  var contentByteLength: Int {
+    let result = byteLength - leadingTriviaByteLength - trailingTriviaByteLength
+    assert(result >= 0)
+    return result
   }
 }
 

@@ -129,8 +129,7 @@ public class CustomReflectableTests: XCTestCase {
                                                - pieces: 0 elements
                                              ▿ trailingTrivia: SwiftSyntax.Trivia
                                                - pieces: 0 elements
-                                             ▿ tokenKind: SwiftSyntax.TokenKind.integerLiteral
-                                               - integerLiteral: "1"
+                                             - tokenKind: SwiftSyntax.TokenKind.integerLiteral
                                          - trailingComma: nil
                                        ▿ SwiftSyntax.TupleExprElementSyntax
                                          - label: nil
@@ -142,8 +141,7 @@ public class CustomReflectableTests: XCTestCase {
                                                - pieces: 0 elements
                                              ▿ trailingTrivia: SwiftSyntax.Trivia
                                                - pieces: 0 elements
-                                             ▿ tokenKind: SwiftSyntax.TokenKind.integerLiteral
-                                               - integerLiteral: "2"
+                                             - tokenKind: SwiftSyntax.TokenKind.integerLiteral
                                          - trailingComma: nil
 
                                      """)
@@ -182,8 +180,7 @@ public class CustomReflectableTests: XCTestCase {
                                                  - pieces: 0 elements
                                                ▿ trailingTrivia: SwiftSyntax.Trivia
                                                  - pieces: 0 elements
-                                               ▿ tokenKind: SwiftSyntax.TokenKind.integerLiteral
-                                                 - integerLiteral: "1"
+                                               - tokenKind: SwiftSyntax.TokenKind.integerLiteral
                                            - trailingComma: nil
                                          ▿ SwiftSyntax.TupleExprElementSyntax
                                            - label: nil
@@ -195,8 +192,7 @@ public class CustomReflectableTests: XCTestCase {
                                                  - pieces: 0 elements
                                                ▿ trailingTrivia: SwiftSyntax.Trivia
                                                  - pieces: 0 elements
-                                               ▿ tokenKind: SwiftSyntax.TokenKind.integerLiteral
-                                                 - integerLiteral: "2"
+                                               - tokenKind: SwiftSyntax.TokenKind.integerLiteral
                                            - trailingComma: nil
 
                                      """)

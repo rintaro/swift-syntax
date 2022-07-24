@@ -56,17 +56,23 @@ extension Trivia: Equatable {}
 
 /// Conformance for Trivia to the Collection protocol.
 extension Trivia: RandomAccessCollection, RangeReplaceableCollection, MutableCollection {
-  public var startIndex: Int {
+  public typealias Index = Int
+  public typealias Element = TriviaPiece
+  public var startIndex: Index {
     return pieces.startIndex
   }
 
-  public var endIndex: Int {
+  public var endIndex: Index {
     return pieces.endIndex
   }
 
-  public subscript(_ index: Int) -> TriviaPiece {
+  public subscript(_ index: Index) -> Element {
     get { return pieces[index] }
     set { pieces[index] = newValue }
+  }
+
+  public mutating func replaceSubrange<C: Collection>(_ subrange: Range<Index>, with newElements: C) where C.Element == Element {
+    pieces.replaceSubrange(subrange, with: newElements)
   }
 }
 

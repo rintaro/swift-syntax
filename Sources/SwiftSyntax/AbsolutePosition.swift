@@ -33,19 +33,13 @@ extension SyntaxProtocol {
   }
 
   public var positionAfterSkippingLeadingTrivia: AbsolutePosition {
-    guard let tok = self.isToken ? self.syntax : firstToken?.syntax else {
-      return position
-    }
     return AbsolutePosition(
-      utf8Offset: byteOffset + tok.raw.leadingTriviaByteLength)
+      utf8Offset: byteOffset + raw.leadingTriviaByteLength)
   }
 
   public var endPositionBeforeTrailingTrivia: AbsolutePosition {
-    guard let tok = self.isToken ? self.syntax : lastToken?.syntax else {
-      return endPosition
-    }
     return AbsolutePosition(
-      utf8Offset: byteOffset + byteLength - tok.raw.trailingTriviaByteLength)
+      utf8Offset: byteOffset + byteLength - raw.trailingTriviaByteLength)
   }
 
   public var endPosition: AbsolutePosition {

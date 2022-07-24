@@ -100,8 +100,9 @@ public class ClassificationTests: XCTestCase {
     let tree = try! SyntaxParser.parse(source: source)
     do {
       let tokens = Array(tree.tokens)
-      XCTAssertEqual(tokens.count, 4)
-      guard tokens.count == 4 else {
+      XCTAssertEqual(tokens.count, 5)
+      tokens.last?.tokenKind == .eof
+      guard tokens.count == 5 else {
         return
       }
       let classif = tokens.map { $0.tokenClassification }

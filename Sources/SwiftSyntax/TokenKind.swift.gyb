@@ -19,9 +19,9 @@
 
 /// Enumerates the kinds of tokens in the Swift language.
 public enum TokenKind: UInt16 {
-  case eof
+  case eof = 0
 % for token in SYNTAX_TOKENS:
-  case ${token.swift_kind()}
+  case ${token.swift_kind()} = ${token.serialization_code}
 % end
 
   /// Initializes a keyword token kind from its string representation. If the

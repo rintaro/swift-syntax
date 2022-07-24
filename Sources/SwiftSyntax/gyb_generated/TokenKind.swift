@@ -14,131 +14,131 @@
 
 /// Enumerates the kinds of tokens in the Swift language.
 public enum TokenKind: UInt16 {
-  case eof
-  case associatedtypeKeyword
-  case classKeyword
-  case deinitKeyword
-  case enumKeyword
-  case extensionKeyword
-  case funcKeyword
-  case importKeyword
-  case initKeyword
-  case inoutKeyword
-  case letKeyword
-  case operatorKeyword
-  case precedencegroupKeyword
-  case protocolKeyword
-  case structKeyword
-  case subscriptKeyword
-  case typealiasKeyword
-  case varKeyword
-  case fileprivateKeyword
-  case internalKeyword
-  case privateKeyword
-  case publicKeyword
-  case staticKeyword
-  case deferKeyword
-  case ifKeyword
-  case guardKeyword
-  case doKeyword
-  case repeatKeyword
-  case elseKeyword
-  case forKeyword
-  case inKeyword
-  case whileKeyword
-  case returnKeyword
-  case breakKeyword
-  case continueKeyword
-  case fallthroughKeyword
-  case switchKeyword
-  case caseKeyword
-  case defaultKeyword
-  case whereKeyword
-  case catchKeyword
-  case throwKeyword
-  case asKeyword
-  case anyKeyword
-  case falseKeyword
-  case isKeyword
-  case nilKeyword
-  case rethrowsKeyword
-  case superKeyword
-  case selfKeyword
-  case capitalSelfKeyword
-  case trueKeyword
-  case tryKeyword
-  case throwsKeyword
-  case __file__Keyword
-  case __line__Keyword
-  case __column__Keyword
-  case __function__Keyword
-  case __dso_handle__Keyword
-  case wildcardKeyword
-  case leftParen
-  case rightParen
-  case leftBrace
-  case rightBrace
-  case leftSquareBracket
-  case rightSquareBracket
-  case leftAngle
-  case rightAngle
-  case period
-  case prefixPeriod
-  case comma
-  case ellipsis
-  case colon
-  case semicolon
-  case equal
-  case atSign
-  case pound
-  case prefixAmpersand
-  case arrow
-  case backtick
-  case backslash
-  case exclamationMark
-  case postfixQuestionMark
-  case infixQuestionMark
-  case stringQuote
-  case singleQuote
-  case multilineStringQuote
-  case poundKeyPathKeyword
-  case poundLineKeyword
-  case poundSelectorKeyword
-  case poundFileKeyword
-  case poundFileIDKeyword
-  case poundFilePathKeyword
-  case poundColumnKeyword
-  case poundFunctionKeyword
-  case poundDsohandleKeyword
-  case poundAssertKeyword
-  case poundSourceLocationKeyword
-  case poundWarningKeyword
-  case poundErrorKeyword
-  case poundIfKeyword
-  case poundElseKeyword
-  case poundElseifKeyword
-  case poundEndifKeyword
-  case poundAvailableKeyword
-  case poundUnavailableKeyword
-  case poundFileLiteralKeyword
-  case poundImageLiteralKeyword
-  case poundColorLiteralKeyword
-  case integerLiteral
-  case floatingLiteral
-  case stringLiteral
-  case regexLiteral
-  case unknown
-  case identifier
-  case unspacedBinaryOperator
-  case spacedBinaryOperator
-  case postfixOperator
-  case prefixOperator
-  case dollarIdentifier
-  case contextualKeyword
-  case rawStringDelimiter
-  case stringSegment
-  case stringInterpolationAnchor
-  case yield
+  case eof = 0
+  case associatedtypeKeyword = 1
+  case classKeyword = 2
+  case deinitKeyword = 3
+  case enumKeyword = 4
+  case extensionKeyword = 5
+  case funcKeyword = 6
+  case importKeyword = 7
+  case initKeyword = 8
+  case inoutKeyword = 9
+  case letKeyword = 10
+  case operatorKeyword = 11
+  case precedencegroupKeyword = 12
+  case protocolKeyword = 13
+  case structKeyword = 14
+  case subscriptKeyword = 15
+  case typealiasKeyword = 16
+  case varKeyword = 17
+  case fileprivateKeyword = 18
+  case internalKeyword = 19
+  case privateKeyword = 20
+  case publicKeyword = 21
+  case staticKeyword = 22
+  case deferKeyword = 23
+  case ifKeyword = 24
+  case guardKeyword = 25
+  case doKeyword = 26
+  case repeatKeyword = 27
+  case elseKeyword = 28
+  case forKeyword = 29
+  case inKeyword = 30
+  case whileKeyword = 31
+  case returnKeyword = 32
+  case breakKeyword = 33
+  case continueKeyword = 34
+  case fallthroughKeyword = 35
+  case switchKeyword = 36
+  case caseKeyword = 37
+  case defaultKeyword = 38
+  case whereKeyword = 39
+  case catchKeyword = 40
+  case throwKeyword = 50
+  case asKeyword = 41
+  case anyKeyword = 42
+  case falseKeyword = 43
+  case isKeyword = 44
+  case nilKeyword = 45
+  case rethrowsKeyword = 46
+  case superKeyword = 47
+  case selfKeyword = 48
+  case capitalSelfKeyword = 49
+  case trueKeyword = 51
+  case tryKeyword = 52
+  case throwsKeyword = 53
+  case __file__Keyword = 54
+  case __line__Keyword = 55
+  case __column__Keyword = 56
+  case __function__Keyword = 57
+  case __dso_handle__Keyword = 58
+  case wildcardKeyword = 59
+  case leftParen = 88
+  case rightParen = 89
+  case leftBrace = 90
+  case rightBrace = 91
+  case leftSquareBracket = 92
+  case rightSquareBracket = 93
+  case leftAngle = 94
+  case rightAngle = 95
+  case period = 85
+  case prefixPeriod = 87
+  case comma = 84
+  case ellipsis = 118
+  case colon = 82
+  case semicolon = 83
+  case equal = 86
+  case atSign = 80
+  case pound = 81
+  case prefixAmpersand = 96
+  case arrow = 78
+  case backtick = 79
+  case backslash = 100
+  case exclamationMark = 99
+  case postfixQuestionMark = 97
+  case infixQuestionMark = 98
+  case stringQuote = 102
+  case singleQuote = 120
+  case multilineStringQuote = 103
+  case poundKeyPathKeyword = 74
+  case poundLineKeyword = 69
+  case poundSelectorKeyword = 73
+  case poundFileKeyword = 68
+  case poundFileIDKeyword = 122
+  case poundFilePathKeyword = 121
+  case poundColumnKeyword = 70
+  case poundFunctionKeyword = 72
+  case poundDsohandleKeyword = 71
+  case poundAssertKeyword = 117
+  case poundSourceLocationKeyword = 65
+  case poundWarningKeyword = 66
+  case poundErrorKeyword = 67
+  case poundIfKeyword = 64
+  case poundElseKeyword = 62
+  case poundElseifKeyword = 63
+  case poundEndifKeyword = 61
+  case poundAvailableKeyword = 60
+  case poundUnavailableKeyword = 123
+  case poundFileLiteralKeyword = 76
+  case poundImageLiteralKeyword = 77
+  case poundColorLiteralKeyword = 75
+  case integerLiteral = 111
+  case floatingLiteral = 112
+  case stringLiteral = 113
+  case regexLiteral = 124
+  case unknown = 115
+  case identifier = 105
+  case unspacedBinaryOperator = 107
+  case spacedBinaryOperator = 108
+  case postfixOperator = 110
+  case prefixOperator = 109
+  case dollarIdentifier = 106
+  case contextualKeyword = 114
+  case rawStringDelimiter = 119
+  case stringSegment = 104
+  case stringInterpolationAnchor = 101
+  case yield = 116
 
   /// Initializes a keyword token kind from its string representation. If the
   /// given string is not a keyword, this function returns `nil`.

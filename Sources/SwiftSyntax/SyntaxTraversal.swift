@@ -113,11 +113,16 @@ extension SyntaxProtocol {
   public func findLast(where testFn: (Syntax) -> Bool) -> Syntax? {
     let terminal = self.indexInTree
 
-    var current = lastNonNilChild
-    while let cur = current, cur.indexInTree > terminal {
-      if testFn(cur) { return cur }
-      current = cur.previousNode
+    var current = self.syntax
+    while let cur = current.lastNonNilChild {
+      current = cur
     }
+    if current.indexInTree > terminal && testFn(current) { return current }
+    while let cur = current.previousNode {
+      if cur.indexInTree > terminal && testFn(cur) { return cur }
+      current = cur
+    }
+
     return nil
   }
 
@@ -144,7 +149,7 @@ public struct TokenSequence: Sequence {
     private var pending: TokenSyntax?
 
     // Note: We should not use 'byteOffset' as an terminal
-    // because there might be zero width tokens after this in the node.
+    // because there might be zero width tokens after this inside the node.
     private var endIndexInTree: Int
 
     init(pending: TokenSyntax?, endIndexInTree: Int) {

@@ -266,8 +266,13 @@ extension SyntaxData {
   }
 
   var previousNode: SyntaxData? {
-    return (previousSibling.map { $0.lastNonNilChild ?? $0 } ??
-            previousAncestorSibling.map { $0.lastNonNilChild ?? $0 })
+    guard var current = previousSibling else {
+      return parent
+    }
+    while let cur = current.lastNonNilChild {
+      current = cur
+    }
+    return current
   }
 }
 
