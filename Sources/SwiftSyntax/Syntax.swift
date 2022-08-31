@@ -564,6 +564,143 @@ public extension SyntaxProtocol {
   }
 }
 
+public protocol SyntaxCollection: SyntaxProtocol, BidirectionalCollection
+  where Index == SyntaxChildrenIndex, Element: SyntaxProtocol {
+
+  @_spi(RawSyntax)
+  func _replacingLayout(_ layout: [RawSyntax?]) -> Self
+}
+
+extension SyntaxCollection {
+  private var rawChildren: RawSyntaxChildren {
+    // We know children in a syntax collection cannot be missing. So we can
+    // use the low-level and faster RawSyntaxChildren collection instead of
+    // NonNilRawSyntaxChildren.
+    return RawSyntaxChildren(self.data.absoluteRaw)
+  }
+
+  public var count: Int {
+    return rawChildren.count
+  }
+
+  public var startIndex: SyntaxChildrenIndex {
+    return rawChildren.startIndex
+  }
+  public var endIndex: SyntaxChildrenIndex {
+    return rawChildren.endIndex
+  }
+
+  public func index(after index: SyntaxChildrenIndex) -> SyntaxChildrenIndex {
+    return rawChildren.index(after: index)
+  }
+
+  public func index(before index: SyntaxChildrenIndex) -> SyntaxChildrenIndex {
+    return rawChildren.index(before: index)
+  }
+
+  public func distance(from start: SyntaxChildrenIndex, to end: SyntaxChildrenIndex)
+      -> Int {
+    return rawChildren.distance(from: start, to: end)
+  }
+
+  internal func _childData(at position: SyntaxChildrenIndex) -> SyntaxData {
+    let (raw, info) = rawChildren[position]
+    let absoluteRaw = AbsoluteRawSyntax(raw: raw!, info: info)
+    let data = SyntaxData(absoluteRaw, parent: Syntax(self))
+    return data
+  }
+}
+
+extension SyntaxCollection {
+  var layoutView: RawSyntaxLayoutView {
+    data.raw.layoutView!
+  }
+
+  /// Creates a new `Self` by appending the provided syntax element
+  /// to the children.
+  ///
+  /// - Parameter syntax: The element to append.
+  /// - Returns: A new `Self` with that element appended to the end.
+  public func appending(_ syntax: Element) -> Self {
+    var newLayout = layoutView.formLayoutArray()
+    newLayout.append(syntax.raw)
+    return _replacingLayout(newLayout)
+  }
+
+  /// Creates a new `Self` by prepending the provided syntax element
+  /// to the children.
+  ///
+  /// - Parameter syntax: The element to prepend.
+  /// - Returns: A new `Self` with that element prepended to the beginning.
+  public func prepending(_ syntax: Element) -> Self {
+    return inserting(syntax, at: 0)
+  }
+
+  /// Creates a new `Self` by inserting the provided syntax element
+  /// at the provided index in the children.
+  ///
+  /// - Parameters:
+  ///   - syntax: The element to insert.
+  ///   - index: The index at which to insert the element in the collection.
+  ///
+  /// - Returns: A new `Self` with that element appended to the end.
+  public func inserting(_ syntax: Element,  at index: Int) -> Self {
+    var newLayout = layoutView.formLayoutArray()
+    /// Make sure the index is a valid insertion index (0 to 1 past the end)
+    precondition((newLayout.startIndex...newLayout.endIndex).contains(index),
+                 "inserting node at invalid index \(index)")
+    newLayout.insert(syntax.raw, at: index)
+    return _replacingLayout(newLayout)
+  }
+
+  /// Creates a new `Self` by replacing the syntax element
+  /// at the provided index.
+  ///
+  /// - Parameters:
+  ///   - index: The index at which to replace the element in the collection.
+  ///   - syntax: The element to replace with.
+  ///
+  /// - Returns: A new `Self` with the new element at the provided index.
+  public func replacing(childAt index: Int, with syntax: Element) -> Self {
+    var newLayout = layoutView.formLayoutArray()
+    /// Make sure the index is a valid index for replacing
+    precondition((newLayout.startIndex..<newLayout.endIndex).contains(index),
+                 "replacing node at invalid index \(index)")
+    newLayout[index] = syntax.raw
+    return _replacingLayout(newLayout)
+  }
+
+  /// Creates a new `Self` by removing the syntax element at the
+  /// provided index.
+  ///
+  /// - Parameter index: The index of the element to remove from the collection.
+  /// - Returns: A new `Self` with the element at the provided index
+  ///            removed.
+  public func removing(childAt index: Int) -> Self {
+    var newLayout = layoutView.formLayoutArray()
+    newLayout.remove(at: index)
+    return _replacingLayout(newLayout)
+  }
+
+  /// Creates a new `Self` by removing the first element.
+  ///
+  /// - Returns: A new `Self` with the first element removed.
+  public func removingFirst() -> Self {
+    var newLayout = layoutView.formLayoutArray()
+    newLayout.removeFirst()
+    return _replacingLayout(newLayout)
+  }
+
+  /// Creates a new `Self` by removing the last element.
+  ///
+  /// - Returns: A new `Self` with the last element removed.
+  public func removingLast() -> Self {
+    var newLayout = layoutView.formLayoutArray()
+    newLayout.removeLast()
+    return _replacingLayout(newLayout)
+  }
+}
+
 /// Sequence of tokens that are part of the provided Syntax node.
 public struct TokenSequence: Sequence {
   public struct Iterator: IteratorProtocol {

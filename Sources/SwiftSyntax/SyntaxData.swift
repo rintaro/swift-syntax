@@ -337,6 +337,11 @@ struct SyntaxData {
     return replacingSelf(newRaw)
   }
 
+  func replacingLayout(with layout: [RawSyntax?]) -> SyntaxData {
+    let newRaw = raw.layoutView!.replacingLayout(with: layout, arena: .default)
+    return replacingSelf(newRaw)
+  }
+
   func withLeadingTrivia(_ leadingTrivia: Trivia) -> SyntaxData {
     if let raw = raw.withLeadingTrivia(leadingTrivia) {
       return replacingSelf(raw)
