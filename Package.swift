@@ -53,6 +53,7 @@ let package = Package(
     .library(name: "SwiftSyntaxParser", type: .static, targets: ["SwiftSyntaxParser"]),
     .library(name: "SwiftSyntaxBuilder", type: .static, targets: ["SwiftSyntaxBuilder"]),
     .library(name: "_SwiftSyntaxMacros", type: .static, targets: ["_SwiftSyntaxMacros"]),
+    .library(name: "SwiftSyntaxUtils", type: .static, targets: ["SwiftSyntaxUtils"]),
   ],
   targets: [
     .target(
@@ -111,6 +112,12 @@ let package = Package(
         "Serialization.swift.gyb",
       ],
       linkerSettings: swiftSyntaxParserLinkerSettings
+    ),
+    .target(
+      name: "SwiftSyntaxUtils",
+      dependencies: ["SwiftSyntax", "SwiftParser"],
+      exclude: [
+      ]
     ),
     .target(
       name: "_SwiftSyntaxTestSupport",
