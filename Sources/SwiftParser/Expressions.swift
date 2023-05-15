@@ -1394,21 +1394,26 @@ extension Parser {
     pattern: PatternContext,
     flavor: ExprFlavor
   ) -> RawMacroExpansionExprSyntax {
-    if !atStartOfFreestandingMacroExpansion() {
-      return RawMacroExpansionExprSyntax(
-        poundToken: self.consumeAnyToken(),
-        macro: self.missingToken(.identifier),
-        genericArguments: nil,
-        leftParen: nil,
-        argumentList: .init(elements: [], arena: self.arena),
-        rightParen: nil,
-        trailingClosure: nil,
-        additionalTrailingClosures: nil,
-        arena: self.arena
-      )
+    var (unexpectedBeforePound, poundKeyword) = self.expect(.pound)
+    if !poundKeyword.isMissing && poundKeyword.trailingTriviaByteLength != 0 {
+      // If there're whitespaces after '#' diagnose.
+      unexpectedBeforePound = RawUnexpectedNodesSyntax((unexpectedBeforePound?.elements ?? []) + [RawSyntax(poundKeyword)], arena: self.arena)
+//      poundKeyword = RawTokenSyntax(missing: .pound, text: "#", leadingTriviaPieces: poundKeyword.leadingTriviaPieces, arena: self.arena)
+      poundKeyword = self.missingToken(.pound)
     }
-    let poundKeyword = self.consumeAnyToken()
-    let (unexpectedBeforeMacro, macro) = self.expectIdentifier(keywordRecovery: true)
+    var unexpectedBeforeMacro: RawUnexpectedNodesSyntax?
+    var macro: RawTokenSyntax
+    if !self.currentToken.isAtStartOfLine {
+      (unexpectedBeforeMacro, macro) = self.expectIdentifier(keywordRecovery: true)
+      if !macro.isMissing && macro.leadingTriviaByteLength != 0 {
+        // If there're whitespaces after '#' diagnose.
+        unexpectedBeforeMacro = RawUnexpectedNodesSyntax((unexpectedBeforeMacro?.elements ?? []) + [RawSyntax(macro)], arena: self.arena)
+        poundKeyword = self.missingToken(.identifier, text: macro.tokenText)
+      }
+    } else {
+      unexpectedBeforeMacro = nil
+      macro = self.missingToken(.identifier)
+    }
 
     // Parse the optional generic argument list.
     let generics: RawGenericArgumentClauseSyntax?
@@ -1443,6 +1448,7 @@ extension Parser {
     }
 
     return RawMacroExpansionExprSyntax(
+      unexpectedBeforePound,
       poundToken: poundKeyword,
       unexpectedBeforeMacro,
       macro: macro,

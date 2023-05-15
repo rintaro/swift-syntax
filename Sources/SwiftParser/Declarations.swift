@@ -30,16 +30,24 @@ extension DeclarationModifier {
 
 extension TokenConsumer {
   mutating func atStartOfFreestandingMacroExpansion() -> Bool {
+    // Check if "'#' <identifier>" where the identifier is on the sameline.
     if !self.at(.pound) {
       return false
     }
-    if self.peek().rawTokenKind != .identifier && !self.peek().isLexerClassifiedKeyword {
+    let tok2 = self.peek()
+    if tok2.isAtStartOfLine {
       return false
     }
-    if self.currentToken.trailingTriviaByteLength != 0 || self.peek().leadingTriviaByteLength != 0 {
+    switch tok2.rawTokenKind {
+    case .identifier:
+      return true
+    case .keyword:
+      // allow keywords right after '#' so we can diagnose it when parsing.
+      return (self.currentToken.trailingTriviaByteLength == 0 &&
+              tok2.leadingTriviaByteLength == 0)
+    default:
       return false
     }
-    return true
   }
 
   mutating func atStartOfDeclaration(
@@ -2045,25 +2053,23 @@ extension Parser {
     _ handle: RecoveryConsumptionHandle
   ) -> RawMacroExpansionDeclSyntax {
 
-    let (unexpectedBeforePound, poundKeyword) = self.eat(handle)
-    // Don't allow space between '#' and the macro name.
-    if poundKeyword.trailingTriviaByteLength != 0 || self.currentToken.leadingTriviaByteLength != 0 {
-      return RawMacroExpansionDeclSyntax(
-        attributes: attrs.attributes,
-        modifiers: attrs.modifiers,
-        unexpectedBeforePound,
-        poundToken: poundKeyword,
-        macro: self.missingToken(.identifier),
-        genericArguments: nil,
-        leftParen: nil,
-        argumentList: .init(elements: [], arena: self.arena),
-        rightParen: nil,
-        trailingClosure: nil,
-        additionalTrailingClosures: nil,
-        arena: self.arena
-      )
+    var (unexpectedBeforePound, poundKeyword) = self.eat(handle)
+    if !poundKeyword.isMissing && poundKeyword.trailingTriviaByteLength != 0 {
+      unexpectedBeforePound = RawUnexpectedNodesSyntax((unexpectedBeforePound?.elements ?? []) + [RawSyntax(poundKeyword)], arena: self.arena)
+      poundKeyword = RawTokenSyntax(missing: .pound, text: "#", leadingTriviaPieces: poundKeyword.leadingTriviaPieces, arena: self.arena)
     }
-    let (unexpectedBeforeMacro, macro) = self.expectIdentifier(keywordRecovery: true)
+    var unexpectedBeforeMacro: RawUnexpectedNodesSyntax?
+    var macro: RawTokenSyntax
+    if !self.currentToken.isAtStartOfLine {
+      (unexpectedBeforeMacro, macro) = self.expectIdentifier(keywordRecovery: true)
+      if (!macro.isMissing && macro.leadingTriviaByteLength != 0) {
+        unexpectedBeforeMacro = RawUnexpectedNodesSyntax((unexpectedBeforeMacro?.elements ?? []) + [RawSyntax(macro)], arena: self.arena)
+        poundKeyword = self.missingToken(.identifier, text: macro.tokenText)
+      }
+    } else {
+      unexpectedBeforeMacro = nil
+      macro = self.missingToken(.identifier)
+    }
 
     // Parse the optional generic argument list.
     let generics: RawGenericArgumentClauseSyntax?
