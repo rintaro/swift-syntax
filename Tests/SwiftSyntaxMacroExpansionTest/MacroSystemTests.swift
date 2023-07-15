@@ -1242,4 +1242,25 @@ final class MacroSystemTests: XCTestCase {
       indentationWidth: indentationWidth
     )
   }
+
+  func testAttributeWithComment() {
+    assertMacroExpansion(
+      """
+      @wrapAllProperties struct S {
+        // Var value
+        var value = 1
+      }
+      """,
+      expandedSource: """
+        struct S {
+          @Wrapper
+          // Var value
+          var value = 1
+        }
+        """,
+      macros: testMacros,
+      indentationWidth: indentationWidth
+    )
+  }
+
 }

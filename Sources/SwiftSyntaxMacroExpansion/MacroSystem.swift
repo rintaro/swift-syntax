@@ -12,7 +12,247 @@
 
 import SwiftDiagnostics
 import SwiftSyntax
+@_spi(MacroExpansion) import SwiftParser
 @_spi(MacroExpansion) import SwiftSyntaxMacros
+
+/// Check if a 'DeclSyntax', 'StmtSyntax', or 'ExprSyntax' is at top level.
+private func isTopLevel(node: some SyntaxProtocol) -> Bool {
+  return true == node
+    .parent? /* CodeBlockItem */
+    .parent? /* CodeBlockItemList */
+    .is(SourceFileSyntax.self).self
+}
+
+private func expandFreestandingMemberDeclList(
+  definition: Macro.Type,
+  node: some FreestandingMacroExpansionSyntax
+) throws -> MemberDeclListSyntax? {
+  guard let expanded = try expandFreestandingMacroAdjusted(
+    definition: definition,
+    macroRole: inferFreestandingMacroRole(definition: definition),
+    node: node
+  ) else {
+    return nil
+  }
+
+  return Parser.parseExpandedMemberDeclList(
+    source: "\n\n" + expanded
+  )
+}
+
+private func expandFreestandingCodeItemList(
+  definition: Macro.Type,
+  node: some FreestandingMacroExpansionSyntax
+) throws -> CodeBlockItemListSyntax? {
+  guard let expanded = try expandFreestandingMacroAdjusted(
+    definition: definition,
+    macroRole: inferFreestandingMacroRole(definition: definition),
+    node: node
+  ) else {
+    return nil
+  }
+
+  return Parser.parseExpandedCodeBlockItemList(
+    source: "\n\n" + expanded,
+    isAtTopLevel: isTopLevel(node: node)
+  )
+}
+
+private func expandFreestandingExpr(
+  definition: Macro.Type,
+  node: some FreestandingMacroExpansionSyntax
+) throws -> ExprSyntax? {
+  guard let expanded = try expandFreestandingMacroAdjusted(
+    definition: definition,
+    macroRole: .expression,
+    node: node
+  ) else {
+    return nil
+  }
+  return "\(raw: expanded)"
+}
+
+private func expandFreestandingMacroAdjusted(
+  definition: Macro.Type,
+  macroRole: MacroRole,
+  node: some FreestandingMacroExpansionSyntax
+) throws -> String? {
+
+  guard var expanded = expandFreestandingMacro(
+    definition: definition,
+    macroRole: macroRole,
+    node: node,
+    in: BasicMacroExpansionContext()
+  ) else {
+    return nil
+  }
+  let indentation = node.baseIndentation
+  return expanded.applying(indentation: indentation)
+}
+
+private func expandMemberMacro(
+  definition: MemberMacro.Type,
+  attributeNode: AttributeSyntax,
+  attachedTo: DeclSyntax
+) throws -> MemberDeclListSyntax? {
+  let context = BasicMacroExpansionContext()
+  guard var expanded = expandAttachedMacro(
+    definition: definition,
+    macroRole: .member,
+    attributeNode: attributeNode,
+    declarationNode: attachedTo,
+    parentDeclNode: nil,
+    extendedType: nil,
+    conformanceList: nil,
+    in: context
+  ) else {
+    return nil
+  }
+  expanded = "\n\n" + expanded.applying(indentation: attachedTo.baseIndentation)
+  return Parser.parseExpandedMemberDeclList(source: expanded)
+}
+
+private func expandMemberAttributeMacro(
+  definition: MemberAttributeMacro.Type,
+  attributeNode: AttributeSyntax,
+  attachedTo declaration: DeclSyntax,
+  providingAttributeFor member: DeclSyntax
+) throws -> AttributeListSyntax? {
+  let context = BasicMacroExpansionContext()
+  guard var expanded = expandAttachedMacro(
+    definition: definition,
+    macroRole: .memberAttribute,
+    attributeNode: attributeNode,
+    declarationNode: member,
+    parentDeclNode: declaration,
+    extendedType: nil,
+    conformanceList: nil,
+    in: context
+  ) else {
+    return nil
+  }
+  expanded = "\n" + expanded.applying(indentation: member.baseIndentation)
+  return Parser.parseExpandedAttributeList(source: expanded)
+}
+
+private func expandPeerMacroMember(
+  definition: PeerMacro.Type,
+  attributeNode: AttributeSyntax,
+  attachedTo: DeclSyntax
+) throws -> MemberDeclListSyntax? {
+  let context = BasicMacroExpansionContext()
+  guard var expanded = expandAttachedMacro(
+    definition: definition,
+    macroRole: .peer,
+    attributeNode: attributeNode,
+    declarationNode: attachedTo,
+    parentDeclNode: nil,
+    extendedType: nil,
+    conformanceList: nil,
+    in: context
+  ) else {
+    return nil
+  }
+  expanded = "\n\n" + expanded.applying(indentation: attachedTo.baseIndentation)
+  return Parser.parseExpandedMemberDeclList(source: expanded)
+}
+
+private func expandPeerMacroCodeItem(
+  definition: PeerMacro.Type,
+  attributeNode: AttributeSyntax,
+  attachedTo: DeclSyntax
+) throws -> CodeBlockItemListSyntax? {
+  let context = BasicMacroExpansionContext()
+  guard var expanded = expandAttachedMacro(
+    definition: definition,
+    macroRole: .peer,
+    attributeNode: attributeNode,
+    declarationNode: attachedTo,
+    parentDeclNode: nil,
+    extendedType: nil,
+    conformanceList: nil,
+    in: context
+  ) else {
+    return nil
+  }
+  expanded = "\n\n" + expanded.applying(indentation: attachedTo.baseIndentation)
+  return Parser.parseExpandedCodeBlockItemList(source: expanded, isAtTopLevel: isTopLevel(node: attachedTo))
+}
+
+private func expandAccessorMacroWithBlock(
+  definition: AccessorMacro.Type,
+  attributeNode: AttributeSyntax,
+  attachedTo: DeclSyntax
+) throws -> AccessorBlockSyntax? {
+  let context = BasicMacroExpansionContext()
+  guard var expanded = expandAttachedMacro(
+    definition: definition,
+    macroRole: .accessor,
+    attributeNode: attributeNode,
+    declarationNode: attachedTo,
+    parentDeclNode: nil,
+    extendedType: nil,
+    conformanceList: nil,
+    in: context
+  ) else {
+    return nil
+  }
+  expanded = "\n" + expanded.applying(indentation: attachedTo.baseIndentation)
+  return Parser.parseExpandedAccessorBlock(source: expanded)
+}
+
+private func expandAccessorMacroWithoutBlock(
+  definition: AccessorMacro.Type,
+  attributeNode: AttributeSyntax,
+  attachedTo: DeclSyntax
+) throws -> AccessorListSyntax? {
+  let context = BasicMacroExpansionContext()
+  guard var expanded = expandAttachedMacro(
+    definition: definition,
+    macroRole: .accessor,
+    attributeNode: attributeNode,
+    declarationNode: attachedTo,
+    parentDeclNode: nil,
+    extendedType: nil,
+    conformanceList: nil,
+    in: context
+  ) else {
+    return nil
+  }
+  expanded = "\n\n" + expanded.applying(indentation: attachedTo.baseIndentation)
+  return Parser.parseExpandedAccessorList(source: expanded)
+}
+
+private func expandExtensionMacro(
+  definition: MemberMacro.Type,
+  attributeNode: AttributeSyntax,
+  attachedTo: DeclSyntax
+) throws -> CodeBlockItemListSyntax? {
+  let extendedType: TypeSyntax
+  if let identified = attachedTo.asProtocol(IdentifiedDeclSyntax.self) {
+    extendedType = "\(identified.identifier.trimmed)"
+  } else if let ext = attachedTo.as(ExtensionDeclSyntax.self) {
+    extendedType = "\(ext.extendedType.trimmed)"
+  } else {
+    return nil
+  }
+
+  let context = BasicMacroExpansionContext()
+  guard var expanded = expandAttachedMacro(
+    definition: definition,
+    macroRole: .extension,
+    attributeNode: attributeNode,
+    declarationNode: attachedTo,
+    parentDeclNode: nil,
+    extendedType: extendedType,
+    conformanceList: [],
+    in: context
+  ) else {
+    return nil
+  }
+  expanded = "\n\n" + expanded
+  return Parser.parseExpandedCodeBlockItemList(source: expanded, isAtTopLevel: true)
+}
 
 /// Describes the kinds of errors that can occur within a macro system.
 enum MacroSystemError: Error {
@@ -66,8 +306,9 @@ class MacroApplication<Context: MacroExpansionContext>: SyntaxRewriter {
   var context: Context
   var skipNodes: Set<Syntax> = []
 
-  /// A stack of member attribute macos to expand when iterating over a ``MemberDeclListSyntax``.
-  var memberAttributeMacros: [([(AttributeSyntax, MemberAttributeMacro.Type)], DeclSyntax)] = []
+  /// Store expanded extension while visiting member decls. This should be
+  /// added to top-level 'CodeBlockItemList'.
+  var extensions: [CodeBlockItemSyntax]?
 
   init(
     macroSystem: MacroSystem,
@@ -83,11 +324,12 @@ class MacroApplication<Context: MacroExpansionContext>: SyntaxRewriter {
       return nil
     }
 
-    if node.evaluatedMacroName != nil {
-      return node.evaluateMacro(
-        with: macroSystem,
-        context: context
-      )
+    // Expand 'MacroExpansionExpr'.
+    // Note that 'MacroExpansionExpr'/'MacroExpansionExprDecl' at code item
+    // position are handled by 'visit(_:CodeBlockItemListSyntax)'. Here's only
+    // expression inside other syntax node.
+    if let expanded = expandExpr(node: node) {
+      return Syntax(visit(expanded))
     }
 
     if let declSyntax = node.as(DeclSyntax.self),
@@ -111,12 +353,7 @@ class MacroApplication<Context: MacroExpansionContext>: SyntaxRewriter {
           return true
         }
 
-        return
-          !(macro is PeerMacro.Type
-          || macro is MemberMacro.Type
-          || macro is AccessorMacro.Type
-          || macro is MemberAttributeMacro.Type
-          || macro is ExtensionMacro.Type)
+        return !(macro is AttachedMacro.Type)
       }
 
       if newAttributes.isEmpty {
@@ -130,46 +367,14 @@ class MacroApplication<Context: MacroExpansionContext>: SyntaxRewriter {
   }
 
   override func visit(_ node: CodeBlockItemListSyntax) -> CodeBlockItemListSyntax {
+    let isAtTopLevel = node.parent?.is(SourceFileSyntax.self) == true
+
     var newItems: [CodeBlockItemSyntax] = []
     for item in node {
-      if let expansion = item.item.asProtocol(FreestandingMacroExpansionSyntax.self),
-        let macro = macroSystem.macros[expansion.macro.text]
-      {
-        do {
-          if let macro = macro as? CodeItemMacro.Type {
-            let expandedItemList = try macro.expansion(
-              of: expansion,
-              in: context
-            )
-            newItems.append(contentsOf: expandedItemList)
-          } else if let macro = macro as? DeclarationMacro.Type {
-            var expandedItemList = try macro.expansion(
-              of: expansion,
-              in: context
-            )
-            if let declExpansion = expansion.as(MacroExpansionDeclSyntax.self) {
-              let attributes = macro.propagateFreestandingMacroAttributes ? declExpansion.attributes : nil
-              let modifiers = macro.propagateFreestandingMacroModifiers ? declExpansion.modifiers : nil
-              expandedItemList = expandedItemList.map {
-                $0.applying(attributes: attributes, modifiers: modifiers)
-              }
-            }
-            newItems.append(
-              contentsOf: expandedItemList.map {
-                CodeBlockItemSyntax(item: .decl($0))
-              }
-            )
-          } else if let macro = macro as? ExpressionMacro.Type {
-            let expandedExpr = try macro.expansion(
-              of: expansion,
-              in: context
-            )
-            newItems.append(CodeBlockItemSyntax(item: .init(expandedExpr)))
-          }
-        } catch {
-          context.addDiagnostics(from: error, node: node)
+      if let expanded = expandCodeBlockItem(node: item) {
+        for item in expanded {
+          newItems.append(visit(item))
         }
-
         continue
       }
 
@@ -180,127 +385,64 @@ class MacroApplication<Context: MacroExpansionContext>: SyntaxRewriter {
       // Expand any peer declarations or conformances triggered by macros used
       // as attributes.
       if case let .decl(decl) = item.item {
-        let peers = expandPeers(of: decl)
-        newItems.append(
-          contentsOf: peers.map {
-            newDecl in CodeBlockItemSyntax(item: .decl(newDecl))
-          }
-        )
-
-        if let declGroup = decl.asProtocol(DeclGroupSyntax.self) {
-          newItems.append(
-            contentsOf: expandExtensions(of: declGroup).map {
-              newDecl in CodeBlockItemSyntax(item: .decl(newDecl))
-            }
-          )
+        for item in expandPeers(ofCodeBlockItemDecl: decl) {
+          newItems.append(visit(item))
         }
       }
+    }
+
+    if isAtTopLevel, let extensions {
+      newItems.append(contentsOf: extensions)
     }
 
     return CodeBlockItemListSyntax(newItems)
   }
 
   override func visit(_ node: MemberDeclListSyntax) -> MemberDeclListSyntax {
+    let parentDeclGroup = node.parent?.as(DeclSyntax.self)
     var newItems: [MemberDeclListItemSyntax] = []
-    for item in node {
-      // Expand declaration macros, which produce zero or more declarations.
-      if let declExpansion = item.decl.as(MacroExpansionDeclSyntax.self),
-        let macro = macroSystem.macros[declExpansion.macro.text],
-        let freestandingMacro = macro as? DeclarationMacro.Type
-      {
-        do {
-          var expandedList = try freestandingMacro.expansion(
-            of: declExpansion,
-            in: context
-          )
-          let attributes = freestandingMacro.propagateFreestandingMacroAttributes ? declExpansion.attributes : nil
-          let modifiers = freestandingMacro.propagateFreestandingMacroModifiers ? declExpansion.modifiers : nil
-          expandedList = expandedList.map {
-            $0.applying(attributes: attributes, modifiers: modifiers)
-          }
 
-          newItems.append(
-            contentsOf: expandedList.map { decl in
-              return MemberDeclListItemSyntax(decl: decl)
-            }
-          )
-        } catch {
-          context.addDiagnostics(from: error, node: declExpansion)
+    for var item in node {
+      // Expand freestanding macro.
+      if let expanded = expandMemberDecl(node: item) {
+        for item in expanded {
+          newItems.append(visit(item))
         }
-
         continue
       }
 
       // Expand member attribute members attached to the declaration context.
-      let attributedMember: MemberDeclListSyntax.Element
-      if let (macroAttributes, decl) = memberAttributeMacros.last {
-        attributedMember = expandAttributes(
-          for: macroAttributes,
-          attachedTo: decl,
-          annotating: item
-        )
-      } else {
-        attributedMember = item
+      // Note that MemberAttribute macros are _not_ applied to generated members
+      if let parentDeclGroup, item.decl is WithAttributesSyntax {
+        var newAttributes = expandAttributes(of: item.decl, parentDecl: parentDeclGroup).map {
+          visit($0)
+        }
+        if !newAttributes.isEmpty {
+          let decl = item.decl as! WithAttributesSyntax
+          if let existingAttrs = decl.attributes {
+            newAttributes.insert(contentsOf: existingAttrs, at: 0)
+          }
+          item.decl = decl.with(\.attributes, AttributeListSyntax(newAttributes)).cast(DeclSyntax.self)
+        }
       }
 
       // Recurse on the child node.
-      let newDecl = visit(attributedMember.decl)
-      newItems.append(attributedMember.with(\.decl, newDecl))
+      newItems.append(visit(item))
 
-      // Expand any peer declarations triggered by macros used as attributes.
-      let peers = expandPeers(of: item.decl)
-      newItems.append(
-        contentsOf: peers.map {
-          newDecl in MemberDeclListItemSyntax(decl: newDecl)
-        }
-      )
+      // Expand any peer macro on this member.
+      for peer in expandPeers(ofMemberDecl: item.decl) {
+        newItems.append(visit(peer))
+      }
+    }
+
+    // Expand any member macros of parent.
+    if let parentDeclGroup {
+      for member in expandMembers(of: parentDeclGroup) {
+        newItems.append(visit(member))
+      }
     }
 
     return .init(newItems)
-  }
-
-  func visit<DeclType: DeclGroupSyntax & DeclSyntaxProtocol>(
-    declGroup: DeclType
-  ) -> DeclSyntax {
-    memberAttributeMacros.append(
-      (
-        getMacroAttributes(attachedTo: DeclSyntax(declGroup), ofType: MemberAttributeMacro.Type.self),
-        DeclSyntax(declGroup)
-      )
-    )
-    defer { memberAttributeMacros.removeLast() }
-
-    // Expand any attached member macros.
-    let expandedDeclGroup = expandMembers(of: declGroup)
-
-    // Recurse into member decls.
-    let newMembers = visit(expandedDeclGroup.memberBlock)
-
-    return DeclSyntax(expandedDeclGroup.with(\.memberBlock, newMembers))
-  }
-
-  override func visit(_ node: ActorDeclSyntax) -> DeclSyntax {
-    return visit(declGroup: node)
-  }
-
-  override func visit(_ node: StructDeclSyntax) -> DeclSyntax {
-    return visit(declGroup: node)
-  }
-
-  override func visit(_ node: EnumDeclSyntax) -> DeclSyntax {
-    return visit(declGroup: node)
-  }
-
-  override func visit(_ node: ClassDeclSyntax) -> DeclSyntax {
-    return visit(declGroup: node)
-  }
-
-  override func visit(_ node: ProtocolDeclSyntax) -> DeclSyntax {
-    return visit(declGroup: node)
-  }
-
-  override func visit(_ node: ExtensionDeclSyntax) -> DeclSyntax {
-    return visit(declGroup: node)
   }
 
   // Properties
@@ -316,23 +458,7 @@ class MacroApplication<Context: MacroExpansionContext>: SyntaxRewriter {
       return DeclSyntax(node)
     }
 
-    var accessors: [AccessorDeclSyntax] = []
-
-    let accessorMacroAttributes = getMacroAttributes(attachedTo: DeclSyntax(node), ofType: AccessorMacro.Type.self)
-    for (accessorAttr, accessorMacro) in accessorMacroAttributes {
-      do {
-        let newAccessors = try accessorMacro.expansion(
-          of: accessorAttr,
-          providingAccessorsOf: visitedNode,
-          in: context
-        )
-
-        accessors.append(contentsOf: newAccessors)
-      } catch {
-        // FIXME: record the error
-      }
-    }
-
+    var accessors: [AccessorDeclSyntax] = expandAccessors(of: DeclSyntax(node))
     if accessors.isEmpty {
       return visitedNode
     }
@@ -360,13 +486,18 @@ class MacroApplication<Context: MacroExpansionContext>: SyntaxRewriter {
   // Subscripts
 }
 
+/// Attached macro expansions.
 extension MacroApplication {
+  /// Get pairs of a macro attribute and the macro definition attached to 'decl'
+  /// matching 'ofType' macro type. The macros must be registered to
+  /// 'macroSystem'.
+  /// E.g.
   private func getMacroAttributes<MacroType>(
     attachedTo decl: DeclSyntax,
     ofType: MacroType.Type
-  ) -> [(AttributeSyntax, MacroType)] {
+  ) -> [(attributeNode: AttributeSyntax, definition: MacroType)] {
     guard let attributedNode = decl.asProtocol(WithAttributesSyntax.self),
-      let attributes = attributedNode.attributes
+          let attributes = attributedNode.attributes
     else {
       return []
     }
@@ -374,7 +505,7 @@ extension MacroApplication {
     return attributes.compactMap {
       guard case let .attribute(attribute) = $0,
         let attributeName = attribute.attributeName.as(SimpleTypeIdentifierSyntax.self)?.name.text,
-        let macro = macroSystem.macros[attributeName],
+        let macro = macroSystem.lookup(attributeName),
         let macroType = macro as? MacroType
       else {
         return nil
@@ -387,121 +518,165 @@ extension MacroApplication {
   // If any of the custom attributes associated with the given declaration
   // refer to "peer" declaration macros, expand them and return the resulting
   // set of peer declarations.
-  private func expandPeers(of decl: DeclSyntax) -> [DeclSyntax] {
-    var peers: [DeclSyntax] = []
-    let macroAttributes = getMacroAttributes(attachedTo: decl, ofType: PeerMacro.Type.self)
-    for (attribute, peerMacro) in macroAttributes {
+  private func expandPeers(ofMemberDecl decl: DeclSyntax) -> [MemberDeclListItemSyntax] {
+    var peers: [MemberDeclListItemSyntax] = []
+
+    for peerMacro in getMacroAttributes(attachedTo: decl, ofType: PeerMacro.Type.self) {
       do {
-        let newPeers = try peerMacro.expansion(of: attribute, providingPeersOf: decl, in: context)
-        peers.append(contentsOf: newPeers)
+        if let expanded = try expandPeerMacroMember(
+          definition: peerMacro.definition,
+          attributeNode: peerMacro.attributeNode,
+          attachedTo: decl
+        ) {
+          peers.append(contentsOf: expanded)
+        }
       } catch {
-        context.addDiagnostics(from: error, node: attribute)
+        context.addDiagnostics(from: error, node: peerMacro.0)
       }
     }
-
     return peers
   }
 
-  // If any of the custom attributes associated with the given declaration
-  // refer to conformance macros, expand them and return the resulting
-  // set of extension declarations.
-  private func expandExtensions(of decl: DeclGroupSyntax) -> [DeclSyntax] {
-    let extendedType: TypeSyntax
-    if let identified = decl.asProtocol(IdentifiedDeclSyntax.self) {
-      extendedType = "\(identified.identifier.trimmed)"
-    } else if let ext = decl.as(ExtensionDeclSyntax.self) {
-      extendedType = "\(ext.extendedType.trimmed)"
-    } else {
-      return []
-    }
+  private func expandPeers(ofCodeBlockItemDecl decl: DeclSyntax) -> [CodeBlockItemSyntax] {
+    var peers: [CodeBlockItemSyntax] = []
 
-    var extensions: [DeclSyntax] = []
-
-    let extensionMacroAttrs = getMacroAttributes(attachedTo: decl.as(DeclSyntax.self)!, ofType: ExtensionMacro.Type.self)
-    for (attribute, extensionMacro) in extensionMacroAttrs {
+    for peerMacro in getMacroAttributes(attachedTo: decl, ofType: PeerMacro.Type.self) {
       do {
-        // FIXME: We need a way for unit tests of extension macros to
-        // specify protocols already stated in source (e.g. as arguments
-        // to `assertMacroExpansion`).
-        let newExtensions = try extensionMacro.expansion(
-          of: attribute,
-          attachedTo: decl,
-          providingExtensionsOf: extendedType,
-          conformingTo: [],
-          in: context
-        )
-
-        extensions.append(contentsOf: newExtensions.map(DeclSyntax.init))
+        if let expanded = try expandPeerMacroCodeItem(
+          definition: peerMacro.definition,
+          attributeNode: peerMacro.attributeNode,
+          attachedTo: decl
+        ) {
+          peers.append(contentsOf: expanded)
+        }
       } catch {
-        context.addDiagnostics(from: error, node: attribute)
+        context.addDiagnostics(from: error, node: peerMacro.0)
       }
     }
-
-    return extensions
+    return peers
   }
 
-  /// Expands any attached custom attributes that refer to member declaration macros,
-  /// and returns result of adding those members to the given declaration.
-  private func expandMembers<Decl: DeclGroupSyntax & DeclSyntaxProtocol>(
-    of decl: Decl
-  ) -> Decl {
-    var newMembers: [DeclSyntax] = []
-    let macroAttributes = getMacroAttributes(attachedTo: DeclSyntax(decl), ofType: MemberMacro.Type.self)
-    for (attribute, memberMacro) in macroAttributes {
+  private func expandMembers(of parentDeclGroup: DeclSyntax) -> [MemberDeclListItemSyntax] {
+    var members: [MemberDeclListItemSyntax] = []
+    for memberMacro in getMacroAttributes(
+      attachedTo: parentDeclGroup,
+      ofType: MemberMacro.Type.self
+    ) {
       do {
-        try newMembers.append(
-          contentsOf: memberMacro.expansion(
-            of: attribute,
-            providingMembersOf: decl,
-            in: context
-          )
-        )
+        if let expanded = try expandMemberMacro(
+          definition: memberMacro.definition,
+          attributeNode: memberMacro.attributeNode,
+          attachedTo: parentDeclGroup
+        ) {
+          members.append(contentsOf: expanded)
+        }
       } catch {
-        context.addDiagnostics(from: error, node: attribute)
+        context.addDiagnostics(from: error, node: memberMacro.attributeNode)
       }
     }
-
-    // FIXME: Is there a better way to add N members to a decl?
-    return decl.with(
-      \.memberBlock,
-      newMembers.reduce(decl.memberBlock) { partialMembers, newMember in
-        partialMembers.addMember(.init(decl: newMember))
-      }
-    )
+    return members
   }
 
-  private func expandAttributes(
-    for macroAttributes: [(AttributeSyntax, MemberAttributeMacro.Type)],
-    attachedTo decl: DeclSyntax,
-    annotating member: MemberDeclListSyntax.Element
-  ) -> MemberDeclListSyntax.Element {
-    guard let attributedDecl = member.decl.asProtocol(WithAttributesSyntax.self) else {
-      return member
-    }
+  private func expandAttributes(of decl: DeclSyntax, parentDecl: DeclSyntax) -> [AttributeListSyntax.Element] {
 
-    var attributes: [AttributeSyntax] = []
-    for (attribute, attributeMacro) in macroAttributes {
+    var attributes: [AttributeListSyntax.Element] = []
+    for memberAttributeMacro in getMacroAttributes(
+      attachedTo: parentDecl,
+      ofType: MemberAttributeMacro.Type.self
+    ) {
       do {
-        let typedDecl = decl.asProtocol(DeclGroupSyntax.self)!
-        attributes.append(
-          contentsOf: try attributeMacro.expansion(
-            of: attribute,
-            attachedTo: typedDecl,
-            providingAttributesFor: member.decl,
-            in: context
-          )
-        )
+        if let expanded = try expandMemberAttributeMacro(
+          definition: memberAttributeMacro.definition,
+          attributeNode: memberAttributeMacro.attributeNode,
+          attachedTo: parentDecl,
+          providingAttributeFor: decl
+        ) {
+          attributes.append(contentsOf: expanded)
+        }
       } catch {
-        context.addDiagnostics(from: error, node: attribute)
+        context.addDiagnostics(from: error, node: memberAttributeMacro.attributeNode)
       }
     }
+    return attributes
+  }
 
-    let newAttributes = attributes.reduce(attributedDecl.attributes ?? .init([])) {
-      AttributeListSyntax($0 + [AttributeListSyntax.Element($1)])
+  private func expandAccessors(of decl: DeclSyntax) -> [AccessorDeclSyntax] {
+    var accessors: [AccessorDeclSyntax] = []
+    for memberAttributeMacro in getMacroAttributes(
+      attachedTo: decl,
+      ofType: AccessorMacro.Type.self
+    ) {
+      do {
+        if let expanded = try expandAccessorMacroWithoutBlock(
+          definition: memberAttributeMacro.definition,
+          attributeNode: memberAttributeMacro.attributeNode,
+          attachedTo: decl
+        ) {
+          accessors.append(contentsOf: expanded)
+        }
+      } catch {
+        context.addDiagnostics(from: error, node: memberAttributeMacro.attributeNode)
+      }
     }
+    return accessors
+  }
+}
 
-    let newDecl = attributedDecl.with(\.attributes, newAttributes).as(DeclSyntax.self)!
-    return member.with(\.decl, newDecl)
+/// Freestanding macro expansion.
+extension MacroApplication {
+  /// Expand a freestanding macro expansion syntax in a code block item position.
+  /// E.g.
+  ///   function test() {
+  ///     #foo
+  ///   }
+  func expandCodeBlockItem(node: CodeBlockItemSyntax) -> CodeBlockItemListSyntax? {
+    guard let expansion = node.item.asProtocol(FreestandingMacroExpansionSyntax.self),
+      let macro = macroSystem.lookup(expansion.macro.text)
+    else {
+      return nil
+    }
+    do {
+      return try expandFreestandingCodeItemList(definition: macro, node: expansion)
+    } catch {
+      context.addDiagnostics(from: error, node: expansion)
+      return nil
+    }
+  }
+
+  /// Expand a freestanding macro expansion syntax in a member decl position.
+  /// E.g.
+  ///   struct S {
+  ///     #foo
+  ///   }
+  func expandMemberDecl(node: MemberDeclListItemSyntax) -> MemberDeclListSyntax? {
+    // Expand declaration macros, which produce zero or more declarations.
+    guard let declExpansion = node.decl.as(MacroExpansionDeclSyntax.self),
+          let macro = macroSystem.macros[declExpansion.macro.text] as? DeclarationMacro.Type else {
+      return nil
+    }
+    do {
+      return try expandFreestandingMemberDeclList(definition: macro, node: declExpansion)
+    } catch {
+      context.addDiagnostics(from: error, node: declExpansion)
+      return nil
+    }
+  }
+
+  /// Expand a freestanding macro expansion in a expression position inside
+  /// other products. e.g.
+  ///   let a = #foo
+  func expandExpr(node: Syntax) -> ExprSyntax? {
+    guard let expansion = node.as(MacroExpansionExprSyntax.self),
+       let macro = macroSystem.lookup(expansion.macro.text)
+    else {
+      return nil
+    }
+    do {
+      return try expandFreestandingExpr(definition: macro, node: expansion)
+    } catch {
+      context.addDiagnostics(from: error, node: node)
+      return nil
+    }
   }
 }
 

@@ -352,13 +352,14 @@ public func collapse<Node: SyntaxProtocol>(
   var separator: String = "\n\n"
 
   if role == .accessor,
+     /// FIXME: This doesn't support 'SubscriptDeclSyntax'.
     let varDecl = declarationNode.as(VariableDeclSyntax.self),
     let binding = varDecl.bindings.first,
     binding.accessor == nil
   {
     let indentation = String(repeating: " ", count: 4)
 
-    expansions = expansions.map({ indent($0, with: indentation) })
+    expansions = expansions.map({ $0.applying(indentation: indentation) })
     expansions[0] = "{\n" + expansions[0]
     expansions[expansions.count - 1] += "\n}"
   } else if role == .memberAttribute {
@@ -368,25 +369,3 @@ public func collapse<Node: SyntaxProtocol>(
   return expansions.joined(separator: separator)
 }
 
-fileprivate func indent(_ source: String, with indentation: String) -> String {
-  if source.isEmpty || indentation.isEmpty {
-    return source
-  }
-
-  var indented = ""
-  var remaining = source[...]
-  while let nextNewline = remaining.firstIndex(where: { $0.isNewline }) {
-    if nextNewline != remaining.startIndex {
-      indented += indentation
-    }
-    indented += remaining[...nextNewline]
-    remaining = remaining[remaining.index(after: nextNewline)...]
-  }
-
-  if !remaining.isEmpty {
-    indented += indentation
-    indented += remaining
-  }
-
-  return indented
-}

@@ -1476,7 +1476,7 @@ extension Parser {
   ///     willSet-didSet-block → { didSet-clause willSet-clause opt }
   ///     willSet-clause → attributes opt willSet setter-name opt code-block
   ///     didSet-clause → attributes opt didSet setter-name opt code-block
-  private mutating func parseAccessorDecl(
+  mutating func parseAccessorDecl(
     introducer: AccessorIntroducer
   ) -> RawAccessorDeclSyntax {
     // 'set' and 'willSet' can have an optional name.  This isn't valid in a

@@ -368,7 +368,7 @@ extension TypeSyntax: SyntaxParseable {
   }
 }
 
-fileprivate extension Parser {
+extension Parser {
   mutating func parseRemainder<R: RawSyntaxNodeProtocol>(into: R) -> R {
     guard !into.raw.kind.isSyntaxCollection, let layout = into.raw.layoutView else {
       preconditionFailure("Only support parsing of non-collection layout nodes")
