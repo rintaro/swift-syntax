@@ -846,8 +846,8 @@ final class MacroSystemTests: XCTestCase {
       """,
       expandedSource: """
         struct X {
-          func f() {
-          }
+          func f() { }
+          #myError(bad)
           func g() {
           }
         }
@@ -889,14 +889,17 @@ final class MacroSystemTests: XCTestCase {
       var x: Int
       """,
       expandedSource: """
-        var x: Int {
+        var x: Int
+        {
           get {
-            _x.wrappedValue
-          }
+                  _x.wrappedValue
+            }
+
           set {
-            _x.wrappedValue = newValue
-          }
+                  _x.wrappedValue = newValue
+            }
         }
+
         private var _x: MyWrapperType<Int>
         """,
       macros: testMacros,
@@ -911,8 +914,7 @@ final class MacroSystemTests: XCTestCase {
       func f(a: Int, for b: String, _ value: Double) async -> String { }
       """,
       expandedSource: """
-        func f(a: Int, for b: String, _ value: Double) async -> String {
-        }
+        func f(a: Int, for b: String, _ value: Double) async -> String { }
 
         func f(a: Int, for b: String, _ value: Double, completionHandler: (String) -> Void) {
           Task {
@@ -936,6 +938,7 @@ final class MacroSystemTests: XCTestCase {
       expandedSource: """
         struct S {
           var value: Int
+        
           var _storage: Storage<Self>
         }
         """,
@@ -967,20 +970,14 @@ final class MacroSystemTests: XCTestCase {
           @Wrapper
           var y: Int
           @Wrapper
-          var description: String {
-            ""
-          }
+          var description: String { "" }
           @Wrapper
           var computed: Int {
-            get {
-              0
-            }
-            set {
-            }
+            get { 0 }
+            set {}
           }
 
-          func test() {
-          }
+          func test() {}
         }
         """,
       macros: testMacros,
@@ -1011,20 +1008,14 @@ final class MacroSystemTests: XCTestCase {
           @Wrapper
           var y: Int
 
-          var description: String {
-            ""
-          }
+          var description: String { "" }
 
           var computed: Int {
-            get {
-              0
-            }
-            set {
-            }
+            get { 0 }
+            set {}
           }
 
-          func test() {
-          }
+          func test() {}
         }
         """,
       macros: testMacros,

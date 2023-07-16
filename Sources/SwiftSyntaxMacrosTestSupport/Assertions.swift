@@ -275,7 +275,7 @@ public func assertMacroExpansion(
     sourceFiles: [origSourceFile: .init(moduleName: testModuleName, fullFilePath: testFileName)]
   )
 
-  let expandedSourceFile = origSourceFile.expand(macros: macros, in: context)
+  let expandedSourceFile = origSourceFile.expand(macros: macros, in: context, indentation: indentationWidth)
   let diags = ParseDiagnosticsGenerator.diagnostics(for: expandedSourceFile)
   if !diags.isEmpty {
     XCTFail(
@@ -291,13 +291,12 @@ public func assertMacroExpansion(
     )
   }
 
-  let formattedSourceFile = expandedSourceFile.formatted(using: BasicFormat(indentationWidth: indentationWidth))
   assertStringsEqualWithDiff(
-    formattedSourceFile.description.trimmingCharacters(in: .newlines),
+    expandedSourceFile.description.trimmingCharacters(in: .newlines),
     expandedSource.trimmingCharacters(in: .newlines),
     additionalInfo: """
       Actual expanded source:
-      \(expandedSource)
+      \(expandedSourceFile.description)
       """,
     file: file,
     line: line

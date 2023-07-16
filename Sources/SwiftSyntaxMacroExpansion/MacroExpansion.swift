@@ -11,6 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 import SwiftSyntax
+import SwiftBasicFormat
 @_spi(MacroExpansion) import SwiftSyntaxMacros
 
 public enum MacroRole {
@@ -88,7 +89,8 @@ public func expandFreestandingMacro(
   definition: Macro.Type,
   macroRole: MacroRole,
   node: FreestandingMacroExpansionSyntax,
-  in context: some MacroExpansionContext
+  in context: some MacroExpansionContext,
+  indentation: Trivia = .spaces(4)
 ) -> String? {
   do {
     let expandedSyntax: Syntax
@@ -109,7 +111,7 @@ public func expandFreestandingMacro(
       expandedSyntax = Syntax(
         CodeBlockItemListSyntax(
           rewritten.map {
-            CodeBlockItemSyntax(item: .decl($0))
+            CodeBlockItemSyntax(item: .decl($0.trimmed(matching: {$0.isWhitespace})))
           }
         )
       )
@@ -122,7 +124,7 @@ public func expandFreestandingMacro(
       (.codeItem, _):
       throw MacroExpansionError.unmatchedMacroRole(definition, macroRole)
     }
-    return expandedSyntax.formattedExpansion(definition.formatMode)
+    return expandedSyntax.formattedExpansion(definition.formatMode, indentation: indentation)
   } catch {
     context.addDiagnostics(from: error, node: node)
     return nil
@@ -183,7 +185,8 @@ public func expandAttachedMacroWithoutCollapsing<Context: MacroExpansionContext>
   parentDeclNode: DeclSyntax?,
   extendedType: TypeSyntax?,
   conformanceList: InheritedTypeListSyntax?,
-  in context: Context
+  in context: Context,
+  indentation: Trivia = .spaces(4)
 ) -> [String]? {
   do {
     switch (definition, macroRole) {
@@ -194,7 +197,7 @@ public func expandAttachedMacroWithoutCollapsing<Context: MacroExpansionContext>
         in: context
       )
       return accessors.map {
-        $0.formattedExpansion(definition.formatMode)
+        $0.formattedExpansion(definition.formatMode, indentation: indentation)
       }
 
     case (let attachedMacro as MemberAttributeMacro.Type, .memberAttribute):
@@ -214,7 +217,7 @@ public func expandAttachedMacroWithoutCollapsing<Context: MacroExpansionContext>
 
       // Form a buffer containing an attribute list to return to the caller.
       return attributes.map {
-        $0.formattedExpansion(definition.formatMode)
+        $0.formattedExpansion(definition.formatMode, indentation: indentation)
       }
 
     case (let attachedMacro as MemberMacro.Type, .member):
@@ -231,7 +234,7 @@ public func expandAttachedMacroWithoutCollapsing<Context: MacroExpansionContext>
       )
 
       // Form a buffer of member declarations to return to the caller.
-      return members.map { $0.formattedExpansion(definition.formatMode) }
+      return members.map { $0.formattedExpansion(definition.formatMode, indentation: indentation) }
 
     case (let attachedMacro as PeerMacro.Type, .peer):
       let peers = try attachedMacro.expansion(
@@ -242,7 +245,7 @@ public func expandAttachedMacroWithoutCollapsing<Context: MacroExpansionContext>
 
       // Form a buffer of peer declarations to return to the caller.
       return peers.map {
-        $0.formattedExpansion(definition.formatMode)
+        $0.formattedExpansion(definition.formatMode, indentation: indentation)
       }
 
     case (let attachedMacro as ExtensionMacro.Type, .extension):
@@ -273,7 +276,7 @@ public func expandAttachedMacroWithoutCollapsing<Context: MacroExpansionContext>
 
       // Form a buffer of peer declarations to return to the caller.
       return extensions.map {
-        $0.formattedExpansion(definition.formatMode)
+        $0.formattedExpansion(definition.formatMode, indentation: indentation)
       }
 
     default:
@@ -306,7 +309,8 @@ public func expandAttachedMacro<Context: MacroExpansionContext>(
   parentDeclNode: DeclSyntax?,
   extendedType: TypeSyntax?,
   conformanceList: InheritedTypeListSyntax?,
-  in context: Context
+  in context: Context,
+  indentation: Trivia = .spaces(4)
 ) -> String? {
   let expandedSources = expandAttachedMacroWithoutCollapsing(
     definition: definition,
@@ -316,21 +320,23 @@ public func expandAttachedMacro<Context: MacroExpansionContext>(
     parentDeclNode: parentDeclNode,
     extendedType: extendedType,
     conformanceList: conformanceList,
-    in: context
+    in: context,
+    indentation: indentation
   )
   return expandedSources.map {
-    collapse(expansions: $0, for: macroRole, attachedTo: declarationNode)
+    collapse(expansions: $0, for: macroRole, attachedTo: declarationNode, indentation: indentation)
   }
 }
 
 fileprivate extension SyntaxProtocol {
   /// Perform a format if required and then trim any leading/trailing
   /// whitespace.
-  func formattedExpansion(_ mode: FormatMode) -> String {
+  func formattedExpansion(_ mode: FormatMode, indentation: Trivia) -> String {
     let formatted: Syntax
     switch mode {
     case .auto:
-      formatted = self.formatted()
+      let formatter = BasicFormat(indentationWidth: indentation)
+      formatted = self.formatted(using: formatter)
     case .disabled:
       formatted = Syntax(self)
     }
@@ -342,7 +348,8 @@ fileprivate extension SyntaxProtocol {
 public func collapse<Node: SyntaxProtocol>(
   expansions: [String],
   for role: MacroRole,
-  attachedTo declarationNode: Node
+  attachedTo declarationNode: Node,
+  indentation: Trivia = .spaces(4)
 ) -> String {
   if expansions.isEmpty {
     return ""
@@ -357,9 +364,10 @@ public func collapse<Node: SyntaxProtocol>(
     let binding = varDecl.bindings.first,
     binding.accessor == nil
   {
-    let indentation = String(repeating: " ", count: 4)
+    var indentationStr = ""
+    indentation.write(to: &indentationStr)
 
-    expansions = expansions.map({ $0.applying(indentation: indentation) })
+    expansions = expansions.map({ $0.applying(indentation: indentationStr) })
     expansions[0] = "{\n" + expansions[0]
     expansions[expansions.count - 1] += "\n}"
   } else if role == .memberAttribute {
