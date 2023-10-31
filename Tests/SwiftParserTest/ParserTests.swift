@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 import Dispatch
-import SwiftParser
+@_spi(Testing) import SwiftParser
 import SwiftParserDiagnostics
 import SwiftSyntax
 import XCTest
@@ -24,7 +24,7 @@ public class ParserTests: ParserTestCase {
     let parsed = fileContents.withUnsafeBytes({ buffer in
       // Release builds are fine with the default maximum nesting level of 256.
       // Debug builds overflow with any stack size bigger than 20-ish.
-      Parser.parse(source: buffer.bindMemory(to: UInt8.self), maximumNestingLevel: 20)
+      Parser.parse(source: buffer.bindMemory(to: UInt8.self), maximumNestingLevel: 20, options: [.bodySkipping])
     })
     assertDataEqualWithDiff(
       Data(parsed.syntaxTextBytes),
@@ -71,7 +71,8 @@ public class ParserTests: ParserTestCase {
       }
 
     print("\(name) - processing \(fileURLs.count) source files")
-    DispatchQueue.concurrentPerform(iterations: fileURLs.count) { fileURLIndex in
+//    DispatchQueue.concurrentPerform(iterations: fileURLs.count) { fileURLIndex in
+    for fileURLIndex in 0 ..< fileURLs.count {
       let fileURL = fileURLs[fileURLIndex]
       if shouldExclude(fileURL) {
         return
@@ -93,15 +94,21 @@ public class ParserTests: ParserTestCase {
   func testSelfParse() throws {
     // Allow skipping the self parse test in local development environments
     // because it takes very long compared to all the other tests.
-    try XCTSkipIf(longTestsDisabled)
+//    try XCTSkipIf(longTestsDisabled)
     let currentDir =
       packageDir
       .appendingPathComponent("Sources")
-    runParserTests(
-      name: "Self-parse tests",
-      path: currentDir,
-      checkDiagnostics: true
-    )
+    measure {
+      for _ in 0 ..< 10 {
+        runParserTests(
+          name: "Self-parse tests",
+          path: currentDir,
+          checkDiagnostics: true
+        )
+
+      }
+
+    }
   }
 
   /// Test all of the files in the "test" directory of the main Swift compiler.
@@ -136,5 +143,9 @@ public class ParserTests: ParserTestCase {
       path: testDir,
       checkDiagnostics: false
     )
+  }
+
+  func testValidteParser() {
+    Parser.validateStatic()
   }
 }

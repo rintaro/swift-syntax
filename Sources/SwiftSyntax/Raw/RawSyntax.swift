@@ -36,6 +36,7 @@ struct RecursiveRawSyntaxFlags: OptionSet {
 }
 
 /// Node data for RawSyntax tree. Tagged union plus common data.
+@usableFromInline
 internal struct RawSyntaxData {
   internal enum Payload {
     case parsedToken(ParsedToken)
@@ -188,10 +189,13 @@ extension RawSyntaxData.MaterializedToken {
 /// have no notion of identity and only provide structure to the tree. They
 /// are immutable and can be freely shared between syntax nodes.
 @_spi(RawSyntax)
+@frozen
 public struct RawSyntax {
 
   /// Pointer to the actual data which resides in a SyntaxArena.
+  @usableFromInline
   var pointer: UnsafePointer<RawSyntaxData>
+  @inlinable
   init(pointer: UnsafePointer<RawSyntaxData>) {
     self.pointer = pointer
   }
@@ -233,7 +237,7 @@ extension RawSyntax {
   }
 
   /// Whether or not this node is a token one.
-  @_spi(RawSyntax)
+  @_spi(RawSyntax) @inlinable
   public var isToken: Bool {
     kind == .token
   }
@@ -351,12 +355,12 @@ extension RawSyntax {
 }
 
 extension RawSyntax {
-  @_spi(RawSyntax)
+  @_spi(RawSyntax) @inlinable
   public func toOpaque() -> UnsafeRawPointer {
     UnsafeRawPointer(pointer)
   }
 
-  @_spi(RawSyntax)
+  @_spi(RawSyntax)  @inlinable
   public static func fromOpaque(_ pointer: UnsafeRawPointer) -> RawSyntax {
     Self(pointer: pointer.assumingMemoryBound(to: RawSyntaxData.self))
   }

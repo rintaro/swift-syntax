@@ -15,8 +15,7 @@
 extension Lexer {
   /// A sequence of ``Lexer/Lexeme`` tokens starting from a ``Lexer/Cursor``
   /// that points into an input buffer.
-  @_spi(Testing)
-  public struct LexemeSequence: IteratorProtocol, Sequence, CustomDebugStringConvertible {
+  struct LexemeSequence: CustomDebugStringConvertible {
     fileprivate let sourceBufferStart: Lexer.Cursor
     fileprivate var cursor: Lexer.Cursor
     fileprivate var nextToken: Lexer.Lexeme
@@ -51,8 +50,7 @@ extension Lexer {
       self.lookaheadTracker = lookaheadTracker
     }
 
-    @_spi(Testing)
-    public mutating func next() -> Lexer.Lexeme? {
+    mutating func next() -> Lexer.Lexeme? {
       return self.advance()
     }
 
@@ -62,11 +60,10 @@ extension Lexer {
     }
 
     mutating func advance() -> Lexer.Lexeme {
-      defer {
-        self.nextToken = self.cursor.nextToken(sourceBufferStart: self.sourceBufferStart, stateAllocator: lexerStateAllocator)
-      }
       self.recordNextTokenInLookaheadTracker()
-      return self.nextToken
+      let ret = self.nextToken
+      self.nextToken = self.cursor.nextToken(sourceBufferStart: self.sourceBufferStart, stateAllocator: lexerStateAllocator)
+      return ret
     }
 
     /// Get the offset of the leading trivia start of `token` relative to `sourceBufferStart`.
@@ -112,8 +109,7 @@ extension Lexer {
       currentToken = self.advance()
     }
 
-    @_spi(Testing)
-    public var debugDescription: String {
+    var debugDescription: String {
       let remainingText =
         self.nextToken.debugDescription + String(syntaxText: SyntaxText(baseAddress: self.cursor.input.baseAddress, count: self.cursor.input.count))
       if remainingText.count > 100 {
@@ -124,8 +120,7 @@ extension Lexer {
     }
   }
 
-  @_spi(Testing)
-  public static func tokenize(
+  static func tokenize(
     _ input: UnsafeBufferPointer<UInt8>,
     from startIndex: Int = 0,
     lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>

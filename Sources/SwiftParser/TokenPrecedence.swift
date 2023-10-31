@@ -18,6 +18,7 @@
 /// and considered unexpected.
 ///
 /// - Seealso: <doc:ParserRecovery>
+@frozen
 enum TokenPrecedence: Comparable {
   /// An unknown token. This is known garbage and should always be allowed to be skipped.
   case unknownToken
@@ -186,6 +187,7 @@ enum TokenPrecedence: Comparable {
     }
   }
 
+  @inlinable
   init(_ keyword: Keyword) {
     switch keyword {
     // MARK: Identifier like

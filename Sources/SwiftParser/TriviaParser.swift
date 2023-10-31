@@ -87,7 +87,7 @@ public struct TriviaParser {
 
       case UInt8(ascii: "<"), UInt8(ascii: ">"):
         // SCM conflict markers.
-        if cursor.tryLexConflictMarker(start: start) {
+        if cursor.tryLexConflictMarker(start: start.position) {
           pieces.append(.unexpectedText(start.text(upTo: cursor)))
           continue
         }
@@ -183,7 +183,7 @@ extension Lexer.Cursor {
     // "/**/": .blockComment.
     precondition(self.previous == UInt8(ascii: "/") && self.is(at: "*"))
     let isDocComment = self.input.count > 2 && self.is(offset: 1, at: "*") && self.is(offset: 2, notAt: "/")
-    _ = self.advanceToEndOfSlashStarComment(slashPosition: start)
+    _ = self.advanceToEndOfSlashStarComment(slashPosition: start.position)
     let contents = start.text(upTo: self)
     return isDocComment ? .docBlockComment(contents) : .blockComment(contents)
   }

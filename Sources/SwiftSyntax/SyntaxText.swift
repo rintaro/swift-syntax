@@ -11,11 +11,11 @@
 //===----------------------------------------------------------------------===//
 
 #if canImport(Darwin)
-@_implementationOnly import Darwin
+import Darwin
 #elseif canImport(Glibc)
-@_implementationOnly import Glibc
+import Glibc
 #elseif canImport(Musl)
-@_implementationOnly import Musl
+import Musl
 #endif
 
 /// Represent a string.
@@ -34,10 +34,13 @@
 /// `Swift.String`, ill-formed UTF8 sequences are replaced with the Unicode
 /// replacement character (`\u{FFFD}`).
 @_spi(RawSyntax)
+@frozen
 public struct SyntaxText {
+  @usableFromInline
   var buffer: UnsafeBufferPointer<UInt8>
 
   /// Construct a ``SyntaxText`` whose text is represented by the given `buffer`.
+  @inlinable
   public init(buffer: UnsafeBufferPointer<UInt8>) {
     self.buffer = buffer
   }
@@ -46,6 +49,7 @@ public struct SyntaxText {
   /// at `baseAddress` and ranging `count` bytes.
   ///
   /// If count is not zero, `baseAddress` must not be `nil`.
+  @inlinable
   public init(baseAddress: UnsafePointer<UInt8>?, count: Int) {
     precondition(
       count == 0 || baseAddress != nil,
@@ -55,16 +59,19 @@ public struct SyntaxText {
   }
 
   /// Creates an empty ``SyntaxText``
+  @inlinable
   public init() {
     self.init(baseAddress: nil, count: 0)
   }
 
   /// Creates a ``SyntaxText`` from a `StaticString`
+  @inlinable
   public init(_ string: StaticString) {
     self.init(baseAddress: string.utf8Start, count: string.utf8CodeUnitCount)
   }
 
   /// Creates a ``SyntaxText`` over the same memory as the given slice.
+  @inlinable
   public init(rebasing slice: SubSequence) {
     self.init(
       baseAddress: slice.base.baseAddress?.advanced(by: slice.startIndex),
@@ -76,16 +83,19 @@ public struct SyntaxText {
   ///
   /// If the `baseAddress` is `nil`, the text is empty. However, text can be
   /// `isEmpty` even with a non-`nil` base address.
+  @inlinable
   public var baseAddress: UnsafePointer<UInt8>? {
     buffer.baseAddress
   }
 
   /// Byte length of this string.
+  @inlinable
   public var count: Int {
     buffer.count
   }
 
   /// A Boolean value indicating whether a string has no characters.
+  @inlinable
   public var isEmpty: Bool {
     buffer.isEmpty
   }
@@ -94,6 +104,7 @@ public struct SyntaxText {
   ///
   /// `SyntaxText(rebasing: text[n ..< m]).isSliceOf(text)` is always true as
   /// long as `n` and `m` are valid indices.
+  @inlinable
   public func isSlice(of other: SyntaxText) -> Bool {
     // If either of it is empty, returns 'true' only if both are empty.
     // Otherwise, returns 'false'.
@@ -104,6 +115,7 @@ public struct SyntaxText {
   }
 
   /// Returns `true` if `other` is a substring of this ``SyntaxText``.
+  @inlinable
   public func contains(_ other: SyntaxText) -> Bool {
     return firstRange(of: other) != nil
   }
@@ -129,6 +141,7 @@ public struct SyntaxText {
   }
 
   /// Returns `true` if the string begins with the specified prefix.
+  @inlinable
   public func hasPrefix(_ other: SyntaxText) -> Bool {
     guard self.count >= other.count else { return false }
     guard !other.isEmpty else { return true }
@@ -137,6 +150,7 @@ public struct SyntaxText {
   }
 
   /// Returns `true` if the string ends with the specified suffix.
+  @inlinable
   public func hasSuffix(_ other: SyntaxText) -> Bool {
     guard self.count >= other.count else { return false }
     guard !other.isEmpty else { return true }
@@ -157,12 +171,15 @@ extension SyntaxText: RandomAccessCollection {
   public typealias SubSequence = Slice<SyntaxText>
 
   /// The index of the first byte in ``SyntaxText``
+  @inlinable
   public var startIndex: Index { buffer.startIndex }
 
   /// The index one after the last byte in ``SyntaxText``.
+  @inlinable
   public var endIndex: Index { buffer.endIndex }
 
   /// Access the byte at `index`.
+  @inlinable
   public subscript(index: Index) -> Element {
     get { return buffer[index] }
   }
@@ -170,6 +187,7 @@ extension SyntaxText: RandomAccessCollection {
 
 extension SyntaxText: Hashable {
   /// Returns `true` if `lhs` and `rhs` contain the same bytes.
+  @inlinable
   public static func == (lhs: SyntaxText, rhs: SyntaxText) -> Bool {
     if lhs.buffer.count != rhs.buffer.count {
       return false
@@ -190,6 +208,7 @@ extension SyntaxText: Hashable {
   }
 
   /// Hash the contents of this ``SyntaxText`` into `hasher`.
+  @inlinable
   public func hash(into hasher: inout Hasher) {
     hasher.combine(bytes: .init(buffer))
   }
@@ -199,16 +218,19 @@ extension SyntaxText: ExpressibleByStringLiteral {
   /// We can always safely create ``SyntaxText`` from a ``StaticString`` because
   /// ``StaticString`` is guaranteed to be alive for the entire execution
   /// duration of the process.
+  @inlinable
   public init(stringLiteral value: StaticString) { self.init(value) }
 
   /// We can always safely create ``SyntaxText`` from a ``StaticString`` because
   /// ``StaticString`` is guaranteed to be alive for the entire execution
   /// duration of the process.
+  @inlinable
   public init(unicodeScalarLiteral value: StaticString) { self.init(value) }
 
   /// We can always safely create ``SyntaxText`` from a ``StaticString`` because
   /// ``StaticString`` is guaranteed to be alive for the entire execution
   /// duration of the process.
+  @inlinable
   public init(extendedGraphemeClusterLiteral value: StaticString) { self.init(value) }
 }
 
@@ -217,12 +239,14 @@ extension SyntaxText: CustomStringConvertible {
   ///
   /// Note that ``SyntaxText`` can represent invalid Unicode, while ``String``
   /// cannot, so if this text contains invalid UTF-8, the conversion is lossy.
+  @inlinable
   public var description: String { String(syntaxText: self) }
 }
 
 extension SyntaxText: CustomDebugStringConvertible {
   /// The string value of this text, which may be lossy if the text contains
   /// invalid Unicode. Don’t rely on this value being stable.
+  @inlinable
   public var debugDescription: String { description.debugDescription }
 }
 
@@ -250,6 +274,7 @@ extension String {
   /// string. Like `String.withUTF8(_:)`, this may mutate the string if this
   /// string was not contiguous.
   @_spi(RawSyntax)
+  @inlinable
   public mutating func withSyntaxText<R>(
     _ body: (SyntaxText) throws -> R
   ) rethrows -> R {
@@ -259,7 +284,9 @@ extension String {
   }
 }
 
-private func compareMemory(
+@_spi(RawSyntax)
+@inlinable
+public func compareMemory(
   _ s1: UnsafePointer<UInt8>,
   _ s2: UnsafePointer<UInt8>,
   _ count: Int

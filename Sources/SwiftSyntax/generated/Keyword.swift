@@ -226,7 +226,9 @@ public enum Keyword: UInt8, Hashable {
   case wrt
   case yield
   
-  @_spi(RawSyntax) public init?(_ text: SyntaxText) {
+  @_spi(RawSyntax)
+  @inlinable
+  public init?(_ text: SyntaxText) {
     switch text.count {
     case 2:
       switch text {

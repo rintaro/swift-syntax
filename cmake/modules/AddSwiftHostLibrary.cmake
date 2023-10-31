@@ -60,7 +60,7 @@ function(add_swift_syntax_library name)
   add_custom_command(
       TARGET ${name}
       POST_BUILD
-      COMMAND "${CMAKE_COMMAND}" -E touch_nocreate $<TARGET_FILE:${name}> $<TARGET_OBJECTS:${name}> "${module_base}"
+      COMMAND "${CMAKE_COMMAND}" -E touch $<TARGET_FILE:${name}> $<TARGET_OBJECTS:${name}> "${module_base}"
       COMMAND_EXPAND_LISTS
       COMMENT "Update mtime of library outputs workaround")
 
@@ -74,6 +74,7 @@ function(add_swift_syntax_library name)
     $<$<COMPILE_LANGUAGE:Swift>:
       -module-name;${name};
       -enable-library-evolution;
+      # -cross-module-optimization
       -emit-module-path;${module_file};
       -emit-module-source-info-path;${module_sourceinfo_file};
       -emit-module-interface-path;${module_interface_file}
@@ -89,7 +90,7 @@ function(add_swift_syntax_library name)
 
   if(CMAKE_VERSION VERSION_LESS 3.26.0 AND SWIFT_SYNTAX_ENABLE_WMO_PRE_3_26)
     target_compile_options(${name} PRIVATE
-        $<$<COMPILE_LANGUAGE:Swift>:-wmo>)
+        $<$<COMPILE_LANGUAGE:Swift>:-whole-module-optimization>)
   endif()
 
   if(LLVM_USE_LINKER)
