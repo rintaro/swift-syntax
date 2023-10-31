@@ -70,7 +70,7 @@ extension Lexer.Cursor {
 
     /// The lexer is inside a string literal of `kind` after having lexed
     /// `delimiterLength` raw string delimiters.
-    case inStringLiteral(kind: StringLiteralKind, delimiterLength: Int)
+    case inStringLiteral(kind: StringLiteralKind, delimiterLength: Int16)
 
     /// The lexer has finished lexing the contents of a string literal and is now
     /// looking for the closing quote.
@@ -91,12 +91,12 @@ extension Lexer.Cursor {
     /// `(` that opens the string interpolation.
     ///
     /// `stringInterpolationStart` points to the first character inside the interpolation.
-    case inStringInterpolation(stringLiteralKind: StringLiteralKind, parenCount: Int)
+    case inStringInterpolation(stringLiteralKind: StringLiteralKind, parenCount: Int16)
 
     /// We have encountered a regex literal, and have its tokens to work
     /// through. `lexemes` is a pointer to the lexemes allocated in the state
     /// stack bump pointer allocator.
-    case inRegexLiteral(index: UInt8, lexemes: UnsafePointer<RegexLiteralLexemes>)
+    case inRegexLiteral(lexemes: UnsafePointer<RegexLiteralLexemes>, index: UInt8)
 
     /// The mode in which leading trivia should be lexed for this state or `nil`
     /// if no trivia should be lexed.
@@ -162,43 +162,30 @@ extension Lexer.Cursor {
   /// entries, the required memory is allocated in a bump allocator that is
   /// expected to outlive the stack.
   struct StateStack {
-    private var topState: State? = nil
-    private var stateStack: UnsafeBufferPointer<State>? = nil
-
-    var currentState: State {
-      return topState ?? .normal
-    }
+    private var stateStack: UnsafeBufferPointer<State> = .init(start: nil, count: 0)
+    var currentState: State = .normal
 
     mutating func perform(stateTransition: Lexer.StateTransition, stateAllocator: BumpPtrAllocator) {
       switch stateTransition {
       case .push(newState: let newState):
-        if let topState {
-          if let stateStack = stateStack {
-            let newStateStack = stateAllocator.allocate(State.self, count: stateStack.count + 1)
-            let (_, existingStateStackEndIndex) = newStateStack.initialize(from: stateStack)
-            newStateStack[existingStateStackEndIndex] = topState
-            self.stateStack = UnsafeBufferPointer(newStateStack)
-          } else {
-            let newStateStack = stateAllocator.allocate(State.self, count: 1)
-            newStateStack[0] = topState
-            self.stateStack = UnsafeBufferPointer(newStateStack)
-          }
-        }
-        topState = newState
-      case .pushRegexLexemes(let index, let lexemes):
-        perform(stateTransition: .push(newState: .inRegexLiteral(index: index, lexemes: lexemes.allocate(in: stateAllocator))), stateAllocator: stateAllocator)
-      case .replace(newState: let newState):
-        topState = newState
-      case .pop:
-        if let stateStack {
-          topState = stateStack.last!
-          if stateStack.count == 1 {
-            self.stateStack = nil
-          } else {
-            self.stateStack = UnsafeBufferPointer(start: stateStack.baseAddress, count: stateStack.count - 1)
-          }
+        if case .normal = currentState {
         } else {
-          topState = nil
+          let newStateStack = stateAllocator.allocate(State.self, count: stateStack.count + 1)
+          let (_, existingStateStackEndIndex) = newStateStack.initialize(from: stateStack)
+          newStateStack[existingStateStackEndIndex] = currentState
+          self.stateStack = UnsafeBufferPointer(newStateStack)
+        }
+        currentState = newState
+      case .pushRegexLexemes(let index, let lexemes):
+        perform(stateTransition: .push(newState: .inRegexLiteral(lexemes: lexemes.allocate(in: stateAllocator), index: index)), stateAllocator: stateAllocator)
+      case .replace(newState: let newState):
+        currentState = newState
+      case .pop:
+        if let top = stateStack.last {
+          self.currentState = top
+          self.stateStack = UnsafeBufferPointer(start: stateStack.baseAddress, count: stateStack.count - 1)
+        } else {
+          currentState = .normal
         }
       }
     }
@@ -233,6 +220,7 @@ extension Lexer {
   /// cursor and updated when the cursor advances. A cursor is a safe interface
   /// to reading bytes from an input buffer: all accesses to its input are
   /// bounds-checked.
+  @usableFromInline
   struct Cursor {
     struct Position {
       var input: UnsafeBufferPointer<UInt8>
@@ -384,7 +372,7 @@ extension Lexer.Cursor {
     case .afterRawStringDelimiter(delimiterLength: let delimiterLength):
       result = lexAfterRawStringDelimiter(delimiterLength: delimiterLength)
     case .inStringLiteral(kind: let stringLiteralKind, delimiterLength: let delimiterLength):
-      result = lexInStringLiteral(stringLiteralKind: stringLiteralKind, delimiterLength: delimiterLength)
+      result = lexInStringLiteral(stringLiteralKind: stringLiteralKind, delimiterLength: Int(delimiterLength))
     case .afterStringLiteral(isRawString: _):
       result = lexAfterStringLiteral()
     case .afterClosingStringQuote:
@@ -392,8 +380,8 @@ extension Lexer.Cursor {
     case .inStringInterpolationStart(stringLiteralKind: let stringLiteralKind):
       result = lexInStringInterpolationStart(stringLiteralKind: stringLiteralKind)
     case .inStringInterpolation(stringLiteralKind: let stringLiteralKind, parenCount: let parenCount):
-      result = lexInStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: parenCount, sourceBufferStart: sourceBufferStart)
-    case .inRegexLiteral(let index, let lexemes):
+      result = lexInStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: Int(parenCount), sourceBufferStart: sourceBufferStart)
+    case .inRegexLiteral(let lexemes, let index):
       result = lexInRegexLiteral(lexemes.pointee[index...], existingPtr: lexemes)
     }
 
@@ -655,7 +643,7 @@ extension Lexer.Cursor {
 
   /// Returns `true` if the comment spanned multiple lines and `false` otherwise.
   /// Assumes that the curser is currently pointing at the `*` of the opening `/*`.
-  mutating func advanceToEndOfSlashStarComment(slashPosition: Lexer.Cursor) -> TriviaResult {
+  mutating func advanceToEndOfSlashStarComment(slashPosition: Position) -> TriviaResult {
     precondition(self.previous == UInt8(ascii: "/"))
     // Make sure to advance over the * so that we don't incorrectly handle /*/ as
     // the beginning and end of the comment.
@@ -1019,7 +1007,7 @@ extension Lexer.Cursor {
       _ = self.advance()
       return Lexer.Result(
         .leftParen,
-        stateTransition: .replace(newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: parenCount + 1))
+        stateTransition: .replace(newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: Int16(parenCount + 1)))
       )
     case UInt8(ascii: ")"):
       _ = self.advance()
@@ -1028,7 +1016,7 @@ extension Lexer.Cursor {
       } else {
         return Lexer.Result(
           .rightParen,
-          stateTransition: .replace(newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: parenCount - 1))
+          stateTransition: .replace(newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: Int16(parenCount - 1)))
         )
       }
     case UInt8(ascii: "\r"), UInt8(ascii: "\n"):
@@ -1088,41 +1076,28 @@ extension Lexer.Cursor {
       }
     }
 
-    while true {
-      let start = self
-
-      switch self.advance() {
+    while let chr = self.peek() {
+      switch chr {
       // 'continue' - the character is a part of the trivia.
       // 'break' - the character should a part of token text.
-      case nil:
-        break
-      case UInt8(ascii: "\n"):
+      case UInt8(ascii: "\n"), UInt8(ascii: "\r"):
         if mode == .noNewlines {
           break
         }
         newlinePresence = .present
+        _ = self.advance()
         continue
-      case UInt8(ascii: "\r"):
-        if mode == .noNewlines {
-          break
-        }
-        newlinePresence = .present
-        continue
-
-      case UInt8(ascii: " "):
-        continue
-      case UInt8(ascii: "\t"):
-        continue
-      case UInt8(ascii: "\u{000B}"):
-        continue
-      case UInt8(ascii: "\u{000C}"):
+      case UInt8(ascii: " "), UInt8(ascii: "\t"), UInt8(ascii: "\u{000B}"), UInt8(ascii: "\u{000C}"):
+        _ = self.advance()
         continue
       case UInt8(ascii: "/"):
-        switch self.peek() {
+        switch self.peek(at: 1) {
         case UInt8(ascii: "/"):
           self.advanceToEndOfLine()
           continue
         case UInt8(ascii: "*"):
+          let start = self.position
+          _ = self.advance()
           let starSlashResult = self.advanceToEndOfSlashStarComment(slashPosition: start)
           if starSlashResult.newlinePresence == .present {
             newlinePresence = .present
@@ -1133,6 +1108,7 @@ extension Lexer.Cursor {
           break
         }
       case UInt8(ascii: "<"), UInt8(ascii: ">"):
+        let start = self.position
         if self.tryLexConflictMarker(start: start) {
           error = LexingDiagnostic(.sourceConflictMarker, position: start)
           continue
@@ -1183,8 +1159,9 @@ extension Lexer.Cursor {
         UInt8(ascii: "^"), UInt8(ascii: "~"), UInt8(ascii: "."):
         break
       case 0xEF:
-        if self.is(at: 0xBB), self.is(offset: 1, at: 0xBF) {
+        if self.is(offset: 1, at: 0xBB), self.is(offset: 2, at: 0xBF) {
           // BOM marker.
+          _ = self.advance()
           _ = self.advance()
           _ = self.advance()
           continue
@@ -1192,15 +1169,11 @@ extension Lexer.Cursor {
 
         fallthrough
       default:
-        if let peekedScalar = start.peekScalar(), peekedScalar.isValidIdentifierStartCodePoint {
-          break
-        }
-        if let peekedScalar = start.peekScalar(), peekedScalar.isOperatorStartCodePoint {
+        if let peekedScalar = self.peekScalar(),
+           peekedScalar.isValidIdentifierStartCodePoint || peekedScalar.isOperatorStartCodePoint {
           break
         }
 
-        // `lexUnknown` expects that the first character has not been consumed yet.
-        self = start
         if case .trivia(let unknownError) = self.lexUnknown() {
           error = error ?? unknownError
           continue
@@ -1209,11 +1182,10 @@ extension Lexer.Cursor {
         }
       }
 
-      // `break` means the character was not a trivia. Reset the cursor and
-      // return the result.
-      self = start
-      return TriviaResult(newlinePresence: newlinePresence, error: error)
+      // `break` means the peek() character was not a trivia.
+      break
     }
+    return TriviaResult(newlinePresence: newlinePresence, error: error)
   }
 }
 
@@ -1747,7 +1719,7 @@ extension Lexer.Cursor {
     case .afterStringLiteral(isRawString: false):
       return .pop
     case .afterRawStringDelimiter(delimiterLength: let delimiterLength):
-      return .replace(newState: .inStringLiteral(kind: kind, delimiterLength: delimiterLength))
+      return .replace(newState: .inStringLiteral(kind: kind, delimiterLength: Int16(delimiterLength)))
     case .normal, .preferRegexOverBinaryOperator, .inStringInterpolation:
       return .push(newState: .inStringLiteral(kind: kind, delimiterLength: 0))
     case .inRegexLiteral, .inStringLiteral, .afterClosingStringQuote, .inStringInterpolationStart:
@@ -2336,18 +2308,18 @@ extension Lexer.Cursor {
       }
     }
   }
-  mutating func tryLexConflictMarker(start: Lexer.Cursor) -> Bool {
+  mutating func tryLexConflictMarker(start: Lexer.Cursor.Position) -> Bool {
     // Only a conflict marker if it starts at the beginning of a line.
     guard start.previous == UInt8(ascii: "\n") || start.previous == UInt8(ascii: "\r") || start.previous == 0 else {
       return false
     }
 
     // Check to see if we have <<<<<<< or >>>>.
-    guard start.starts(with: "<<<<<<< ".utf8) || start.starts(with: ">>>> ".utf8) else {
+    guard start.input.starts(with: "<<<<<<< ".utf8) || start.input.starts(with: ">>>> ".utf8) else {
       return false
     }
 
-    let kind = start.is(at: "<") ? ConflictMarker.normal : .perforce
+    let kind = start.input.starts(with: "<".utf8) ? ConflictMarker.normal : .perforce
     guard let end = Self.findConflictEnd(start, markerKind: kind) else {
       // No end of conflict marker found.
       return false
@@ -2364,7 +2336,7 @@ extension Lexer.Cursor {
   }
 
   /// Find the end of a version control conflict marker.
-  static func findConflictEnd(_ curPtr: Lexer.Cursor, markerKind: ConflictMarker) -> Lexer.Cursor? {
+  static func findConflictEnd(_ curPtr: Lexer.Cursor.Position, markerKind: ConflictMarker) -> Lexer.Cursor? {
     // Get a reference to the rest of the buffer minus the length of the start
     // of the conflict marker.
     let advanced = curPtr.input.baseAddress?.advanced(by: markerKind.introducer.utf8.count)

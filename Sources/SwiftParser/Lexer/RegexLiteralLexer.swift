@@ -813,7 +813,7 @@ extension Lexer.Cursor {
     // Compute the new transition.
     let transition: Lexer.StateTransition?
     if let existingPtr {
-      transition = lexemes.isEmpty ? .pop : .replace(newState: .inRegexLiteral(index: index, lexemes: existingPtr))
+      transition = lexemes.isEmpty ? .pop : .replace(newState: .inRegexLiteral(lexemes: existingPtr, index: index))
     } else {
       transition = lexemes.isEmpty ? nil : .pushRegexLexemes(index: index, lexemes: lexemes.base)
     }

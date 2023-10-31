@@ -18,23 +18,17 @@ extension Lexer {
   /// A lexeme is the fundamental output unit of lexical analysis. Each lexeme
   /// represents a fully identified, meaningful part of the input text that
   /// will can be consumed by a ``Parser``.
-  @_spi(Testing)
-  public struct Lexeme: CustomDebugStringConvertible {
-    @_spi(Testing)
-    public struct Flags: OptionSet, CustomDebugStringConvertible {
-      @_spi(Testing)
-      public var rawValue: UInt8
+  struct Lexeme: CustomDebugStringConvertible {
+    struct Flags: OptionSet, CustomDebugStringConvertible {
+      var rawValue: UInt8
 
-      @_spi(Testing)
-      public init(rawValue: UInt8) {
+      init(rawValue: UInt8) {
         self.rawValue = rawValue
       }
 
-      @_spi(Testing)
-      public static let isAtStartOfLine = Flags(rawValue: 1 << 0)
+      static let isAtStartOfLine = Flags(rawValue: 1 << 0)
 
-      @_spi(Testing)
-      public var debugDescription: String {
+      var debugDescription: String {
         var descriptionComponents: [String] = []
         if self.contains(.isAtStartOfLine) {
           descriptionComponents.append("isAtStartOfLine")
@@ -43,14 +37,11 @@ extension Lexer {
       }
     }
 
-    @_spi(Testing)
-    public var rawTokenKind: RawTokenKind
+    var rawTokenKind: RawTokenKind
 
-    @_spi(Testing)
-    public var flags: Lexeme.Flags
+    var flags: Lexeme.Flags
 
-    @_spi(Testing)
-    public var diagnostic: TokenDiagnostic?
+    var diagnostic: TokenDiagnostic?
 
     var start: UnsafePointer<UInt8>
 
@@ -92,13 +83,11 @@ extension Lexer {
       self.cursor = cursor
     }
 
-    @_spi(Testing)
-    public var byteLength: Int {
+    var byteLength: Int {
       leadingTriviaByteLength + textByteLength + trailingTriviaByteLength
     }
 
-    @_spi(Testing)
-    public var wholeText: SyntaxText {
+    var wholeText: SyntaxText {
       SyntaxText(baseAddress: start, count: byteLength)
     }
 
@@ -106,32 +95,28 @@ extension Lexer {
       leadingTriviaByteLength..<leadingTriviaByteLength + textByteLength
     }
 
-    @_spi(Testing)
-    public var tokenText: SyntaxText {
+    var tokenText: SyntaxText {
       SyntaxText(
         baseAddress: start.advanced(by: leadingTriviaByteLength),
         count: textByteLength
       )
     }
 
-    @_spi(Testing)
-    public var leadingTriviaText: SyntaxText {
+    var leadingTriviaText: SyntaxText {
       SyntaxText(
         baseAddress: start,
         count: leadingTriviaByteLength
       )
     }
 
-    @_spi(Testing)
-    public var trailingTriviaText: SyntaxText {
+    var trailingTriviaText: SyntaxText {
       SyntaxText(
         baseAddress: start.advanced(by: leadingTriviaByteLength + textByteLength),
         count: trailingTriviaByteLength
       )
     }
 
-    @_spi(Testing)
-    public var debugDescription: String {
+    var debugDescription: String {
       return String(syntaxText: SyntaxText(baseAddress: start, count: byteLength))
     }
   }

@@ -858,3 +858,16 @@ public struct LookaheadRanges {
     self.lookaheadRanges[node.id] = lookaheadLength
   }
 }
+
+extension Parser {
+  @_spi(Testing)
+  public static func validateStatic() {
+
+    print("UnsafeBufferPointer<State> size: \(MemoryLayout<UnsafeBufferPointer<Lexer.Cursor.State>>.size)")
+    print("Lexer. Cursor.State size: \(MemoryLayout<Lexer.Cursor.State>.size)")
+    print("Lexer.Cursor.StateStack size: \(MemoryLayout<Lexer.Cursor.StateStack>.size)")
+    print("Lexer.Cursor size: \(MemoryLayout<Lexer.Cursor>.size)")
+    print("Lexer.Lexeme size: \(MemoryLayout<Lexer.Lexeme>.size)")
+    print("isPOD: \(_isPOD(Lexer.Lexeme.self))")
+  }
+}

@@ -77,7 +77,7 @@ extension StringSegmentSyntax {
 
       // Put the cursor in the string literal lexing state. This is just
       // defensive as it's currently not used by `lexCharacterInStringLiteral`.
-      let state = Lexer.Cursor.State.inStringLiteral(kind: stringLiteralKind, delimiterLength: delimiterLength)
+      let state = Lexer.Cursor.State.inStringLiteral(kind: stringLiteralKind, delimiterLength: Int16(delimiterLength))
       let transition = Lexer.StateTransition.push(newState: state)
       cursor.perform(stateTransition: transition, stateAllocator: BumpPtrAllocator(slabSize: 256))
 

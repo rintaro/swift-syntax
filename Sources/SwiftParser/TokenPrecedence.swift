@@ -18,6 +18,7 @@
 /// and considered unexpected.
 ///
 /// - Seealso: <doc:ParserRecovery>
+@frozen
 enum TokenPrecedence: Comparable {
   /// An unknown token. This is known garbage and should always be allowed to be skipped.
   case unknownToken
