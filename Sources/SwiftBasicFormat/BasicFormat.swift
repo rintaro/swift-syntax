@@ -607,8 +607,10 @@ open class BasicFormat: SyntaxRewriter {
     if trailingTrivia != result.trailingTrivia {
       result = result.with(\.trailingTrivia, trailingTrivia)
     }
-    if let transformedTokenText {
-      let newKind = TokenKind.fromRaw(kind: token.tokenKind.decomposeToRaw().rawKind, text: transformedTokenText)
+    if var transformedTokenText {
+      let newKind = transformedTokenText.withSyntaxText { text in
+        TokenKind.fromRaw(kind: token.tokenKind.decomposeToRaw().rawKind, text: text)
+      }
       result = result.with(\.tokenKind, newKind).with(\.presence, .present)
     }
     if let transformedTokenPresence {

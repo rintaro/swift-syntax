@@ -87,7 +87,7 @@ fileprivate enum NodesDescriptionPart {
             originalTokens[presentToken] = token
             newPart = .tokensWithDefaultText([presentToken])
           } else if let defaultText = rawKind.defaultText {
-            let newKind = TokenKind.fromRaw(kind: rawKind, text: String(syntaxText: defaultText))
+            let newKind = TokenKind.fromRaw(kind: rawKind, text: defaultText)
             let presentToken = token.with(\.tokenKind, newKind).with(\.presence, .present)
             originalTokens[presentToken] = token
             newPart = .tokensWithDefaultText([presentToken])

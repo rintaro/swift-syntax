@@ -203,12 +203,15 @@ public extension SwiftSyntax.TokenDiagnostic {
       guard let text = text else {
         return []
       }
-      let replacedText =
+      var replacedText =
         text
         .replacingFirstOccurrence(of: "“", with: #"""#)
         .replacingLastOccurrence(of: "”", with: #"""#)
 
-      let fixedToken = token.with(\.tokenKind, TokenKind.fromRaw(kind: rawKind, text: replacedText))
+      let fixedToken = replacedText.withSyntaxText { text in
+        token.with(\.tokenKind, TokenKind.fromRaw(kind: rawKind, text: text))
+      }
+
       return [
         FixIt(message: .replaceCurlyQuoteByNormalQuote, changes: [.replace(oldNode: Syntax(token), newNode: Syntax(fixedToken))])
       ]
