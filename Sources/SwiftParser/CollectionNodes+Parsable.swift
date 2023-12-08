@@ -60,7 +60,7 @@ extension AccessorDeclListSyntax: SyntaxParseable {
       return RawAccessorDeclSyntax(
         attributes: RawAttributeListSyntax(elements: [], arena: arena),
         modifier: nil,
-        accessorSpecifier: RawTokenSyntax(missing: .keyword, text: "get", arena: arena),
+        accessorSpecifier: RawTokenSyntax(missing: .getKeyword, arena: arena),
         parameters: nil,
         effectSpecifiers: nil,
         body: nil,

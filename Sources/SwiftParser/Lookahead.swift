@@ -154,7 +154,7 @@ extension Parser.Lookahead {
 extension Parser.Lookahead {
   mutating func skipTypeAttribute() {
     // These are keywords that we accept as attribute names.
-    guard self.at(.identifier) || self.at(.keyword(.in), .keyword(.inout)) else {
+    guard self.at(.identifier) || self.at(.inKeyword, .inoutKeyword) else {
       return
     }
 
@@ -185,7 +185,7 @@ extension Parser.Lookahead {
         backtrack.skipSingle()
         // If we found '->', or 'throws' after paren, it's likely a parameter
         // of function type.
-        guard backtrack.at(.arrow) || backtrack.at(.keyword(.throws), .keyword(.rethrows), .keyword(.throw)) else {
+        guard backtrack.at(.arrow) || backtrack.at(.throwsKeyword, .rethrowsKeyword, .throwKeyword) else {
           self.skipSingle()
           return
         }
@@ -207,7 +207,7 @@ extension Parser.Lookahead {
     while let _ = self.consume(if: .atSign) {
       // Consume qualified names that may or may not involve generic arguments.
       repeat {
-        self.consume(if: .identifier, .keyword(.rethrows))
+        self.consume(if: .identifier, .rethrowsKeyword)
         // We don't care whether this succeeds or fails to eat generic
         // parameters.
         _ = self.consumeGenericArguments()
@@ -272,7 +272,7 @@ extension Parser.Lookahead {
     // If we have a 'didSet' or a 'willSet' label, disambiguate immediately as
     // an accessor block.
     let nextToken = self.peek()
-    if TokenSpec(.didSet) ~= nextToken || TokenSpec(.willSet) ~= nextToken || TokenSpec(.`init`) ~= nextToken {
+    if TokenSpec(.didSetKeyword) ~= nextToken || TokenSpec(.willSetKeyword) ~= nextToken || TokenSpec(.initKeyword) ~= nextToken {
       return true
     }
 
@@ -297,7 +297,7 @@ extension Parser.Lookahead {
     }
 
     // Check if we have 'didSet'/'willSet' or 'init' after attributes.
-    return lookahead.at(.keyword(.didSet), .keyword(.willSet), .keyword(.`init`))
+    return lookahead.at(.didSetKeyword, .willSetKeyword, .initKeyword)
   }
 }
 

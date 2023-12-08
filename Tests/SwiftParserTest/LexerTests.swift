@@ -89,7 +89,7 @@ public class LexerTests: ParserTestCase {
       func not_doc5() {}
       """,
       lexemes: [
-        LexemeSpec(.keyword, leading: "/*/ */\n", text: "func", trailing: " ", flags: [.isAtStartOfLine]),
+        LexemeSpec(.funcKeyword, leading: "/*/ */\n", text: "func", trailing: " ", flags: [.isAtStartOfLine]),
         LexemeSpec(.identifier, text: "not_doc5"),
         LexemeSpec(.leftParen, text: "("),
         LexemeSpec(.rightParen, text: ")", trailing: " "),
@@ -280,7 +280,7 @@ public class LexerTests: ParserTestCase {
       """,
       lexemes: [
         LexemeSpec(.shebang, text: "#!/usr/bin/swiftc"),
-        LexemeSpec(.keyword, leading: "\n", text: "let", trailing: " ", flags: [.isAtStartOfLine]),
+        LexemeSpec(.letKeyword, leading: "\n", text: "let", trailing: " ", flags: [.isAtStartOfLine]),
         LexemeSpec(.identifier, text: "x", trailing: " "),
         LexemeSpec(.equal, text: "=", trailing: " "),
         LexemeSpec(.integerLiteral, text: "42"),
@@ -296,7 +296,7 @@ public class LexerTests: ParserTestCase {
       /* regular comment */
       """,
       lexemes: [
-        LexemeSpec(.keyword, leading: "/** hello */\n", text: "var", trailing: " ", flags: [.isAtStartOfLine]),
+        LexemeSpec(.varKeyword, leading: "/** hello */\n", text: "var", trailing: " ", flags: [.isAtStartOfLine]),
         LexemeSpec(.identifier, text: "x"),
         LexemeSpec(.colon, text: ":", trailing: " "),
         LexemeSpec(.identifier, text: "Int"),
@@ -318,11 +318,11 @@ public class LexerTests: ParserTestCase {
       lexemes: [
         LexemeSpec(.atSign, leading: "/* TestApp */\n", text: "@", flags: [.isAtStartOfLine]),
         LexemeSpec(.identifier, text: "main", trailing: " "),
-        LexemeSpec(.keyword, text: "struct", trailing: " "),
+        LexemeSpec(.structKeyword, text: "struct", trailing: " "),
         LexemeSpec(.identifier, text: "TestApp", trailing: " "),
         LexemeSpec(.leftBrace, text: "{"),
-        LexemeSpec(.keyword, leading: "\n  ", text: "static", trailing: " ", flags: [.isAtStartOfLine]),
-        LexemeSpec(.keyword, text: "func", trailing: " "),
+        LexemeSpec(.staticKeyword, leading: "\n  ", text: "static", trailing: " ", flags: [.isAtStartOfLine]),
+        LexemeSpec(.funcKeyword, text: "func", trailing: " "),
         LexemeSpec(.identifier, text: "main"),
         LexemeSpec(.leftParen, text: "("),
         LexemeSpec(.rightParen, text: ")", trailing: " "),
@@ -512,7 +512,7 @@ public class LexerTests: ParserTestCase {
       func /^ () { y/ }
       """,
       lexemes: [
-        LexemeSpec(.keyword, text: "func", trailing: " "),
+        LexemeSpec(.funcKeyword, text: "func", trailing: " "),
         LexemeSpec(.binaryOperator, text: "/^", trailing: " "),
         LexemeSpec(.leftParen, text: "("),
         LexemeSpec(.rightParen, text: ")", trailing: " "),
@@ -579,8 +579,8 @@ public class LexerTests: ParserTestCase {
     assertLexemes(
       "static func 1️⃣�() {}",
       lexemes: [
-        LexemeSpec(.keyword, text: "static", trailing: " "),
-        LexemeSpec(.keyword, text: "func", trailing: " �", diagnostic: "invalid character in source file"),
+        LexemeSpec(.staticKeyword, text: "static", trailing: " "),
+        LexemeSpec(.funcKeyword, text: "func", trailing: " �", diagnostic: "invalid character in source file"),
         LexemeSpec(.leftParen, text: "("),
         LexemeSpec(.rightParen, text: ")", trailing: " "),
         LexemeSpec(.leftBrace, text: "{"),
@@ -718,12 +718,12 @@ public class LexerTests: ParserTestCase {
       ///
       """,
       lexemes: [
-        LexemeSpec(.keyword, text: "var", trailing: " "),
+        LexemeSpec(.varKeyword, text: "var", trailing: " "),
         LexemeSpec(.identifier, text: "x"),
         LexemeSpec(.colon, text: ":", trailing: " "),
         LexemeSpec(.identifier, text: "Int", trailing: " "),
         LexemeSpec(.leftBrace, text: "{"),
-        LexemeSpec(.keyword, leading: "\n  ", text: "return", trailing: " ", flags: [.isAtStartOfLine]),
+        LexemeSpec(.returnKeyword, leading: "\n  ", text: "return", trailing: " ", flags: [.isAtStartOfLine]),
         LexemeSpec(.integerLiteral, text: "0", trailing: " "),
         LexemeSpec(.binaryOperator, text: "/"),
         LexemeSpec(.identifier, leading: "\n         ", text: "x", flags: [.isAtStartOfLine]),
@@ -850,7 +850,7 @@ public class LexerTests: ParserTestCase {
     assertLexemes(
       "let 1️⃣<#name#> = 2️⃣<#value#>",
       lexemes: [
-        LexemeSpec(.keyword, text: "let", trailing: " "),
+        LexemeSpec(.letKeyword, text: "let", trailing: " "),
         LexemeSpec(.identifier, text: "<#name#>", trailing: " ", errorLocationMarker: "1️⃣", diagnostic: "editor placeholder in source file"),
         LexemeSpec(.equal, text: "=", trailing: " "),
         LexemeSpec(.identifier, text: "<#value#>", errorLocationMarker: "2️⃣", diagnostic: "editor placeholder in source file"),
@@ -867,7 +867,7 @@ public class LexerTests: ParserTestCase {
       }
       """,
       lexemes: [
-        LexemeSpec(.keyword, text: "func", trailing: " "),
+        LexemeSpec(.funcKeyword, text: "func", trailing: " "),
         LexemeSpec(.identifier, text: "foo"),
         LexemeSpec(.leftParen, text: "("),
         LexemeSpec(.rightParen, text: ")", trailing: " "),
@@ -1260,11 +1260,11 @@ public class LexerTests: ParserTestCase {
     assertLexemes(
       "var x = 11️⃣\0\nvar y = 2",
       lexemes: [
-        LexemeSpec(.keyword, text: "var", trailing: " "),
+        LexemeSpec(.varKeyword, text: "var", trailing: " "),
         LexemeSpec(.identifier, text: "x", trailing: " "),
         LexemeSpec(.equal, text: "=", trailing: " "),
         LexemeSpec(.integerLiteral, text: "1", trailing: "\0", diagnostic: "nul character embedded in middle of file"),
-        LexemeSpec(.keyword, leading: "\n", text: "var", trailing: " ", flags: .isAtStartOfLine),
+        LexemeSpec(.varKeyword, leading: "\n", text: "var", trailing: " ", flags: .isAtStartOfLine),
         LexemeSpec(.identifier, text: "y", trailing: " "),
         LexemeSpec(.equal, text: "=", trailing: " "),
         LexemeSpec(.integerLiteral, text: "2", trailing: ""),

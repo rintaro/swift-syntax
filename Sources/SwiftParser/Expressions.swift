@@ -41,7 +41,7 @@ extension TokenConsumer {
     case nil:
       break
     }
-    if self.at(.atSign) || self.at(.keyword(.inout)) {
+    if self.at(.atSign) || self.at(TokenSpec(.inoutKeyword)) {
       var backtrack = self.lookahead()
       if backtrack.canParseType() {
         return true
@@ -49,7 +49,7 @@ extension TokenConsumer {
     }
 
     // 'repeat' is the start of a pack expansion expression.
-    if (self.at(.keyword(.repeat))) {
+    if (self.at(TokenSpec(.repeatKeyword))) {
       // FIXME: 'repeat' followed by '{' could still be a pack
       // expansion, but we need to do more lookahead to figure out
       // whether the '{' is the start of a closure expression or a
@@ -245,15 +245,15 @@ extension Parser {
       case `throws`
 
       init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-        switch PrepareForKeywordMatch(lexeme) {
+        switch lexeme {
         case TokenSpec(.binaryOperator): self = .binaryOperator
         case TokenSpec(.infixQuestionMark): self = .infixQuestionMark
         case TokenSpec(.equal): self = .equal
-        case TokenSpec(.is): self = .is
-        case TokenSpec(.as): self = .as
-        case TokenSpec(.async): self = .async
+        case TokenSpec(.isKeyword): self = .is
+        case TokenSpec(.asKeyword): self = .as
+        case TokenSpec(.asyncKeyword): self = .async
         case TokenSpec(.arrow): self = .arrow
-        case TokenSpec(.throws): self = .throws
+        case TokenSpec(.throwsKeyword): self = .throws
         default: return nil
         }
       }
@@ -263,11 +263,11 @@ extension Parser {
         case .binaryOperator: return .binaryOperator
         case .infixQuestionMark: return .infixQuestionMark
         case .equal: return .equal
-        case .is: return .keyword(.is)
-        case .as: return .keyword(.as)
-        case .async: return .keyword(.async)
+        case .is: return TokenSpec(.isKeyword)
+        case .as: return TokenSpec(.asKeyword)
+        case .async: return TokenSpec(.asyncKeyword)
         case .arrow: return .arrow
-        case .throws: return .keyword(.throws)
+        case .throws: return TokenSpec(.throwsKeyword)
         }
       }
     }
@@ -332,7 +332,7 @@ extension Parser {
       return parseUnresolvedAsExpr(handle: handle)
 
     case (.async, _)?:
-      if self.peek(isAt: .arrow, .keyword(.throws)) {
+      if self.peek(isAt: .arrow, TokenSpec(.throwsKeyword)) {
         fallthrough
       } else {
         return nil
@@ -370,7 +370,7 @@ extension Parser {
     return self.peek(
       isAt: TokenSpec(.identifier, allowAtStartOfLine: false),
       TokenSpec(.dollarIdentifier, allowAtStartOfLine: false),
-      TokenSpec(.self, allowAtStartOfLine: false)
+      TokenSpec(.selfKeyword, allowAtStartOfLine: false)
     )
   }
 
@@ -380,7 +380,7 @@ extension Parser {
     pattern: PatternContext = .none
   ) -> RawExprSyntax {
     // Try to parse '@' sign or 'inout' as an attributed typerepr.
-    if self.at(.atSign, .keyword(.inout)) {
+    if self.at(.atSign, TokenSpec(.inoutKeyword)) {
       var backtrack = self.lookahead()
       if backtrack.canParseType() {
         let type = self.parseType()
@@ -612,7 +612,7 @@ extension Parser {
 
     // Parse the name portion.
     let declName: RawDeclReferenceExprSyntax
-    if let indexOrSelf = self.consume(if: .integerLiteral, .keyword(.self)) {
+    if let indexOrSelf = self.consume(if: .integerLiteral, .selfKeyword) {
       // Handle "x.42" - a tuple index.
       declName = RawDeclReferenceExprSyntax(
         baseName: indexOrSelf,
@@ -1393,7 +1393,7 @@ extension Parser {
   /// Parse a 'super' reference to the superclass instance of a class.
   mutating func parseSuperExpression() -> RawSuperExprSyntax {
     // Parse the 'super' reference.
-    let (unexpectedBeforeSuperKeyword, superKeyword) = self.expect(.keyword(.super))
+    let (unexpectedBeforeSuperKeyword, superKeyword) = self.expect(.superKeyword)
     return RawSuperExprSyntax(
       unexpectedBeforeSuperKeyword,
       superKeyword: superKeyword,
@@ -1681,7 +1681,7 @@ extension Parser {
           let expression: RawExprSyntax
           if self.peek(isAt: .equal) {
             // The name is a new declaration.
-            (unexpectedBeforeName, name) = self.expect(.identifier, TokenSpec(.self, remapping: .identifier), default: .identifier)
+            (unexpectedBeforeName, name) = self.expect(.identifier, TokenSpec(.selfKeyword, remapping: .identifier), default: .identifier)
             (unexpectedBeforeEqual, equal) = self.expect(.equal)
             expression = self.parseExpression(flavor: .basic, pattern: .none)
           } else {
@@ -1711,7 +1711,7 @@ extension Parser {
       }
       // We were promised a right square bracket, so we're going to get it.
       var unexpectedNodes = [RawSyntax]()
-      while !self.at(.endOfFile) && !self.at(.rightSquare) && !self.at(.keyword(.in)) {
+      while !self.at(.endOfFile) && !self.at(.rightSquare) && !self.at(.inKeyword) {
         unexpectedNodes.append(RawSyntax(self.consumeAnyToken()))
       }
       let (unexpectedBeforeRSquare, rsquare) = self.expect(.rightSquare)
@@ -1731,7 +1731,7 @@ extension Parser {
     var parameterClause: RawClosureSignatureSyntax.ParameterClause?
     var effectSpecifiers: RawTypeEffectSpecifiersSyntax?
     var returnClause: RawReturnClauseSyntax? = nil
-    if !self.at(.keyword(.in)) {
+    if !self.at(.inKeyword) {
       // If the next token is ':', then it looks like the code contained a non-shorthand closure parameter with a type annotation.
       // These need to be wrapped in parentheses.
       if self.at(.leftParen) || self.peek(isAt: .colon) {
@@ -1778,7 +1778,7 @@ extension Parser {
     }
 
     // Parse the 'in'.
-    let (unexpectedBeforeInKeyword, inKeyword) = self.expect(.keyword(.in))
+    let (unexpectedBeforeInKeyword, inKeyword) = self.expect(.inKeyword)
     return RawClosureSignatureSyntax(
       attributes: attrs,
       capture: captures,
@@ -1794,7 +1794,7 @@ extension Parser {
   mutating func parseClosureCaptureSpecifiers() -> RawClosureCaptureSpecifierSyntax? {
     // Check for the strength specifier: "weak", "unowned", or
     // "unowned(safe/unsafe)".
-    if let weakContextualKeyword = self.consume(if: .keyword(.weak)) {
+    if let weakContextualKeyword = self.consume(if: .weakKeyword) {
       return RawClosureCaptureSpecifierSyntax(
         specifier: weakContextualKeyword,
         leftParen: nil,
@@ -1802,9 +1802,9 @@ extension Parser {
         rightParen: nil,
         arena: self.arena
       )
-    } else if let unownedContextualKeyword = self.consume(if: .keyword(.unowned)) {
+    } else if let unownedContextualKeyword = self.consume(if: .unownedKeyword) {
       if let lparen = self.consume(if: .leftParen) {
-        let (unexpectedBeforeDetail, detail) = self.expect(.keyword(.safe), .keyword(.unsafe), default: .keyword(.safe))
+        let (unexpectedBeforeDetail, detail) = self.expect(.safeKeyword, .unsafeKeyword, default: .safeKeyword)
         let (unexpectedBeforeRParen, rparen) = self.expect(.rightParen)
         return RawClosureCaptureSpecifierSyntax(
           specifier: unownedContextualKeyword,
@@ -1933,7 +1933,7 @@ extension Parser.Lookahead {
     // But 'default:' is ambiguous with switch cases and we disallow it
     // (unless escaped) even outside of switches.
     if !self.atArgumentLabel()
-      || self.at(.keyword(.default))
+      || self.at(.defaultKeyword)
       || self.peek().rawTokenKind != .colon
     {
       return false
@@ -1968,7 +1968,7 @@ extension Parser.Lookahead {
     }
 
     // If this is the start of a switch body, this isn't a trailing closure.
-    if TokenSpec(.case) ~= self.peek() {
+    if TokenSpec(.caseKeyword) ~= self.peek() {
       return false
     }
 
@@ -2014,14 +2014,14 @@ extension Parser.Lookahead {
 
     switch backtrack.currentToken {
     case TokenSpec(.leftBrace),
-      TokenSpec(.where),
+      TokenSpec(.whereKeyword),
       TokenSpec(.comma):
       return true
     case TokenSpec(.leftSquare),
       TokenSpec(.leftParen),
       TokenSpec(.period),
-      TokenSpec(.is),
-      TokenSpec(.as),
+      TokenSpec(.isKeyword),
+      TokenSpec(.asKeyword),
       TokenSpec(.postfixQuestionMark),
       TokenSpec(.infixQuestionMark),
       TokenSpec(.exclamationMark),
@@ -2048,7 +2048,7 @@ extension Parser {
     // If the next token is 'catch', this is a 'do'/'catch'.
     var elements = [RawCatchClauseSyntax]()
     var loopProgress = LoopProgressCondition()
-    while self.at(.keyword(.catch)) && self.hasProgressed(&loopProgress) {
+    while self.at(.catchKeyword) && self.hasProgressed(&loopProgress) {
       // Parse 'catch' clauses
       elements.append(self.parseCatchClause())
     }
@@ -2092,12 +2092,12 @@ extension Parser {
     let body = self.parseCodeBlock(introducer: ifKeyword)
 
     // The else branch, if any, is outside of the scope of the condition.
-    let elseKeyword = self.consume(if: .keyword(.else))
+    let elseKeyword = self.consume(if: .elseKeyword)
     let elseBody: RawIfExprSyntax.ElseBody?
     if elseKeyword != nil {
-      if self.at(.keyword(.if)) {
+      if self.at(.ifKeyword) {
         elseBody = .ifExpr(
-          self.parseIfExpression(ifHandle: .constant(.keyword(.if)))
+          self.parseIfExpression(ifHandle: .constant(.ifKeyword))
         )
       } else {
         elseBody = .codeBlock(self.parseCodeBlock(introducer: ifKeyword))
@@ -2201,7 +2201,7 @@ extension Parser {
               attribute: nil,
               label: .case(
                 RawSwitchCaseLabelSyntax(
-                  caseKeyword: missingToken(.case),
+                  caseKeyword: missingToken(.caseKeyword),
                   caseItems: RawSwitchCaseItemListSyntax(
                     elements: [
                       RawSwitchCaseItemSyntax(
@@ -2270,7 +2270,7 @@ extension Parser {
     case nil:
       label = .case(
         RawSwitchCaseLabelSyntax(
-          caseKeyword: missingToken(.keyword(.case)),
+          caseKeyword: missingToken(.caseKeyword),
           caseItems: RawSwitchCaseItemListSyntax(
             elements: [
               RawSwitchCaseItemSyntax(
@@ -2355,7 +2355,7 @@ extension Parser {
     // Parse the optional 'where' guard, with this particular pattern's bound
     // vars in scope.
     let whereClause: RawWhereClauseSyntax?
-    if let whereKeyword = self.consume(if: .keyword(.where)) {
+    if let whereKeyword = self.consume(if: .whereKeyword) {
       let condition = self.parseExpression(flavor: .basic, pattern: .none)
       whereClause = RawWhereClauseSyntax(
         whereKeyword: whereKeyword,
@@ -2451,7 +2451,7 @@ extension Parser.Lookahead {
     if lookahead.at(.leftParen) {  // Consume the '('.
       // While we don't have '->' or ')', eat balanced tokens.
       var skipProgress = LoopProgressCondition()
-      while !lookahead.at(.endOfFile, .rightBrace, .keyword(.in)) && !lookahead.at(.arrow) && lookahead.hasProgressed(&skipProgress) {
+      while !lookahead.at(.endOfFile, .rightBrace, .inKeyword) && !lookahead.at(.arrow) && lookahead.hasProgressed(&skipProgress) {
         lookahead.skipSingle()
       }
     } else if lookahead.at(.identifier) || lookahead.at(.wildcard) {
@@ -2494,7 +2494,7 @@ extension Parser.Lookahead {
     }
 
     // Parse the 'in' at the end.
-    guard lookahead.at(.keyword(.in)) else {
+    guard lookahead.at(.inKeyword) else {
       return false
     }
     // Okay, we have a closure signature.

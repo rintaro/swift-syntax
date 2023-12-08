@@ -138,7 +138,7 @@ extension Parser {
   mutating func parseGuardStatement(guardHandle: RecoveryConsumptionHandle) -> RawGuardStmtSyntax {
     let (unexpectedBeforeGuardKeyword, guardKeyword) = self.eat(guardHandle)
     let conditions = self.parseConditionList()
-    let (unexpectedBeforeElseKeyword, elseKeyword) = self.expect(.keyword(.else))
+    let (unexpectedBeforeElseKeyword, elseKeyword) = self.expect(.elseKeyword)
     let body = self.parseCodeBlock(introducer: guardKeyword)
     return RawGuardStmtSyntax(
       unexpectedBeforeGuardKeyword,
@@ -165,7 +165,7 @@ extension Parser {
       let condition = self.parseConditionElement(lastBindingKind: elements.last?.condition.as(RawOptionalBindingConditionSyntax.self)?.bindingSpecifier)
       var unexpectedBeforeKeepGoing: RawUnexpectedNodesSyntax? = nil
       keepGoing = self.consume(if: .comma)
-      if keepGoing == nil, let token = self.consumeIfContextualPunctuator("&&") ?? self.consume(if: .keyword(.where)) {
+      if keepGoing == nil, let token = self.consumeIfContextualPunctuator("&&") ?? self.consume(if: .whereKeyword) {
         unexpectedBeforeKeepGoing = RawUnexpectedNodesSyntax(combining: unexpectedBeforeKeepGoing, token, arena: self.arena)
         keepGoing = missingToken(.comma)
       }
@@ -194,8 +194,8 @@ extension Parser {
     // Parse the basic expression case.  If we have a leading let, var, inout,
     // borrow, case keyword or an assignment, then we know this is a binding.
     guard
-      self.at(.keyword(.let), .keyword(.var), .keyword(.case))
-        || self.at(.keyword(.inout))
+      self.at(.letKeyword, .varKeyword, .caseKeyword)
+        || self.at(.inoutKeyword)
         || (lastBindingKind != nil && self.peek(isAt: .equal))
     else {
       // If we lack it, then this is theoretically a boolean condition.
@@ -220,7 +220,7 @@ extension Parser {
     }
 
     let kind: BindingKind
-    if let caseKeyword = self.consume(if: .keyword(.case)) {
+    if let caseKeyword = self.consume(if: .caseKeyword) {
       let pattern = self.parseMatchingPattern(context: .matching)
       kind = .pattern(caseKeyword, pattern)
     } else {
@@ -228,9 +228,9 @@ extension Parser {
       let letOrVar: RawTokenSyntax
 
       if self.at(.identifier), let lastBindingKind = lastBindingKind {
-        (unexpectedBeforeBindingKeyword, letOrVar) = self.expect(.keyword(.let), .keyword(.var), default: .keyword(Keyword(lastBindingKind.tokenText) ?? .let))
+        (unexpectedBeforeBindingKeyword, letOrVar) = self.expect(.letKeyword, .varKeyword, default: TokenSpec(lastBindingKind.tokenKind))
       } else {
-        letOrVar = self.consume(if: TokenSpec.keyword(.let), .keyword(.var)) ?? self.missingToken(.let)
+        letOrVar = self.consume(if: TokenSpec.letKeyword, .varKeyword) ?? self.missingToken(.letKeyword)
         unexpectedBeforeBindingKeyword = nil
       }
 
@@ -304,7 +304,7 @@ extension Parser {
     let arguments = self.parseAvailabilitySpecList()
     let (unexpectedBeforeRParen, rparen) = self.expect(.rightParen)
     let unexpectedAfterRParen: RawUnexpectedNodesSyntax?
-    if let (equalOperator, falseKeyword) = self.consume(if: { $0.isContextualPunctuator("==") }, followedBy: { TokenSpec.keyword(.false) ~= $0 }) {
+    if let (equalOperator, falseKeyword) = self.consume(if: { $0.isContextualPunctuator("==") }, followedBy: { TokenSpec.falseKeyword ~= $0 }) {
       unexpectedAfterRParen = RawUnexpectedNodesSyntax([equalOperator, falseKeyword], arena: self.arena)
     } else {
       unexpectedAfterRParen = nil
@@ -330,12 +330,12 @@ extension Parser {
   /// Parse a throw statement.
   mutating func parseThrowStatement(throwHandle: RecoveryConsumptionHandle) -> RawThrowStmtSyntax {
     let (unexpectedBeforeThrowKeyword, throwKeyword) = self.eat(throwHandle)
-    let hasMisplacedTry = unexpectedBeforeThrowKeyword?.containsToken(where: { TokenSpec(.try) ~= $0 }) ?? false
+    let hasMisplacedTry = unexpectedBeforeThrowKeyword?.containsToken(where: { TokenSpec(.tryKeyword) ~= $0 }) ?? false
     var expr = self.parseExpression(flavor: .basic, pattern: .none)
     if hasMisplacedTry && !expr.is(RawTryExprSyntax.self) {
       expr = RawExprSyntax(
         RawTryExprSyntax(
-          tryKeyword: missingToken(.try),
+          tryKeyword: missingToken(.tryKeyword),
           questionOrExclamationMark: nil,
           expression: expr,
           arena: self.arena
@@ -392,7 +392,7 @@ extension Parser {
 
     // Parse the optional throws clause.
     let throwsClause: RawThrowsClauseSyntax?
-    if let throwsSpecifier = self.consume(if: .keyword(.throws)) {
+    if let throwsSpecifier = self.consume(if: .throwsKeyword) {
       throwsClause = parseThrowsClause(after: throwsSpecifier)
     } else {
       throwsClause = nil
@@ -403,7 +403,7 @@ extension Parser {
     // If the next token is 'catch', this is a 'do'/'catch' statement.
     var elements = [RawCatchClauseSyntax]()
     var loopProgress = LoopProgressCondition()
-    while self.at(.keyword(.catch)) && self.hasProgressed(&loopProgress) {
+    while self.at(.catchKeyword) && self.hasProgressed(&loopProgress) {
       // Parse 'catch' clauses
       elements.append(self.parseCatchClause())
     }
@@ -423,7 +423,7 @@ extension Parser {
   /// - Note: This is not a "first class" statement it can only appear
   /// following a 'do' statement.
   mutating func parseCatchClause() -> RawCatchClauseSyntax {
-    let (unexpectedBeforeCatchKeyword, catchKeyword) = self.expect(.keyword(.catch))
+    let (unexpectedBeforeCatchKeyword, catchKeyword) = self.expect(.catchKeyword)
     var catchItems = [RawCatchItemSyntax]()
     if !self.at(.leftBrace) {
       var keepGoing: RawTokenSyntax? = nil
@@ -457,7 +457,7 @@ extension Parser {
     // If this is a 'catch' clause and we have "catch {" or "catch where...",
     // then we get an implicit "let error" pattern.
     let pattern: RawPatternSyntax?
-    if self.at(.leftBrace, .keyword(.where)) {
+    if self.at(.leftBrace, .whereKeyword) {
       pattern = nil
     } else {
       pattern = self.parseMatchingPattern(context: .matching)
@@ -465,7 +465,7 @@ extension Parser {
 
     // Parse the optional 'where' guard.
     let whereClause: RawWhereClauseSyntax?
-    if let whereKeyword = self.consume(if: .keyword(.where)) {
+    if let whereKeyword = self.consume(if: .whereKeyword) {
       let condition = self.parseExpression(flavor: .stmtCondition, pattern: .none)
       whereClause = RawWhereClauseSyntax(
         whereKeyword: whereKeyword,
@@ -517,7 +517,7 @@ extension Parser {
   mutating func parseRepeatStatement(repeatHandle: RecoveryConsumptionHandle) -> RawRepeatStmtSyntax {
     let (unexpectedBeforeRepeatKeyword, repeatKeyword) = self.eat(repeatHandle)
     let body = self.parseCodeBlock(introducer: repeatKeyword)
-    let (unexpectedBeforeWhileKeyword, whileKeyword) = self.expect(.keyword(.while))
+    let (unexpectedBeforeWhileKeyword, whileKeyword) = self.expect(.whileKeyword)
     let condition = self.parseExpression(flavor: .basic, pattern: .none)
     return RawRepeatStmtSyntax(
       unexpectedBeforeRepeatKeyword,
@@ -537,12 +537,12 @@ extension Parser {
   /// Parse a for-in statement.
   mutating func parseForStatement(forHandle: RecoveryConsumptionHandle) -> RawForStmtSyntax {
     let (unexpectedBeforeForKeyword, forKeyword) = self.eat(forHandle)
-    let tryKeyword = self.consume(if: .keyword(.try))
-    let awaitKeyword = self.consume(if: .keyword(.await))
+    let tryKeyword = self.consume(if: .tryKeyword)
+    let awaitKeyword = self.consume(if: .awaitKeyword)
 
     // Parse the pattern.  This is either 'case <refutable pattern>' or just a
     // normal pattern.
-    let caseKeyword = self.consume(if: .keyword(.case))
+    let caseKeyword = self.consume(if: .caseKeyword)
     let pattern: RawPatternSyntax
     let type: RawTypeAnnotationSyntax?
     if caseKeyword != nil {
@@ -562,7 +562,7 @@ extension Parser {
       (pattern, type) = self.parseTypedPattern(allowRecoveryFromMissingColon: false)
     }
 
-    let (unexpectedBeforeInKeyword, inKeyword) = self.expect(.keyword(.in))
+    let (unexpectedBeforeInKeyword, inKeyword) = self.expect(.inKeyword)
 
     // If there is no expression, like `switch { default: return false }` then left brace would parsed as
     // a `RawClosureExprSyntax` in the condition, which is most likely not what the user meant.
@@ -576,7 +576,7 @@ extension Parser {
 
     // Parse the 'where' expression if present.
     let whereClause: RawWhereClauseSyntax?
-    if let whereKeyword = self.consume(if: .keyword(.where)) {
+    if let whereKeyword = self.consume(if: .whereKeyword) {
       let condition = self.parseExpression(flavor: .stmtCondition, pattern: .none)
       whereClause = RawWhereClauseSyntax(
         whereKeyword: whereKeyword,
@@ -623,10 +623,10 @@ extension Parser {
       case endOfFile
 
       init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-        switch PrepareForKeywordMatch(lexeme) {
+        switch lexeme {
         case TokenSpec(.rightBrace): self = .rightBrace
-        case TokenSpec(.case): self = .case
-        case TokenSpec(.default): self = .default
+        case TokenSpec(.caseKeyword): self = .case
+        case TokenSpec(.defaultKeyword): self = .default
         case TokenSpec(.semicolon): self = .semicolon
         case TokenSpec(.poundIf): self = .poundIf
         case TokenSpec(.poundEndif): self = .poundEndif
@@ -640,8 +640,8 @@ extension Parser {
       var spec: TokenSpec {
         switch self {
         case .rightBrace: return .rightBrace
-        case .case: return .keyword(.case)
-        case .default: return .keyword(.default)
+        case .case: return .caseKeyword
+        case .default: return .defaultKeyword
         case .semicolon: return .semicolon
         case .poundIf: return .poundIf
         case .poundEndif: return .poundEndif
@@ -668,7 +668,7 @@ extension Parser {
   /// Parse a return statement
   mutating func parseReturnStatement(returnHandle: RecoveryConsumptionHandle) -> RawReturnStmtSyntax {
     let (unexpectedBeforeRet, ret) = self.eat(returnHandle)
-    let hasMisplacedTry = unexpectedBeforeRet?.containsToken(where: { TokenSpec(.try) ~= $0 }) ?? false
+    let hasMisplacedTry = unexpectedBeforeRet?.containsToken(where: { TokenSpec(.tryKeyword) ~= $0 }) ?? false
 
     // Handle the ambiguity between consuming the expression and allowing the
     // enclosing stmt-brace to get it by eagerly eating it unless the return is
@@ -679,7 +679,7 @@ extension Parser {
       if hasMisplacedTry && !parsedExpr.is(RawTryExprSyntax.self) {
         expr = RawExprSyntax(
           RawTryExprSyntax(
-            tryKeyword: missingToken(.try),
+            tryKeyword: missingToken(.tryKeyword),
             questionOrExclamationMark: nil,
             expression: parsedExpr,
             arena: self.arena
@@ -758,13 +758,13 @@ extension Parser {
     assert(experimentalFeatures.contains(.thenStatements))
 
     let (unexpectedBeforeThen, then) = self.eat(handle)
-    let hasMisplacedTry = unexpectedBeforeThen?.containsToken(where: { TokenSpec(.try) ~= $0 }) ?? false
+    let hasMisplacedTry = unexpectedBeforeThen?.containsToken(where: { TokenSpec(.tryKeyword) ~= $0 }) ?? false
 
     var expr = self.parseExpression(flavor: .basic, pattern: .none)
     if hasMisplacedTry && !expr.is(RawTryExprSyntax.self) {
       expr = RawExprSyntax(
         RawTryExprSyntax(
-          tryKeyword: missingToken(.try),
+          tryKeyword: missingToken(.tryKeyword),
           questionOrExclamationMark: nil,
           expression: expr,
           arena: self.arena
@@ -930,18 +930,16 @@ extension Parser.Lookahead {
       if next.isAtStartOfLine {
         return false
       }
-      switch next.rawTokenKind {
-      case .identifier, .keyword:
+      if next.rawTokenKind == .identifier || next.isLexerClassifiedKeyword {
         // Since some identifiers like "self" are classified as keywords,
         // we want to recognize those too, to handle "discard self". We also
         // accept any identifier since we want to emit a nice error message
         // later on during type checking.
         return true
-      default:
-        // any other token following "discard" means it's not the statement.
-        // For example, could be the function call "discard()".
-        return false
       }
+      // any other token following "discard" means it's not the statement.
+      // For example, could be the function call "discard()".
+      return false
 
     case .then where experimentalFeatures.contains(.thenStatements):
       return atStartOfThenStatement(preferExpr: preferExpr)
@@ -954,7 +952,7 @@ extension Parser.Lookahead {
   /// Whether we're currently at a `then` token that should be parsed as a
   /// `then` statement.
   mutating func atStartOfThenStatement(preferExpr: Bool) -> Bool {
-    guard self.at(.keyword(.then)) else {
+    guard self.at(.thenKeyword) else {
       return false
     }
 
@@ -970,8 +968,8 @@ extension Parser.Lookahead {
       return false
     }
 
-    switch PrepareForKeywordMatch(peek()) {
-    case TokenSpec(.is), TokenSpec(.as):
+    switch peek() {
+    case TokenSpec(.isKeyword), TokenSpec(.asKeyword):
       // Treat 'is' and 'as' like the binary operator case, and parse as an
       // expr.
       return false

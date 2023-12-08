@@ -23,6 +23,8 @@ let tokenSpecStaticMembersFile = SourceFileSyntax(leadingTrivia: copyrightHeader
       DeclSyntax("static var \(tokenSpec.varOrCaseName): TokenSpec { return TokenSpec(.\(tokenSpec.varOrCaseName)) }")
     }
 
-    DeclSyntax("static func keyword(_ keyword: Keyword) -> TokenSpec { return TokenSpec(keyword) }")
+    for keywordSpec in Keyword.allCases.map(\.spec) {
+      DeclSyntax("static var \(keywordSpec.rawTokenKindCaseName): TokenSpec { return TokenSpec(.\(keywordSpec.rawTokenKindCaseName)) }")
+    }
   }
 }

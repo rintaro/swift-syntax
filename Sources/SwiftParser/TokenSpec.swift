@@ -12,32 +12,6 @@
 
 @_spi(RawSyntax) import SwiftSyntax
 
-/// Pre-computes the keyword a lexeme might represent. This makes matching
-/// a lexeme that has been converted into `PrepareForKeyword` match cheaper to
-/// match against multiple ``TokenSpec`` that assume a keyword.
-struct PrepareForKeywordMatch {
-  /// The kind of the lexeme.
-  fileprivate let rawTokenKind: RawTokenKind
-
-  /// If the lexeme has the same text as a keyword, that keyword, otherwise `nil`.
-  fileprivate let keyword: Keyword?
-
-  /// Whether to lexeme occurred at the start of a line.
-  fileprivate let isAtStartOfLine: Bool
-
-  @inline(__always)
-  init(_ lexeme: Lexer.Lexeme) {
-    self.rawTokenKind = lexeme.rawTokenKind
-    switch lexeme.rawTokenKind {
-    case .keyword, .identifier:
-      keyword = Keyword(lexeme.tokenText)
-    default:
-      keyword = nil
-    }
-    self.isAtStartOfLine = lexeme.isAtStartOfLine
-  }
-}
-
 /// Describes a token that should be consumed by the parser.
 ///
 /// All the methods in here and all functions that take a ``TokenSpec`` need to be
@@ -54,10 +28,6 @@ public struct TokenSpec {
   /// `fileprivate` because only functions in this file should access it since
   /// they know how to handle the identifier -> keyword remapping.
   fileprivate let rawTokenKind: RawTokenKind
-
-  /// If `rawTokenKind` is `keyword`, the keyword we are expecting. For all other
-  /// values of `rawTokenKind`, this is `nil`.
-  fileprivate let keyword: Keyword?
 
   /// If not nil, the token will be remapped to the provided kind when consumed.
   ///
@@ -82,55 +52,35 @@ public struct TokenSpec {
     recoveryPrecedence: TokenPrecedence? = nil,
     allowAtStartOfLine: Bool = true
   ) {
-    precondition(rawTokenKind != .keyword, "To create a TokenSpec for a keyword use the initializer that takes a keyword")
     self.rawTokenKind = rawTokenKind
-    self.keyword = nil
     self.remapping = remapping
-    self.recoveryPrecedence = recoveryPrecedence ?? TokenPrecedence(nonKeyword: rawTokenKind)
-    self.allowAtStartOfLine = allowAtStartOfLine
-  }
-
-  @inline(__always)
-  init(
-    _ keyword: Keyword,
-    remapping: RawTokenKind? = nil,
-    recoveryPrecedence: TokenPrecedence? = nil,
-    allowAtStartOfLine: Bool = true
-  ) {
-    self.rawTokenKind = .keyword
-    self.keyword = keyword
-    self.remapping = remapping
-    self.recoveryPrecedence = recoveryPrecedence ?? TokenPrecedence(keyword)
+    self.recoveryPrecedence = recoveryPrecedence ?? TokenPrecedence(rawTokenKind)
     self.allowAtStartOfLine = allowAtStartOfLine
   }
 
   @inline(__always)
   func matches(
     rawTokenKind: RawTokenKind,
-    keyword: @autoclosure () -> Keyword?,
+    rawTokenText: SyntaxText,
     atStartOfLine: @autoclosure () -> Bool
   ) -> Bool {
     if !allowAtStartOfLine && atStartOfLine() {
       return false
     }
-    if self.rawTokenKind == .keyword {
-      precondition(self.keyword != nil)
-      switch rawTokenKind {
-      case .keyword, .identifier:
-        return keyword() == self.keyword
-      default:
-        return false
-      }
-    } else {
-      return rawTokenKind == self.rawTokenKind
+    if rawTokenKind == self.rawTokenKind {
+      return true
     }
+    if rawTokenKind == .identifier && self.rawTokenKind.isKeywordKind && rawTokenText == self.rawTokenKind.defaultText {
+      return true
+    }
+    return false
   }
 
   @inline(__always)
   static func ~= (kind: TokenSpec, lexeme: Lexer.Lexeme) -> Bool {
     return kind.matches(
       rawTokenKind: lexeme.rawTokenKind,
-      keyword: Keyword(lexeme.tokenText),
+      rawTokenText: lexeme.tokenText,
       atStartOfLine: lexeme.isAtStartOfLine
     )
   }
@@ -139,7 +89,7 @@ public struct TokenSpec {
   static func ~= (kind: TokenSpec, token: TokenSyntax) -> Bool {
     return kind.matches(
       rawTokenKind: token.tokenView.rawKind,
-      keyword: Keyword(token.tokenView.rawText),
+      rawTokenText: token.tokenView.rawText,
       atStartOfLine: token.leadingTrivia.contains(where: { $0.isNewline })
     )
   }
@@ -148,17 +98,8 @@ public struct TokenSpec {
   static func ~= (kind: TokenSpec, token: RawTokenSyntax) -> Bool {
     return kind.matches(
       rawTokenKind: token.tokenKind,
-      keyword: Keyword(token.tokenView.rawText),
+      rawTokenText: token.tokenText,
       atStartOfLine: token.leadingTriviaPieces.contains(where: \.isNewline)
-    )
-  }
-
-  @inline(__always)
-  static func ~= (kind: TokenSpec, lexeme: PrepareForKeywordMatch) -> Bool {
-    return kind.matches(
-      rawTokenKind: lexeme.rawTokenKind,
-      keyword: lexeme.keyword,
-      atStartOfLine: lexeme.isAtStartOfLine
     )
   }
 
@@ -175,7 +116,6 @@ public struct TokenSpec {
     case .floatLiteral: return .floatLiteral("1.0")
     case .identifier: return .identifier("myIdent")
     case .integerLiteral: return .integerLiteral("1")
-    case .keyword: return .keyword(keyword!)
     case .postfixOperator: return .postfixOperator("++")
     case .prefixOperator: return .prefixOperator("!")
     case .rawStringPoundDelimiter: return .rawStringPoundDelimiter("#")
@@ -191,7 +131,7 @@ extension TokenConsumer {
   /// Generates a missing token that has the expected kind of `spec`.
   @inline(__always)
   mutating func missingToken(_ spec: TokenSpec) -> Token {
-    return missingToken(spec.remapping ?? spec.rawTokenKind, text: spec.keyword?.defaultText ?? spec.rawTokenKind.defaultText)
+    return missingToken(spec.remapping ?? spec.rawTokenKind, text: spec.rawTokenKind.defaultText)
   }
 
   /// Asserts that the current token matches `spec` and consumes it, performing
@@ -202,12 +142,6 @@ extension TokenConsumer {
   @inline(__always)
   mutating func eat(_ spec: TokenSpec) -> Token {
     precondition(spec ~= self.currentToken)
-    if let remapping = spec.remapping {
-      return self.consumeAnyToken(remapping: remapping)
-    } else if spec.rawTokenKind == .keyword {
-      return self.consumeAnyToken(remapping: .keyword)
-    } else {
-      return self.consumeAnyToken()
-    }
+    return self.consumeAnyToken(remapping: spec.remapping ?? spec.rawTokenKind)
   }
 }

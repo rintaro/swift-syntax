@@ -38,6 +38,11 @@ public struct KeywordSpec {
     }
   }
 
+  /// The name of this keyword used as a RawTokenKind case.
+  public var rawTokenKindCaseName: TokenSyntax {
+    TokenSyntax.identifier(name + "Keyword")
+  }
+
   /// The attributes that should be printed on any API for the generated keyword.
   ///
   /// This is typically used to mark APIs as SPI when the keyword is part of an experimental language feature.

@@ -39,12 +39,12 @@ extension Parser {
         )
       case (.declarationModifier(.class), let handle)?:
         var lookahead = self.lookahead()
-        lookahead.consume(to: .keyword(.class))
+        lookahead.consume(to: .classKeyword)
         // When followed by an 'override' or CC token inside a class,
         // treat 'class' as a modifier in the case of a following CC
         // token, we cannot be sure there is no intention to override
         // or witness something static.
-        if lookahead.atStartOfDeclaration() || lookahead.at(.keyword(.override)) {
+        if lookahead.atStartOfDeclaration() || lookahead.at(.overrideKeyword) {
           let (unexpectedBeforeKeyword, classKeyword) = self.eat(handle)
           elements.append(
             RawDeclModifierSyntax(
@@ -107,7 +107,7 @@ extension Parser {
 extension Parser {
   mutating func parseModifierDetail() -> RawDeclModifierDetailSyntax {
     let (unexpectedBeforeLeftParen, leftParen) = self.expect(.leftParen)
-    let (unexpectedBeforeDetailToken, detailToken) = self.expect(.identifier, TokenSpec(.set, remapping: .identifier), default: .identifier)
+    let (unexpectedBeforeDetailToken, detailToken) = self.expect(.identifier, TokenSpec(.setKeyword, remapping: .identifier), default: .identifier)
     let (unexpectedBeforeRightParen, rightParen) = self.expect(.rightParen)
     return RawDeclModifierDetailSyntax(
       unexpectedBeforeLeftParen,
@@ -139,7 +139,7 @@ extension Parser {
   }
 
   mutating func parsePackageAccessLevelModifier() -> RawDeclModifierSyntax {
-    let (unexpectedBeforeName, name) = self.expect(.keyword(.package))
+    let (unexpectedBeforeName, name) = self.expect(.packageKeyword)
     let details = self.parseAccessModifierDetails()
     return RawDeclModifierSyntax(
       unexpectedBeforeName,
@@ -150,7 +150,7 @@ extension Parser {
   }
 
   mutating func parseOpenAccessLevelModifier() -> RawDeclModifierSyntax {
-    let (unexpectedBeforeName, name) = self.expect(.keyword(.open))
+    let (unexpectedBeforeName, name) = self.expect(.openKeyword)
     let details = self.parseAccessModifierDetails()
     return RawDeclModifierSyntax(
       unexpectedBeforeName,
@@ -169,19 +169,19 @@ extension Parser {
 
       var spec: TokenSpec {
         switch self {
-        case .private: return .keyword(.private)
-        case .fileprivate: return .keyword(.fileprivate)
-        case .internal: return .keyword(.internal)
-        case .public: return .keyword(.public)
+        case .private: return .privateKeyword
+        case .fileprivate: return .fileprivateKeyword
+        case .internal: return .internalKeyword
+        case .public: return .publicKeyword
         }
       }
 
       init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-        switch PrepareForKeywordMatch(lexeme) {
-        case TokenSpec(.private): self = .private
-        case TokenSpec(.fileprivate): self = .fileprivate
-        case TokenSpec(.internal): self = .internal
-        case TokenSpec(.public): self = .public
+        switch lexeme {
+        case TokenSpec(.privateKeyword): self = .private
+        case TokenSpec(.fileprivateKeyword): self = .fileprivate
+        case TokenSpec(.internalKeyword): self = .internal
+        case TokenSpec(.publicKeyword): self = .public
         default: return nil
         }
       }
@@ -207,7 +207,7 @@ extension Parser {
 
     let unexpectedBeforeDetail: RawUnexpectedNodesSyntax?
     let detail: RawTokenSyntax
-    if let setHandle = canRecoverTo(TokenSpec(.set, remapping: .identifier, recoveryPrecedence: .weakBracketClose)) {
+    if let setHandle = canRecoverTo(TokenSpec(.setKeyword, remapping: .identifier, recoveryPrecedence: .weakBracketClose)) {
       (unexpectedBeforeDetail, detail) = eat(setHandle)
     } else {
       unexpectedBeforeDetail = nil
@@ -231,7 +231,7 @@ extension Parser {
     let detail: RawDeclModifierDetailSyntax?
     if self.at(.leftParen) {
       let (unexpectedBeforeLeftParen, leftParen) = self.expect(.leftParen)
-      let (unexpectedBeforeDetailToken, detailToken) = self.expect(TokenSpec(.unsafe, remapping: .identifier))
+      let (unexpectedBeforeDetailToken, detailToken) = self.expect(TokenSpec(.unsafeKeyword, remapping: .identifier))
       let (unexpectedBeforeRightParen, rightParen) = self.expect(.rightParen)
       detail = RawDeclModifierDetailSyntax(
         unexpectedBeforeLeftParen,

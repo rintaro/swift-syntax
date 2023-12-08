@@ -15,12 +15,12 @@ import SwiftSyntaxBuilder
 import SyntaxSupport
 import Utils
 
-func tokenCaseMatch(_ caseName: TokenSyntax, experimentalFeature: ExperimentalFeature?) -> SwitchCaseSyntax {
+func tokenCaseMatch(_ caseName: TokenSyntax, _ rawTokenKindCaseName: TokenSyntax, experimentalFeature: ExperimentalFeature?) -> SwitchCaseSyntax {
   let whereClause =
     experimentalFeature.map {
       "where experimentalFeatures.contains(.\($0.token))"
     } ?? ""
-  return "case TokenSpec(.\(caseName))\(raw: whereClause): self = .\(caseName)"
+  return "case TokenSpec(.\(rawTokenKindCaseName))\(raw: whereClause): self = .\(caseName)"
 }
 
 let parserTokenSpecSetFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
@@ -51,16 +51,18 @@ let parserTokenSpecSetFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
             }
 
             try InitializerDeclSyntax("init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures)") {
-              try SwitchExprSyntax("switch PrepareForKeywordMatch(lexeme)") {
+              try SwitchExprSyntax("switch lexeme") {
                 for choice in choices {
                   switch choice {
                   case .keyword(let keyword):
                     tokenCaseMatch(
                       keyword.spec.varOrCaseName,
+                      keyword.spec.rawTokenKindCaseName,
                       experimentalFeature: keyword.spec.experimentalFeature
                     )
                   case .token(let token):
                     tokenCaseMatch(
+                      token.spec.varOrCaseName,
                       token.spec.varOrCaseName,
                       experimentalFeature: token.spec.experimentalFeature
                     )
@@ -76,7 +78,7 @@ let parserTokenSpecSetFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
                   switch choice {
                   case .keyword(let keyword):
                     let caseName = keyword.spec.varOrCaseName
-                    SwitchCaseSyntax("case .\(caseName): return .keyword(.\(caseName))")
+                    SwitchCaseSyntax("case .\(caseName): return .\(keyword.spec.rawTokenKindCaseName)")
                   case .token(let token):
                     let caseName = token.spec.varOrCaseName
                     SwitchCaseSyntax("case .\(caseName): return .\(caseName)")

@@ -332,10 +332,6 @@ public struct Parser {
     return RawTokenSyntax(missing: kind, text: text, arena: self.arena)
   }
 
-  mutating func missingToken(_ keyword: Keyword) -> RawTokenSyntax {
-    return missingToken(.keyword, text: keyword.defaultText)
-  }
-
   /// Consumes the current token and advances the lexer to the next token.
   ///
   /// - Returns: The token that was consumed.
@@ -645,7 +641,7 @@ extension Parser {
       return (nil, self.consumeAnyToken(remapping: .identifier))
     }
     if allowSelfOrCapitalSelfAsIdentifier,
-      let selfOrCapitalSelf = self.consume(if: TokenSpec(.self, remapping: .identifier), TokenSpec(.Self, remapping: .identifier))
+      let selfOrCapitalSelf = self.consume(if: TokenSpec(.selfKeyword, remapping: .identifier), TokenSpec(.SelfKeyword, remapping: .identifier))
     {
       return (nil, selfOrCapitalSelf)
     }
