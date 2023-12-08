@@ -27,7 +27,7 @@ extension Parser {
     }
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.poundElseif): self = .poundElseif
       case TokenSpec(.poundElse): self = .poundElse
       case TokenSpec(.pound): self = .pound
@@ -99,7 +99,7 @@ extension Parser {
         unexpectedBetweenConditionAndElements = self.consumeRemainingTokenOnLine()
       case .poundElse:
         (unexpectedBeforePound, pound) = self.eat(handle)
-        if let ifToken = self.consume(if: .init(.if, allowAtStartOfLine: false)) {
+        if let ifToken = self.consume(if: TokenSpec(.ifKeyword, allowAtStartOfLine: false)) {
           unexpectedBeforePound = RawUnexpectedNodesSyntax(combining: unexpectedBeforePound, pound, ifToken, arena: self.arena)
           pound = self.missingToken(.poundElseif)
           condition = RawExprSyntax(self.parseSequenceExpression(flavor: .poundIfDirective))
@@ -194,12 +194,12 @@ extension Parser {
     let (unexpectedBeforeLParen, lparen) = self.expect(.leftParen)
     let arguments: RawPoundSourceLocationArgumentsSyntax?
     if !self.at(.rightParen) {
-      let (unexpectedBeforeFile, file) = self.expect(.keyword(.file))
+      let (unexpectedBeforeFile, file) = self.expect(.fileKeyword)
       let (unexpectedBeforeFileColon, fileColon) = self.expect(.colon)
       let fileName = self.parseSimpleString()
       let (unexpectedBeforeComma, comma) = self.expect(.comma)
 
-      let (unexpectedBeforeLine, line) = self.expect(.keyword(.line))
+      let (unexpectedBeforeLine, line) = self.expect(.lineKeyword)
       let (unexpectedBeforeLineColon, lineColon) = self.expect(.colon)
       let lineNumber = self.expectWithoutRecovery(.integerLiteral)
 

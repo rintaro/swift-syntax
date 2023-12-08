@@ -246,10 +246,6 @@ extension Lexer {
     /// If we have already lexed a token, stores whether the previous lexeme‘s ending contains a newline.
     var previousLexemeTrailingNewlinePresence: NewlinePresence?
 
-    /// If the `previousTokenKind` is `.keyword`, the keyword kind. Otherwise
-    /// `nil`.
-    var previousKeyword: Keyword?
-
     private var stateStack: StateStack = StateStack()
 
     init(input: UnsafeBufferPointer<UInt8>, previous: UInt8) {
@@ -317,32 +313,10 @@ extension Lexer {
     /// for this lexeme.
     let trailingTriviaLexingMode: Lexer.Cursor.TriviaLexingMode?
 
-    /// If `tokenKind` is `.keyword`, the kind of keyword produced, otherwise
-    /// `nil`.
-    let keywordKind: Keyword?
     /// Indicates whether the end of the lexed token text contains a newline.
     let trailingNewlinePresence: Lexer.Cursor.NewlinePresence
 
-    private init(
-      _ tokenKind: RawTokenKind,
-      flags: Lexer.Lexeme.Flags,
-      error: Cursor.LexingDiagnostic?,
-      stateTransition: StateTransition?,
-      trailingTriviaLexingMode: Lexer.Cursor.TriviaLexingMode?,
-      keywordKind: Keyword?,
-      trailingNewlinePresence: Lexer.Cursor.NewlinePresence
-    ) {
-      self.tokenKind = tokenKind
-      self.flags = flags
-      self.error = error
-      self.stateTransition = stateTransition
-      self.trailingTriviaLexingMode = trailingTriviaLexingMode
-      self.keywordKind = keywordKind
-      self.trailingNewlinePresence = trailingNewlinePresence
-    }
-
-    /// Create a lexer result. Note that keywords should use `Result.keyword`
-    /// instead.
+    /// Create a lexer result.
     init(
       _ tokenKind: RawTokenKind,
       flags: Lexer.Lexeme.Flags = [],
@@ -351,29 +325,12 @@ extension Lexer {
       trailingTriviaLexingMode: Lexer.Cursor.TriviaLexingMode? = nil,
       trailingNewlinePresence: Lexer.Cursor.NewlinePresence = .absent
     ) {
-      precondition(tokenKind != .keyword, "Use Result.keyword instead")
-      self.init(
-        tokenKind,
-        flags: flags,
-        error: error,
-        stateTransition: stateTransition,
-        trailingTriviaLexingMode: trailingTriviaLexingMode,
-        keywordKind: nil,
-        trailingNewlinePresence: trailingNewlinePresence
-      )
-    }
-
-    /// Produce a lexer result for a given keyword.
-    static func keyword(_ kind: Keyword) -> Self {
-      Self(
-        .keyword,
-        flags: [],
-        error: nil,
-        stateTransition: nil,
-        trailingTriviaLexingMode: nil,
-        keywordKind: kind,
-        trailingNewlinePresence: .absent
-      )
+      self.tokenKind = tokenKind
+      self.flags = flags
+      self.error = error
+      self.stateTransition = stateTransition
+      self.trailingTriviaLexingMode = trailingTriviaLexingMode
+      self.trailingNewlinePresence = trailingNewlinePresence
     }
   }
 }
@@ -479,7 +436,6 @@ extension Lexer.Cursor {
       cursor: cursor
     )
     self.previousTokenKind = result.tokenKind
-    self.previousKeyword = result.keywordKind
 
     return lexeme
   }
@@ -1992,8 +1948,8 @@ extension Lexer.Cursor {
     self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
 
     let text = tokStart.text(upTo: self)
-    if let keyword = Keyword(text), keyword.isLexerClassified {
-      return Lexer.Result.keyword(keyword)
+    if let keyword = RawTokenKind.lexerClassifiedKeyword(from: text) {
+      return Lexer.Result(keyword)
     } else if text == "_" {
       return Lexer.Result(.wildcard)
     } else {
@@ -2040,7 +1996,7 @@ extension Lexer.Cursor {
     guard self.isLeftBound(sourceBufferStart: sourceBufferStart) else { return nil }
 
     var transition: Lexer.StateTransition?
-    if previousKeyword == .try {
+    if previousTokenKind == .tryKeyword {
       // If we have 'try' as the previous keyword kind, we have `try?` or `try!`
       // and need to transition into the state where we prefer lexing a regex
       // literal over a binary operator. See the comment in

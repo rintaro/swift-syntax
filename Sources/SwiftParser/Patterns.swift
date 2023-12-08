@@ -22,7 +22,7 @@ extension Parser {
       case dollarIdentifier  // For recovery
 
       init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-        switch PrepareForKeywordMatch(lexeme) {
+        switch lexeme {
         case TokenSpec(.leftParen): self = .leftParen
         case TokenSpec(.wildcard): self = .wildcard
         case TokenSpec(.identifier): self = .identifier
@@ -267,7 +267,7 @@ extension Parser.Lookahead {
       case leftParen
 
       init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-        switch PrepareForKeywordMatch(lexeme) {
+        switch lexeme {
         case TokenSpec(.identifier): self = .identifier
         case TokenSpec(.wildcard): self = .wildcard
         case TokenSpec(.leftParen): self = .leftParen
@@ -345,16 +345,16 @@ extension Parser.Lookahead {
     // If the next token can be an argument label, we might have a name.
     if nextTok.isArgumentLabel(allowDollarIdentifier: true) {
       // If the first name wasn't a contextual keyword, we're done.
-      if !self.at(.keyword(.isolated))
-        && !self.at(.keyword(.some))
-        && !self.at(.keyword(.any))
-        && !self.at(.keyword(.each))
-        && !self.at(.keyword(.repeat))
-        && !self.at(.keyword(.__shared))
-        && !self.at(.keyword(.__owned))
-        && !self.at(.keyword(.borrowing))
-        && !self.at(.keyword(.consuming))
-        && !(experimentalFeatures.contains(.nonEscapableTypes) && self.at(.keyword(._resultDependsOn)))
+      if !self.at(.isolatedKeyword)
+        && !self.at(.someKeyword)
+        && !self.at(.anyKeyword)
+        && !self.at(.eachKeyword)
+        && !self.at(.repeatKeyword)
+        && !self.at(.__sharedKeyword)
+        && !self.at(.__ownedKeyword)
+        && !self.at(.borrowingKeyword)
+        && !self.at(.consumingKeyword)
+        && !(experimentalFeatures.contains(.nonEscapableTypes) && self.at(._resultDependsOnKeyword))
       {
         return true
       }

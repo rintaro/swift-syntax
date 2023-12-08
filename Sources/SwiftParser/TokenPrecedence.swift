@@ -107,14 +107,10 @@ enum TokenPrecedence: Comparable {
   }
 
   init(_ lexeme: Lexer.Lexeme) {
-    if lexeme.rawTokenKind == .keyword {
-      self.init(Keyword(lexeme.tokenText)!)
-    } else {
-      self.init(nonKeyword: lexeme.rawTokenKind)
-    }
+    self.init(lexeme.rawTokenKind)
   }
 
-  init(nonKeyword tokenKind: RawTokenKind) {
+  init(_ tokenKind: RawTokenKind) {
     switch tokenKind {
     case .unknown:
       self = .unknownToken
@@ -181,178 +177,234 @@ enum TokenPrecedence: Comparable {
       self = .closingBrace
     case .poundEndif:
       self = .closingPoundIf
-    case .keyword:
-      preconditionFailure("RawTokenKind passed to init(nonKeyword:) must not be a keyword")
-    }
-  }
 
-  init(_ keyword: Keyword) {
-    switch keyword {
     // MARK: Identifier like
     case  // Literals
-    .Self, .false, .nil, .`self`, .super, .true:
+    .SelfKeyword, .falseKeyword, .nilKeyword, .selfKeyword, .superKeyword, .trueKeyword:
       self = .identifierLike
 
     // MARK: Expr keyword
     case  // Keywords
-    .as, .is, .some, .try,
-      .await, .each, .copy,
+    .asKeyword, .isKeyword, .someKeyword, .tryKeyword,
+      .awaitKeyword, .eachKeyword, .copyKeyword,
       // We don't know much about which contextual keyword it is, be conservative an allow considering it as unexpected.
       // Keywords in function types (we should be allowed to skip them inside parenthesis)
-      .rethrows, .throws, .reasync, .async,
+      .rethrowsKeyword, .throwsKeyword, .reasyncKeyword, .asyncKeyword,
       // Consider 'any' a prefix operator to a type and a type is expression-like.
-      .Any,
+      .AnyKeyword,
       // 'where' can only occur in the signature of declarations. Consider the signature expression-like.
-      .where,
+      .whereKeyword,
       // 'in' occurs in closure input/output definitions and for loops. Consider both constructs expression-like.
-      .in:
+      .inKeyword:
       self = .exprKeyword
 
     case  // Control-flow constructs
-    .defer, .do, .for, .guard, .if, .repeat, .switch, .while,
+    .deferKeyword, .doKeyword, .forKeyword, .guardKeyword, .ifKeyword, .repeatKeyword, .switchKeyword, .whileKeyword,
       // Secondary parts of control-flow constructs
-      .case, .catch, .default, .else,
+      .caseKeyword, .catchKeyword, .defaultKeyword, .elseKeyword,
       // Return-like statements
-      .break, .continue, .fallthrough, .return, .throw, .then, .yield:
+      .breakKeyword, .continueKeyword, .fallthroughKeyword, .returnKeyword, .throwKeyword, .thenKeyword, .yieldKeyword:
       self = .stmtKeyword
 
     // MARK: Decl keywords
     case  // Types
-    .associatedtype, .class, .enum, .extension, .protocol, .struct, .typealias, .actor, .macro,
+    .associatedtypeKeyword,
+      .classKeyword,
+      .enumKeyword,
+      .extensionKeyword,
+      .protocolKeyword,
+      .structKeyword,
+      .typealiasKeyword,
+      .actorKeyword,
+      .macroKeyword,
+
       // Access modifiers
-      .fileprivate, .internal, .private, .public, .static,
+      .fileprivateKeyword,
+      .internalKeyword,
+      .privateKeyword,
+      .publicKeyword,
+      .staticKeyword,
+
       // Functions
-      .deinit, .func, .`init`, .subscript,
+      .deinitKeyword,
+      .funcKeyword,
+      .initKeyword,
+      .subscriptKeyword,
+
       // Variables
-      .let, .var,
+      .letKeyword,
+      .varKeyword,
+
       // Operator stuff
-      .operator, .precedencegroup,
+      .operatorKeyword,
+      .precedencegroupKeyword,
+
       // Declaration Modifiers
-      .__consuming, .final, .required, .optional, .lazy, .dynamic, .infix, .postfix, .prefix, .mutating, .nonmutating, .convenience, .override, .package, .open,
-      .__setter_access, .indirect, .isolated, .nonisolated, .distributed, ._local,
-      .inout, ._mutating, ._borrow, ._borrowing, .borrowing, ._consuming, .consuming, .consume, ._resultDependsOnSelf, ._resultDependsOn,
+      .__consumingKeyword,
+      .finalKeyword,
+      .requiredKeyword,
+      .optionalKeyword,
+      .lazyKeyword,
+      .dynamicKeyword,
+      .infixKeyword,
+      .postfixKeyword,
+      .prefixKeyword,
+      .mutatingKeyword,
+      .nonmutatingKeyword,
+      .convenienceKeyword,
+      .overrideKeyword,
+      .packageKeyword,
+      .openKeyword,
+      .__setter_accessKeyword,
+      .indirectKeyword,
+      .isolatedKeyword,
+      .nonisolatedKeyword,
+      .distributedKeyword,
+      ._localKeyword,
+      .inoutKeyword,
+      ._mutatingKeyword,
+      ._borrowKeyword,
+      ._borrowingKeyword,
+      .borrowingKeyword,
+      ._consumingKeyword,
+      .consumingKeyword,
+      .consumeKeyword,
+      ._resultDependsOnSelfKeyword,
+      ._resultDependsOnKeyword,
+
       // Accessors
-      .get, .set, .didSet, .willSet, .unsafeAddress, .addressWithOwner, .addressWithNativeOwner, .unsafeMutableAddress,
-      .mutableAddressWithOwner, .mutableAddressWithNativeOwner, ._read, ._modify,
+      .getKeyword,
+      .setKeyword,
+      .didSetKeyword,
+      .willSetKeyword,
+      .unsafeAddressKeyword,
+      .addressWithOwnerKeyword,
+      .addressWithNativeOwnerKeyword,
+      .unsafeMutableAddressKeyword,
+      .mutableAddressWithOwnerKeyword,
+      .mutableAddressWithNativeOwnerKeyword,
+      ._readKeyword,
+      ._modifyKeyword,
+
       // Misc
-      .import:
+      .importKeyword:
       self = .declKeyword
 
     case  // `TypeAttribute`
-    ._noMetadata,
-      ._opaqueReturnTypeOf,
-      .autoclosure,
-      .convention,
-      .differentiable,
-      .escaping,
-      .noDerivative,
-      .noescape,
-      .Sendable,
-      .retroactive,
-      .unchecked:
+    ._noMetadataKeyword,
+      ._opaqueReturnTypeOfKeyword,
+      .autoclosureKeyword,
+      .conventionKeyword,
+      .differentiableKeyword,
+      .escapingKeyword,
+      .noDerivativeKeyword,
+      .noescapeKeyword,
+      .SendableKeyword,
+      .retroactiveKeyword,
+      .uncheckedKeyword:
       self = .exprKeyword
 
     case  // `DeclarationAttributeWithSpecialSyntax`
-    ._alignment,
-      ._backDeploy,
-      ._cdecl,
-      ._documentation,
-      ._dynamicReplacement,
-      ._effects,
-      ._expose,
-      ._implements,
-      ._nonSendable,
-      ._objcImplementation,
-      ._objcRuntimeName,
-      ._optimize,
-      ._originallyDefinedIn,
-      ._private,
-      ._projectedValueProperty,
-      ._semantics,
-      ._specialize,
-      ._spi,
-      ._spi_available,
-      ._swift_native_objc_runtime_base,
-      ._typeEraser,
-      ._unavailableFromAsync,
-      .attached,
-      .available,
-      .backDeployed,
-      .derivative,
-      .exclusivity,
-      .inline,
-      .objc,
-      .transpose:
+    ._alignmentKeyword,
+      ._backDeployKeyword,
+      ._cdeclKeyword,
+      ._documentationKeyword,
+      ._dynamicReplacementKeyword,
+      ._effectsKeyword,
+      ._exposeKeyword,
+      ._implementsKeyword,
+      ._nonSendableKeyword,
+      ._objcImplementationKeyword,
+      ._objcRuntimeNameKeyword,
+      ._optimizeKeyword,
+      ._originallyDefinedInKeyword,
+      ._privateKeyword,
+      ._projectedValuePropertyKeyword,
+      ._semanticsKeyword,
+      ._specializeKeyword,
+      ._spiKeyword,
+      ._spi_availableKeyword,
+      ._swift_native_objc_runtime_baseKeyword,
+      ._typeEraserKeyword,
+      ._unavailableFromAsyncKeyword,
+      .attachedKeyword,
+      .availableKeyword,
+      .backDeployedKeyword,
+      .derivativeKeyword,
+      .exclusivityKeyword,
+      .inlineKeyword,
+      .objcKeyword,
+      .transposeKeyword:
       self = .exprKeyword
 
     case  // Treat all other keywords as expression keywords in the absence of any better information.
-    .__owned,
-      .__shared,
-      ._BridgeObject,
-      ._Class,
-      ._compilerInitialized,
-      ._const,
-      ._forward,
-      ._linear,
-      ._move,
-      ._NativeClass,
-      ._NativeRefCountedObject,
-      ._PackageDescription,
-      ._RefCountedObject,
-      ._Trivial,
-      ._TrivialAtMost,
+    .__ownedKeyword,
+      .__sharedKeyword,
+      ._BridgeObjectKeyword,
+      ._ClassKeyword,
+      ._compilerInitializedKeyword,
+      ._constKeyword,
+      ._forwardKeyword,
+      ._linearKeyword,
+      ._moveKeyword,
+      ._NativeClassKeyword,
+      ._NativeRefCountedObjectKeyword,
+      ._PackageDescriptionKeyword,
+      ._RefCountedObjectKeyword,
+      ._TrivialKeyword,
+      ._TrivialAtMostKeyword,
       ._TrivialStride,
-      ._underlyingVersion,
-      ._UnknownLayout,
-      ._version,
-      .accesses,
-      .any,
-      .assignment,
-      .associativity,
-      .availability,
-      .before,
-      .block,
-      .canImport,
-      .compiler,
-      .cType,
-      .deprecated,
-      .exported,
-      .file,
-      .discard,
-      .forward,
-      .higherThan,
-      .initializes,
-      .introduced,
-      .kind,
-      .left,
-      .line,
-      .linear,
-      .lowerThan,
-      .message,
-      .metadata,
-      .module,
-      .noasync,
-      .none,
-      .obsoleted,
-      .of,
-      .Protocol,
-      .renamed,
-      .reverse,
-      .right,
-      .safe,
-      .sourceFile,
-      .spi,
-      .spiModule,
-      .swift,
-      .target,
-      .Type,
-      .unavailable,
-      .unowned,
-      .visibility,
-      .weak,
-      .witness_method,
-      .wrt,
-      .unsafe:
+      ._underlyingVersionKeyword,
+      ._UnknownLayoutKeyword,
+      ._versionKeyword,
+      .accessesKeyword,
+      .anyKeyword,
+      .assignmentKeyword,
+      .associativityKeyword,
+      .availabilityKeyword,
+      .beforeKeyword,
+      .blockKeyword,
+      .canImportKeyword,
+      .compilerKeyword,
+      .cTypeKeyword,
+      .deprecatedKeyword,
+      .exportedKeyword,
+      .fileKeyword,
+      .discardKeyword,
+      .forwardKeyword,
+      .higherThanKeyword,
+      .initializesKeyword,
+      .introducedKeyword,
+      .kindKeyword,
+      .leftKeyword,
+      .lineKeyword,
+      .linearKeyword,
+      .lowerThanKeyword,
+      .messageKeyword,
+      .metadataKeyword,
+      .moduleKeyword,
+      .noasyncKeyword,
+      .noneKeyword,
+      .obsoletedKeyword,
+      .ofKeyword,
+      .ProtocolKeyword,
+      .renamedKeyword,
+      .reverseKeyword,
+      .rightKeyword,
+      .safeKeyword,
+      .sourceFileKeyword,
+      .spiKeyword,
+      .spiModuleKeyword,
+      .swiftKeyword,
+      .targetKeyword,
+      .TypeKeyword,
+      .unavailableKeyword,
+      .unownedKeyword,
+      .visibilityKeyword,
+      .weakKeyword,
+      .witness_methodKeyword,
+      .wrtKeyword,
+      .unsafeKeyword:
       self = .exprKeyword
     }
   }

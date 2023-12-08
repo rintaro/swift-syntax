@@ -358,17 +358,12 @@ extension TokenConsumer {
     // as a parameter specifier.
     let lexeme = peek()
 
-    switch lexeme.rawTokenKind {
+    switch lexeme {
     case .atSign, .leftParen, .identifier, .leftSquare, .wildcard:
       return true
 
-    case .keyword:
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.inout), TokenSpec(.Any), TokenSpec(.Self), TokenSpec(.var), TokenSpec(.let):
-        return true
-      default:
-        return false
-      }
+    case .inoutKeyword, .AnyKeyword, .SelfKeyword, .varKeyword, .letKeyword:
+      return true
 
     default:
       return false

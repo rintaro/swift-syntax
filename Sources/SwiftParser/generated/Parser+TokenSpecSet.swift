@@ -32,32 +32,32 @@ extension AccessorDeclSyntax {
     case `init`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.get):
+      switch lexeme {
+      case TokenSpec(.getKeyword):
         self = .get
-      case TokenSpec(.set):
+      case TokenSpec(.setKeyword):
         self = .set
-      case TokenSpec(.didSet):
+      case TokenSpec(.didSetKeyword):
         self = .didSet
-      case TokenSpec(.willSet):
+      case TokenSpec(.willSetKeyword):
         self = .willSet
-      case TokenSpec(.unsafeAddress):
+      case TokenSpec(.unsafeAddressKeyword):
         self = .unsafeAddress
-      case TokenSpec(.addressWithOwner):
+      case TokenSpec(.addressWithOwnerKeyword):
         self = .addressWithOwner
-      case TokenSpec(.addressWithNativeOwner):
+      case TokenSpec(.addressWithNativeOwnerKeyword):
         self = .addressWithNativeOwner
-      case TokenSpec(.unsafeMutableAddress):
+      case TokenSpec(.unsafeMutableAddressKeyword):
         self = .unsafeMutableAddress
-      case TokenSpec(.mutableAddressWithOwner):
+      case TokenSpec(.mutableAddressWithOwnerKeyword):
         self = .mutableAddressWithOwner
-      case TokenSpec(.mutableAddressWithNativeOwner):
+      case TokenSpec(.mutableAddressWithNativeOwnerKeyword):
         self = .mutableAddressWithNativeOwner
-      case TokenSpec(._read):
+      case TokenSpec(._readKeyword):
         self = ._read
-      case TokenSpec(._modify):
+      case TokenSpec(._modifyKeyword):
         self = ._modify
-      case TokenSpec(.`init`):
+      case TokenSpec(.initKeyword):
         self = .`init`
       default:
         return nil
@@ -67,31 +67,31 @@ extension AccessorDeclSyntax {
     var spec: TokenSpec {
       switch self {
       case .get:
-        return .keyword(.get)
+        return .getKeyword
       case .set:
-        return .keyword(.set)
+        return .setKeyword
       case .didSet:
-        return .keyword(.didSet)
+        return .didSetKeyword
       case .willSet:
-        return .keyword(.willSet)
+        return .willSetKeyword
       case .unsafeAddress:
-        return .keyword(.unsafeAddress)
+        return .unsafeAddressKeyword
       case .addressWithOwner:
-        return .keyword(.addressWithOwner)
+        return .addressWithOwnerKeyword
       case .addressWithNativeOwner:
-        return .keyword(.addressWithNativeOwner)
+        return .addressWithNativeOwnerKeyword
       case .unsafeMutableAddress:
-        return .keyword(.unsafeMutableAddress)
+        return .unsafeMutableAddressKeyword
       case .mutableAddressWithOwner:
-        return .keyword(.mutableAddressWithOwner)
+        return .mutableAddressWithOwnerKeyword
       case .mutableAddressWithNativeOwner:
-        return .keyword(.mutableAddressWithNativeOwner)
+        return .mutableAddressWithNativeOwnerKeyword
       case ._read:
-        return .keyword(._read)
+        return ._readKeyword
       case ._modify:
-        return .keyword(._modify)
+        return ._modifyKeyword
       case .`init`:
-        return .keyword(.`init`)
+        return .initKeyword
       }
     }
     
@@ -139,7 +139,7 @@ extension AsExprSyntax {
     case exclamationMark
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.postfixQuestionMark):
         self = .postfixQuestionMark
       case TokenSpec(.exclamationMark):
@@ -187,22 +187,22 @@ extension AttributedTypeSyntax {
     case _resultDependsOn
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.inout):
+      switch lexeme {
+      case TokenSpec(.inoutKeyword):
         self = .inout
-      case TokenSpec(.__shared):
+      case TokenSpec(.__sharedKeyword):
         self = .__shared
-      case TokenSpec(.__owned):
+      case TokenSpec(.__ownedKeyword):
         self = .__owned
-      case TokenSpec(.isolated):
+      case TokenSpec(.isolatedKeyword):
         self = .isolated
-      case TokenSpec(._const):
+      case TokenSpec(._constKeyword):
         self = ._const
-      case TokenSpec(.borrowing):
+      case TokenSpec(.borrowingKeyword):
         self = .borrowing
-      case TokenSpec(.consuming):
+      case TokenSpec(.consumingKeyword):
         self = .consuming
-      case TokenSpec(._resultDependsOn) where experimentalFeatures.contains(.nonEscapableTypes):
+      case TokenSpec(._resultDependsOnKeyword) where experimentalFeatures.contains(.nonEscapableTypes):
         self = ._resultDependsOn
       default:
         return nil
@@ -212,21 +212,21 @@ extension AttributedTypeSyntax {
     var spec: TokenSpec {
       switch self {
       case .inout:
-        return .keyword(.inout)
+        return .inoutKeyword
       case .__shared:
-        return .keyword(.__shared)
+        return .__sharedKeyword
       case .__owned:
-        return .keyword(.__owned)
+        return .__ownedKeyword
       case .isolated:
-        return .keyword(.isolated)
+        return .isolatedKeyword
       case ._const:
-        return .keyword(._const)
+        return ._constKeyword
       case .borrowing:
-        return .keyword(.borrowing)
+        return .borrowingKeyword
       case .consuming:
-        return .keyword(.consuming)
+        return .consumingKeyword
       case ._resultDependsOn:
-        return .keyword(._resultDependsOn)
+        return ._resultDependsOnKeyword
       }
     }
     
@@ -264,7 +264,7 @@ extension AvailabilityConditionSyntax {
     case poundUnavailable
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.poundAvailable):
         self = .poundAvailable
       case TokenSpec(.poundUnavailable):
@@ -308,16 +308,16 @@ extension AvailabilityLabeledArgumentSyntax {
     case deprecated
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.message):
+      switch lexeme {
+      case TokenSpec(.messageKeyword):
         self = .message
-      case TokenSpec(.renamed):
+      case TokenSpec(.renamedKeyword):
         self = .renamed
-      case TokenSpec(.introduced):
+      case TokenSpec(.introducedKeyword):
         self = .introduced
-      case TokenSpec(.obsoleted):
+      case TokenSpec(.obsoletedKeyword):
         self = .obsoleted
-      case TokenSpec(.deprecated):
+      case TokenSpec(.deprecatedKeyword):
         self = .deprecated
       default:
         return nil
@@ -327,15 +327,15 @@ extension AvailabilityLabeledArgumentSyntax {
     var spec: TokenSpec {
       switch self {
       case .message:
-        return .keyword(.message)
+        return .messageKeyword
       case .renamed:
-        return .keyword(.renamed)
+        return .renamedKeyword
       case .introduced:
-        return .keyword(.introduced)
+        return .introducedKeyword
       case .obsoleted:
-        return .keyword(.obsoleted)
+        return .obsoletedKeyword
       case .deprecated:
-        return .keyword(.deprecated)
+        return .deprecatedKeyword
       }
     }
     
@@ -367,10 +367,10 @@ extension BooleanLiteralExprSyntax {
     case `false`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.true):
+      switch lexeme {
+      case TokenSpec(.trueKeyword):
         self = .true
-      case TokenSpec(.false):
+      case TokenSpec(.falseKeyword):
         self = .false
       default:
         return nil
@@ -380,9 +380,9 @@ extension BooleanLiteralExprSyntax {
     var spec: TokenSpec {
       switch self {
       case .true:
-        return .keyword(.true)
+        return .trueKeyword
       case .false:
-        return .keyword(.false)
+        return .falseKeyword
       }
     }
     
@@ -408,10 +408,10 @@ extension CanImportVersionInfoSyntax {
     case _underlyingVersion
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(._version):
+      switch lexeme {
+      case TokenSpec(._versionKeyword):
         self = ._version
-      case TokenSpec(._underlyingVersion):
+      case TokenSpec(._underlyingVersionKeyword):
         self = ._underlyingVersion
       default:
         return nil
@@ -421,9 +421,9 @@ extension CanImportVersionInfoSyntax {
     var spec: TokenSpec {
       switch self {
       case ._version:
-        return .keyword(._version)
+        return ._versionKeyword
       case ._underlyingVersion:
-        return .keyword(._underlyingVersion)
+        return ._underlyingVersionKeyword
       }
     }
     
@@ -449,10 +449,10 @@ extension ClosureCaptureSpecifierSyntax {
     case unowned
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.weak):
+      switch lexeme {
+      case TokenSpec(.weakKeyword):
         self = .weak
-      case TokenSpec(.unowned):
+      case TokenSpec(.unownedKeyword):
         self = .unowned
       default:
         return nil
@@ -462,9 +462,9 @@ extension ClosureCaptureSpecifierSyntax {
     var spec: TokenSpec {
       switch self {
       case .weak:
-        return .keyword(.weak)
+        return .weakKeyword
       case .unowned:
-        return .keyword(.unowned)
+        return .unownedKeyword
       }
     }
     
@@ -490,10 +490,10 @@ extension ClosureCaptureSpecifierSyntax {
     case unsafe
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.safe):
+      switch lexeme {
+      case TokenSpec(.safeKeyword):
         self = .safe
-      case TokenSpec(.unsafe):
+      case TokenSpec(.unsafeKeyword):
         self = .unsafe
       default:
         return nil
@@ -503,9 +503,9 @@ extension ClosureCaptureSpecifierSyntax {
     var spec: TokenSpec {
       switch self {
       case .safe:
-        return .keyword(.safe)
+        return .safeKeyword
       case .unsafe:
-        return .keyword(.unsafe)
+        return .unsafeKeyword
       }
     }
     
@@ -531,7 +531,7 @@ extension ClosureParameterSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -572,7 +572,7 @@ extension ClosureParameterSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -613,7 +613,7 @@ extension ClosureShorthandParameterSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -654,10 +654,10 @@ extension ConsumeExprSyntax {
     case consume
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(._move):
+      switch lexeme {
+      case TokenSpec(._moveKeyword):
         self = ._move
-      case TokenSpec(.consume):
+      case TokenSpec(.consumeKeyword):
         self = .consume
       default:
         return nil
@@ -667,9 +667,9 @@ extension ConsumeExprSyntax {
     var spec: TokenSpec {
       switch self {
       case ._move:
-        return .keyword(._move)
+        return ._moveKeyword
       case .consume:
-        return .keyword(.consume)
+        return .consumeKeyword
       }
     }
     
@@ -730,78 +730,78 @@ extension DeclModifierSyntax {
     case weak
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.__consuming):
+      switch lexeme {
+      case TokenSpec(.__consumingKeyword):
         self = .__consuming
-      case TokenSpec(.__setter_access):
+      case TokenSpec(.__setter_accessKeyword):
         self = .__setter_access
-      case TokenSpec(._const):
+      case TokenSpec(._constKeyword):
         self = ._const
-      case TokenSpec(._local):
+      case TokenSpec(._localKeyword):
         self = ._local
-      case TokenSpec(.actor):
+      case TokenSpec(.actorKeyword):
         self = .actor
-      case TokenSpec(.async):
+      case TokenSpec(.asyncKeyword):
         self = .async
-      case TokenSpec(.borrowing):
+      case TokenSpec(.borrowingKeyword):
         self = .borrowing
-      case TokenSpec(.class):
+      case TokenSpec(.classKeyword):
         self = .class
-      case TokenSpec(.consuming):
+      case TokenSpec(.consumingKeyword):
         self = .consuming
-      case TokenSpec(.convenience):
+      case TokenSpec(.convenienceKeyword):
         self = .convenience
-      case TokenSpec(.distributed):
+      case TokenSpec(.distributedKeyword):
         self = .distributed
-      case TokenSpec(.dynamic):
+      case TokenSpec(.dynamicKeyword):
         self = .dynamic
-      case TokenSpec(.fileprivate):
+      case TokenSpec(.fileprivateKeyword):
         self = .fileprivate
-      case TokenSpec(.final):
+      case TokenSpec(.finalKeyword):
         self = .final
-      case TokenSpec(.indirect):
+      case TokenSpec(.indirectKeyword):
         self = .indirect
-      case TokenSpec(.infix):
+      case TokenSpec(.infixKeyword):
         self = .infix
-      case TokenSpec(.internal):
+      case TokenSpec(.internalKeyword):
         self = .internal
-      case TokenSpec(.isolated):
+      case TokenSpec(.isolatedKeyword):
         self = .isolated
-      case TokenSpec(.lazy):
+      case TokenSpec(.lazyKeyword):
         self = .lazy
-      case TokenSpec(.mutating):
+      case TokenSpec(.mutatingKeyword):
         self = .mutating
-      case TokenSpec(.nonisolated):
+      case TokenSpec(.nonisolatedKeyword):
         self = .nonisolated
-      case TokenSpec(.nonmutating):
+      case TokenSpec(.nonmutatingKeyword):
         self = .nonmutating
-      case TokenSpec(.open):
+      case TokenSpec(.openKeyword):
         self = .open
-      case TokenSpec(.optional):
+      case TokenSpec(.optionalKeyword):
         self = .optional
-      case TokenSpec(.override):
+      case TokenSpec(.overrideKeyword):
         self = .override
-      case TokenSpec(.package):
+      case TokenSpec(.packageKeyword):
         self = .package
-      case TokenSpec(.postfix):
+      case TokenSpec(.postfixKeyword):
         self = .postfix
-      case TokenSpec(.prefix):
+      case TokenSpec(.prefixKeyword):
         self = .prefix
-      case TokenSpec(.private):
+      case TokenSpec(.privateKeyword):
         self = .private
-      case TokenSpec(.public):
+      case TokenSpec(.publicKeyword):
         self = .public
-      case TokenSpec(.reasync):
+      case TokenSpec(.reasyncKeyword):
         self = .reasync
-      case TokenSpec(._resultDependsOnSelf) where experimentalFeatures.contains(.nonEscapableTypes):
+      case TokenSpec(._resultDependsOnSelfKeyword) where experimentalFeatures.contains(.nonEscapableTypes):
         self = ._resultDependsOnSelf
-      case TokenSpec(.required):
+      case TokenSpec(.requiredKeyword):
         self = .required
-      case TokenSpec(.static):
+      case TokenSpec(.staticKeyword):
         self = .static
-      case TokenSpec(.unowned):
+      case TokenSpec(.unownedKeyword):
         self = .unowned
-      case TokenSpec(.weak):
+      case TokenSpec(.weakKeyword):
         self = .weak
       default:
         return nil
@@ -811,77 +811,77 @@ extension DeclModifierSyntax {
     var spec: TokenSpec {
       switch self {
       case .__consuming:
-        return .keyword(.__consuming)
+        return .__consumingKeyword
       case .__setter_access:
-        return .keyword(.__setter_access)
+        return .__setter_accessKeyword
       case ._const:
-        return .keyword(._const)
+        return ._constKeyword
       case ._local:
-        return .keyword(._local)
+        return ._localKeyword
       case .actor:
-        return .keyword(.actor)
+        return .actorKeyword
       case .async:
-        return .keyword(.async)
+        return .asyncKeyword
       case .borrowing:
-        return .keyword(.borrowing)
+        return .borrowingKeyword
       case .class:
-        return .keyword(.class)
+        return .classKeyword
       case .consuming:
-        return .keyword(.consuming)
+        return .consumingKeyword
       case .convenience:
-        return .keyword(.convenience)
+        return .convenienceKeyword
       case .distributed:
-        return .keyword(.distributed)
+        return .distributedKeyword
       case .dynamic:
-        return .keyword(.dynamic)
+        return .dynamicKeyword
       case .fileprivate:
-        return .keyword(.fileprivate)
+        return .fileprivateKeyword
       case .final:
-        return .keyword(.final)
+        return .finalKeyword
       case .indirect:
-        return .keyword(.indirect)
+        return .indirectKeyword
       case .infix:
-        return .keyword(.infix)
+        return .infixKeyword
       case .internal:
-        return .keyword(.internal)
+        return .internalKeyword
       case .isolated:
-        return .keyword(.isolated)
+        return .isolatedKeyword
       case .lazy:
-        return .keyword(.lazy)
+        return .lazyKeyword
       case .mutating:
-        return .keyword(.mutating)
+        return .mutatingKeyword
       case .nonisolated:
-        return .keyword(.nonisolated)
+        return .nonisolatedKeyword
       case .nonmutating:
-        return .keyword(.nonmutating)
+        return .nonmutatingKeyword
       case .open:
-        return .keyword(.open)
+        return .openKeyword
       case .optional:
-        return .keyword(.optional)
+        return .optionalKeyword
       case .override:
-        return .keyword(.override)
+        return .overrideKeyword
       case .package:
-        return .keyword(.package)
+        return .packageKeyword
       case .postfix:
-        return .keyword(.postfix)
+        return .postfixKeyword
       case .prefix:
-        return .keyword(.prefix)
+        return .prefixKeyword
       case .private:
-        return .keyword(.private)
+        return .privateKeyword
       case .public:
-        return .keyword(.public)
+        return .publicKeyword
       case .reasync:
-        return .keyword(.reasync)
+        return .reasyncKeyword
       case ._resultDependsOnSelf:
-        return .keyword(._resultDependsOnSelf)
+        return ._resultDependsOnSelfKeyword
       case .required:
-        return .keyword(.required)
+        return .requiredKeyword
       case .static:
-        return .keyword(.static)
+        return .staticKeyword
       case .unowned:
-        return .keyword(.unowned)
+        return .unownedKeyword
       case .weak:
-        return .keyword(.weak)
+        return .weakKeyword
       }
     }
     
@@ -980,14 +980,14 @@ extension DeclReferenceExprSyntax {
     case integerLiteral
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
-      case TokenSpec(.self):
+      case TokenSpec(.selfKeyword):
         self = .self
-      case TokenSpec(.Self):
+      case TokenSpec(.SelfKeyword):
         self = .Self
-      case TokenSpec(.`init`):
+      case TokenSpec(.initKeyword):
         self = .`init`
       case TokenSpec(.dollarIdentifier):
         self = .dollarIdentifier
@@ -1005,11 +1005,11 @@ extension DeclReferenceExprSyntax {
       case .identifier:
         return .identifier
       case .self:
-        return .keyword(.self)
+        return .selfKeyword
       case .Self:
-        return .keyword(.Self)
+        return .SelfKeyword
       case .`init`:
-        return .keyword(.`init`)
+        return .initKeyword
       case .dollarIdentifier:
         return .dollarIdentifier
       case .binaryOperator:
@@ -1051,10 +1051,10 @@ extension DerivativeAttributeArgumentsSyntax {
     case set
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.get):
+      switch lexeme {
+      case TokenSpec(.getKeyword):
         self = .get
-      case TokenSpec(.set):
+      case TokenSpec(.setKeyword):
         self = .set
       default:
         return nil
@@ -1064,9 +1064,9 @@ extension DerivativeAttributeArgumentsSyntax {
     var spec: TokenSpec {
       switch self {
       case .get:
-        return .keyword(.get)
+        return .getKeyword
       case .set:
-        return .keyword(.set)
+        return .setKeyword
       }
     }
     
@@ -1093,12 +1093,12 @@ extension DifferentiabilityArgumentSyntax {
     case `self`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.integerLiteral):
         self = .integerLiteral
-      case TokenSpec(.self):
+      case TokenSpec(.selfKeyword):
         self = .self
       default:
         return nil
@@ -1112,7 +1112,7 @@ extension DifferentiabilityArgumentSyntax {
       case .integerLiteral:
         return .integerLiteral
       case .self:
-        return .keyword(.self)
+        return .selfKeyword
       }
     }
     
@@ -1141,12 +1141,12 @@ extension DifferentiableAttributeArgumentsSyntax {
     case _linear
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(._forward):
+      switch lexeme {
+      case TokenSpec(._forwardKeyword):
         self = ._forward
-      case TokenSpec(.reverse):
+      case TokenSpec(.reverseKeyword):
         self = .reverse
-      case TokenSpec(._linear):
+      case TokenSpec(._linearKeyword):
         self = ._linear
       default:
         return nil
@@ -1156,11 +1156,11 @@ extension DifferentiableAttributeArgumentsSyntax {
     var spec: TokenSpec {
       switch self {
       case ._forward:
-        return .keyword(._forward)
+        return ._forwardKeyword
       case .reverse:
-        return .keyword(.reverse)
+        return .reverseKeyword
       case ._linear:
-        return .keyword(._linear)
+        return ._linearKeyword
       }
     }
     
@@ -1188,10 +1188,10 @@ extension DocumentationAttributeArgumentSyntax {
     case metadata
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.visibility):
+      switch lexeme {
+      case TokenSpec(.visibilityKeyword):
         self = .visibility
-      case TokenSpec(.metadata):
+      case TokenSpec(.metadataKeyword):
         self = .metadata
       default:
         return nil
@@ -1201,9 +1201,9 @@ extension DocumentationAttributeArgumentSyntax {
     var spec: TokenSpec {
       switch self {
       case .visibility:
-        return .keyword(.visibility)
+        return .visibilityKeyword
       case .metadata:
-        return .keyword(.metadata)
+        return .metadataKeyword
       }
     }
     
@@ -1229,7 +1229,7 @@ extension EnumCaseParameterSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -1270,7 +1270,7 @@ extension EnumCaseParameterSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -1313,7 +1313,7 @@ extension FunctionDeclSyntax {
     case postfixOperator
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.binaryOperator):
@@ -1366,10 +1366,10 @@ extension FunctionEffectSpecifiersSyntax {
     case reasync
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.async):
+      switch lexeme {
+      case TokenSpec(.asyncKeyword):
         self = .async
-      case TokenSpec(.reasync):
+      case TokenSpec(.reasyncKeyword):
         self = .reasync
       default:
         return nil
@@ -1379,9 +1379,9 @@ extension FunctionEffectSpecifiersSyntax {
     var spec: TokenSpec {
       switch self {
       case .async:
-        return .keyword(.async)
+        return .asyncKeyword
       case .reasync:
-        return .keyword(.reasync)
+        return .reasyncKeyword
       }
     }
     
@@ -1407,7 +1407,7 @@ extension FunctionParameterSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -1448,7 +1448,7 @@ extension FunctionParameterSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -1490,12 +1490,12 @@ extension IdentifierPatternSyntax {
     case `init`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
-      case TokenSpec(.self):
+      case TokenSpec(.selfKeyword):
         self = .self
-      case TokenSpec(.`init`):
+      case TokenSpec(.initKeyword):
         self = .`init`
       default:
         return nil
@@ -1507,9 +1507,9 @@ extension IdentifierPatternSyntax {
       case .identifier:
         return .identifier
       case .self:
-        return .keyword(.self)
+        return .selfKeyword
       case .`init`:
-        return .keyword(.`init`)
+        return .initKeyword
       }
     }
     
@@ -1539,12 +1539,12 @@ extension IdentifierTypeSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
-      case TokenSpec(.Self):
+      case TokenSpec(.SelfKeyword):
         self = .Self
-      case TokenSpec(.Any):
+      case TokenSpec(.AnyKeyword):
         self = .Any
       case TokenSpec(.wildcard):
         self = .wildcard
@@ -1558,9 +1558,9 @@ extension IdentifierTypeSyntax {
       case .identifier:
         return .identifier
       case .Self:
-        return .keyword(.Self)
+        return .SelfKeyword
       case .Any:
-        return .keyword(.Any)
+        return .AnyKeyword
       case .wildcard:
         return .wildcard
       }
@@ -1593,7 +1593,7 @@ extension IfConfigClauseSyntax {
     case poundElse
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.poundIf):
         self = .poundIf
       case TokenSpec(.poundElseif):
@@ -1647,24 +1647,24 @@ extension ImportDeclSyntax {
     case `inout`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.typealias):
+      switch lexeme {
+      case TokenSpec(.typealiasKeyword):
         self = .typealias
-      case TokenSpec(.struct):
+      case TokenSpec(.structKeyword):
         self = .struct
-      case TokenSpec(.class):
+      case TokenSpec(.classKeyword):
         self = .class
-      case TokenSpec(.enum):
+      case TokenSpec(.enumKeyword):
         self = .enum
-      case TokenSpec(.protocol):
+      case TokenSpec(.protocolKeyword):
         self = .protocol
-      case TokenSpec(.var):
+      case TokenSpec(.varKeyword):
         self = .var
-      case TokenSpec(.let):
+      case TokenSpec(.letKeyword):
         self = .let
-      case TokenSpec(.func):
+      case TokenSpec(.funcKeyword):
         self = .func
-      case TokenSpec(.inout):
+      case TokenSpec(.inoutKeyword):
         self = .inout
       default:
         return nil
@@ -1674,23 +1674,23 @@ extension ImportDeclSyntax {
     var spec: TokenSpec {
       switch self {
       case .typealias:
-        return .keyword(.typealias)
+        return .typealiasKeyword
       case .struct:
-        return .keyword(.struct)
+        return .structKeyword
       case .class:
-        return .keyword(.class)
+        return .classKeyword
       case .enum:
-        return .keyword(.enum)
+        return .enumKeyword
       case .protocol:
-        return .keyword(.protocol)
+        return .protocolKeyword
       case .var:
-        return .keyword(.var)
+        return .varKeyword
       case .let:
-        return .keyword(.let)
+        return .letKeyword
       case .func:
-        return .keyword(.func)
+        return .funcKeyword
       case .inout:
-        return .keyword(.inout)
+        return .inoutKeyword
       }
     }
     
@@ -1732,7 +1732,7 @@ extension ImportPathComponentSyntax {
     case postfixOperator
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.binaryOperator):
@@ -1785,7 +1785,7 @@ extension InitializerDeclSyntax {
     case exclamationMark
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.postfixQuestionMark):
         self = .postfixQuestionMark
       case TokenSpec(.exclamationMark):
@@ -1826,7 +1826,7 @@ extension KeyPathOptionalComponentSyntax {
     case exclamationMark
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.postfixQuestionMark):
         self = .postfixQuestionMark
       case TokenSpec(.exclamationMark):
@@ -1867,7 +1867,7 @@ extension LabeledExprSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -1913,20 +1913,20 @@ extension LabeledSpecializeArgumentSyntax {
     case available
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.target):
+      switch lexeme {
+      case TokenSpec(.targetKeyword):
         self = .target
-      case TokenSpec(.availability):
+      case TokenSpec(.availabilityKeyword):
         self = .availability
-      case TokenSpec(.exported):
+      case TokenSpec(.exportedKeyword):
         self = .exported
-      case TokenSpec(.kind):
+      case TokenSpec(.kindKeyword):
         self = .kind
-      case TokenSpec(.spi):
+      case TokenSpec(.spiKeyword):
         self = .spi
-      case TokenSpec(.spiModule):
+      case TokenSpec(.spiModuleKeyword):
         self = .spiModule
-      case TokenSpec(.available):
+      case TokenSpec(.availableKeyword):
         self = .available
       default:
         return nil
@@ -1936,19 +1936,19 @@ extension LabeledSpecializeArgumentSyntax {
     var spec: TokenSpec {
       switch self {
       case .target:
-        return .keyword(.target)
+        return .targetKeyword
       case .availability:
-        return .keyword(.availability)
+        return .availabilityKeyword
       case .exported:
-        return .keyword(.exported)
+        return .exportedKeyword
       case .kind:
-        return .keyword(.kind)
+        return .kindKeyword
       case .spi:
-        return .keyword(.spi)
+        return .spiKeyword
       case .spiModule:
-        return .keyword(.spiModule)
+        return .spiModuleKeyword
       case .available:
-        return .keyword(.available)
+        return .availableKeyword
       }
     }
     
@@ -1991,24 +1991,24 @@ extension LayoutRequirementSyntax {
     case _TrivialStride
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(._Trivial):
+      switch lexeme {
+      case TokenSpec(._TrivialKeyword):
         self = ._Trivial
-      case TokenSpec(._TrivialAtMost):
+      case TokenSpec(._TrivialAtMostKeyword):
         self = ._TrivialAtMost
-      case TokenSpec(._UnknownLayout):
+      case TokenSpec(._UnknownLayoutKeyword):
         self = ._UnknownLayout
-      case TokenSpec(._RefCountedObject):
+      case TokenSpec(._RefCountedObjectKeyword):
         self = ._RefCountedObject
-      case TokenSpec(._NativeRefCountedObject):
+      case TokenSpec(._NativeRefCountedObjectKeyword):
         self = ._NativeRefCountedObject
-      case TokenSpec(._Class):
+      case TokenSpec(._ClassKeyword):
         self = ._Class
-      case TokenSpec(._NativeClass):
+      case TokenSpec(._NativeClassKeyword):
         self = ._NativeClass
-      case TokenSpec(._BridgeObject):
+      case TokenSpec(._BridgeObjectKeyword):
         self = ._BridgeObject
-      case TokenSpec(._TrivialStride):
+      case TokenSpec(._TrivialStrideKeyword):
         self = ._TrivialStride
       default:
         return nil
@@ -2018,23 +2018,23 @@ extension LayoutRequirementSyntax {
     var spec: TokenSpec {
       switch self {
       case ._Trivial:
-        return .keyword(._Trivial)
+        return ._TrivialKeyword
       case ._TrivialAtMost:
-        return .keyword(._TrivialAtMost)
+        return ._TrivialAtMostKeyword
       case ._UnknownLayout:
-        return .keyword(._UnknownLayout)
+        return ._UnknownLayoutKeyword
       case ._RefCountedObject:
-        return .keyword(._RefCountedObject)
+        return ._RefCountedObjectKeyword
       case ._NativeRefCountedObject:
-        return .keyword(._NativeRefCountedObject)
+        return ._NativeRefCountedObjectKeyword
       case ._Class:
-        return .keyword(._Class)
+        return ._ClassKeyword
       case ._NativeClass:
-        return .keyword(._NativeClass)
+        return ._NativeClassKeyword
       case ._BridgeObject:
-        return .keyword(._BridgeObject)
+        return ._BridgeObjectKeyword
       case ._TrivialStride:
-        return .keyword(._TrivialStride)
+        return ._TrivialStrideKeyword
       }
     }
     
@@ -2074,10 +2074,10 @@ extension MemberTypeSyntax {
     case `self`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
-      case TokenSpec(.self):
+      case TokenSpec(.selfKeyword):
         self = .self
       default:
         return nil
@@ -2089,7 +2089,7 @@ extension MemberTypeSyntax {
       case .identifier:
         return .identifier
       case .self:
-        return .keyword(.self)
+        return .selfKeyword
       }
     }
     
@@ -2115,10 +2115,10 @@ extension MetatypeTypeSyntax {
     case `Protocol`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.Type):
+      switch lexeme {
+      case TokenSpec(.TypeKeyword):
         self = .Type
-      case TokenSpec(.Protocol):
+      case TokenSpec(.ProtocolKeyword):
         self = .Protocol
       default:
         return nil
@@ -2128,9 +2128,9 @@ extension MetatypeTypeSyntax {
     var spec: TokenSpec {
       switch self {
       case .Type:
-        return .keyword(.Type)
+        return .TypeKeyword
       case .Protocol:
-        return .keyword(.Protocol)
+        return .ProtocolKeyword
       }
     }
     
@@ -2156,7 +2156,7 @@ extension MultipleTrailingClosureElementSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -2198,12 +2198,12 @@ extension OperatorDeclSyntax {
     case infix
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.prefix):
+      switch lexeme {
+      case TokenSpec(.prefixKeyword):
         self = .prefix
-      case TokenSpec(.postfix):
+      case TokenSpec(.postfixKeyword):
         self = .postfix
-      case TokenSpec(.infix):
+      case TokenSpec(.infixKeyword):
         self = .infix
       default:
         return nil
@@ -2213,11 +2213,11 @@ extension OperatorDeclSyntax {
     var spec: TokenSpec {
       switch self {
       case .prefix:
-        return .keyword(.prefix)
+        return .prefixKeyword
       case .postfix:
-        return .keyword(.postfix)
+        return .postfixKeyword
       case .infix:
-        return .keyword(.infix)
+        return .infixKeyword
       }
     }
     
@@ -2246,7 +2246,7 @@ extension OperatorDeclSyntax {
     case postfixOperator
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.binaryOperator):
         self = .binaryOperator
       case TokenSpec(.prefixOperator):
@@ -2300,18 +2300,18 @@ extension OptionalBindingConditionSyntax {
     case _consuming
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.let):
+      switch lexeme {
+      case TokenSpec(.letKeyword):
         self = .let
-      case TokenSpec(.var):
+      case TokenSpec(.varKeyword):
         self = .var
-      case TokenSpec(.inout):
+      case TokenSpec(.inoutKeyword):
         self = .inout
-      case TokenSpec(._mutating) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._mutatingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._mutating
-      case TokenSpec(._borrowing) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._borrowingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._borrowing
-      case TokenSpec(._consuming) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._consumingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._consuming
       default:
         return nil
@@ -2321,17 +2321,17 @@ extension OptionalBindingConditionSyntax {
     var spec: TokenSpec {
       switch self {
       case .let:
-        return .keyword(.let)
+        return .letKeyword
       case .var:
-        return .keyword(.var)
+        return .varKeyword
       case .inout:
-        return .keyword(.inout)
+        return .inoutKeyword
       case ._mutating:
-        return .keyword(._mutating)
+        return ._mutatingKeyword
       case ._borrowing:
-        return .keyword(._borrowing)
+        return ._borrowingKeyword
       case ._consuming:
-        return .keyword(._consuming)
+        return ._consumingKeyword
       }
     }
     
@@ -2365,10 +2365,10 @@ extension PrecedenceGroupAssignmentSyntax {
     case `false`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.true):
+      switch lexeme {
+      case TokenSpec(.trueKeyword):
         self = .true
-      case TokenSpec(.false):
+      case TokenSpec(.falseKeyword):
         self = .false
       default:
         return nil
@@ -2378,9 +2378,9 @@ extension PrecedenceGroupAssignmentSyntax {
     var spec: TokenSpec {
       switch self {
       case .true:
-        return .keyword(.true)
+        return .trueKeyword
       case .false:
-        return .keyword(.false)
+        return .falseKeyword
       }
     }
     
@@ -2407,12 +2407,12 @@ extension PrecedenceGroupAssociativitySyntax {
     case none
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.left):
+      switch lexeme {
+      case TokenSpec(.leftKeyword):
         self = .left
-      case TokenSpec(.right):
+      case TokenSpec(.rightKeyword):
         self = .right
-      case TokenSpec(.none):
+      case TokenSpec(.noneKeyword):
         self = .none
       default:
         return nil
@@ -2422,11 +2422,11 @@ extension PrecedenceGroupAssociativitySyntax {
     var spec: TokenSpec {
       switch self {
       case .left:
-        return .keyword(.left)
+        return .leftKeyword
       case .right:
-        return .keyword(.right)
+        return .rightKeyword
       case .none:
-        return .keyword(.none)
+        return .noneKeyword
       }
     }
     
@@ -2454,10 +2454,10 @@ extension PrecedenceGroupRelationSyntax {
     case lowerThan
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.higherThan):
+      switch lexeme {
+      case TokenSpec(.higherThanKeyword):
         self = .higherThan
-      case TokenSpec(.lowerThan):
+      case TokenSpec(.lowerThanKeyword):
         self = .lowerThan
       default:
         return nil
@@ -2467,9 +2467,9 @@ extension PrecedenceGroupRelationSyntax {
     var spec: TokenSpec {
       switch self {
       case .higherThan:
-        return .keyword(.higherThan)
+        return .higherThanKeyword
       case .lowerThan:
-        return .keyword(.lowerThan)
+        return .lowerThanKeyword
       }
     }
     
@@ -2496,7 +2496,7 @@ extension SameTypeRequirementSyntax {
     case postfixOperator
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.binaryOperator):
         self = .binaryOperator
       case TokenSpec(.prefixOperator):
@@ -2543,7 +2543,7 @@ extension SimpleStringLiteralExprSyntax {
     case multilineStringQuote
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.stringQuote):
         self = .stringQuote
       case TokenSpec(.multilineStringQuote):
@@ -2584,7 +2584,7 @@ extension SimpleStringLiteralExprSyntax {
     case multilineStringQuote
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.stringQuote):
         self = .stringQuote
       case TokenSpec(.multilineStringQuote):
@@ -2625,10 +2625,10 @@ extension SomeOrAnyTypeSyntax {
     case any
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.some):
+      switch lexeme {
+      case TokenSpec(.someKeyword):
         self = .some
-      case TokenSpec(.any):
+      case TokenSpec(.anyKeyword):
         self = .any
       default:
         return nil
@@ -2638,9 +2638,9 @@ extension SomeOrAnyTypeSyntax {
     var spec: TokenSpec {
       switch self {
       case .some:
-        return .keyword(.some)
+        return .someKeyword
       case .any:
-        return .keyword(.any)
+        return .anyKeyword
       }
     }
     
@@ -2667,7 +2667,7 @@ extension StringLiteralExprSyntax {
     case singleQuote
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.stringQuote):
         self = .stringQuote
       case TokenSpec(.multilineStringQuote):
@@ -2715,7 +2715,7 @@ extension StringLiteralExprSyntax {
     case singleQuote
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.stringQuote):
         self = .stringQuote
       case TokenSpec(.multilineStringQuote):
@@ -2762,10 +2762,10 @@ extension ThrowsClauseSyntax {
     case `rethrows`
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.throws):
+      switch lexeme {
+      case TokenSpec(.throwsKeyword):
         self = .throws
-      case TokenSpec(.rethrows):
+      case TokenSpec(.rethrowsKeyword):
         self = .rethrows
       default:
         return nil
@@ -2775,9 +2775,9 @@ extension ThrowsClauseSyntax {
     var spec: TokenSpec {
       switch self {
       case .throws:
-        return .keyword(.throws)
+        return .throwsKeyword
       case .rethrows:
-        return .keyword(.rethrows)
+        return .rethrowsKeyword
       }
     }
     
@@ -2803,7 +2803,7 @@ extension TryExprSyntax {
     case exclamationMark
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.postfixQuestionMark):
         self = .postfixQuestionMark
       case TokenSpec(.exclamationMark):
@@ -2844,7 +2844,7 @@ extension TupleTypeElementSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -2885,7 +2885,7 @@ extension TupleTypeElementSyntax {
     case wildcard
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.identifier):
         self = .identifier
       case TokenSpec(.wildcard):
@@ -2926,7 +2926,7 @@ extension UnresolvedAsExprSyntax {
     case exclamationMark
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
+      switch lexeme {
       case TokenSpec(.postfixQuestionMark):
         self = .postfixQuestionMark
       case TokenSpec(.exclamationMark):
@@ -2974,18 +2974,18 @@ extension ValueBindingPatternSyntax {
     case _consuming
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.let):
+      switch lexeme {
+      case TokenSpec(.letKeyword):
         self = .let
-      case TokenSpec(.var):
+      case TokenSpec(.varKeyword):
         self = .var
-      case TokenSpec(.inout):
+      case TokenSpec(.inoutKeyword):
         self = .inout
-      case TokenSpec(._mutating) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._mutatingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._mutating
-      case TokenSpec(._borrowing) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._borrowingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._borrowing
-      case TokenSpec(._consuming) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._consumingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._consuming
       default:
         return nil
@@ -2995,17 +2995,17 @@ extension ValueBindingPatternSyntax {
     var spec: TokenSpec {
       switch self {
       case .let:
-        return .keyword(.let)
+        return .letKeyword
       case .var:
-        return .keyword(.var)
+        return .varKeyword
       case .inout:
-        return .keyword(.inout)
+        return .inoutKeyword
       case ._mutating:
-        return .keyword(._mutating)
+        return ._mutatingKeyword
       case ._borrowing:
-        return .keyword(._borrowing)
+        return ._borrowingKeyword
       case ._consuming:
-        return .keyword(._consuming)
+        return ._consumingKeyword
       }
     }
     
@@ -3046,18 +3046,18 @@ extension VariableDeclSyntax {
     case _consuming
     
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.let):
+      switch lexeme {
+      case TokenSpec(.letKeyword):
         self = .let
-      case TokenSpec(.var):
+      case TokenSpec(.varKeyword):
         self = .var
-      case TokenSpec(.inout):
+      case TokenSpec(.inoutKeyword):
         self = .inout
-      case TokenSpec(._mutating) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._mutatingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._mutating
-      case TokenSpec(._borrowing) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._borrowingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._borrowing
-      case TokenSpec(._consuming) where experimentalFeatures.contains(.referenceBindings):
+      case TokenSpec(._consumingKeyword) where experimentalFeatures.contains(.referenceBindings):
         self = ._consuming
       default:
         return nil
@@ -3067,17 +3067,17 @@ extension VariableDeclSyntax {
     var spec: TokenSpec {
       switch self {
       case .let:
-        return .keyword(.let)
+        return .letKeyword
       case .var:
-        return .keyword(.var)
+        return .varKeyword
       case .inout:
-        return .keyword(.inout)
+        return .inoutKeyword
       case ._mutating:
-        return .keyword(._mutating)
+        return ._mutatingKeyword
       case ._borrowing:
-        return .keyword(._borrowing)
+        return ._borrowingKeyword
       case ._consuming:
-        return .keyword(._consuming)
+        return ._consumingKeyword
       }
     }
     

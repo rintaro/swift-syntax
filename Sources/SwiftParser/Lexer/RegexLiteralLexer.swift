@@ -629,16 +629,6 @@ extension Lexer.Cursor {
     case .shebang:
       return false
 
-    case .keyword:
-      // There are a handful of keywords that are expressions, handle them.
-      // Otherwise, a regex literal can generally be parsed after a keyword.
-      switch previousKeyword! {
-      case .true, .false, .Any, .nil, .`self`, .`Self`, .super:
-        return false
-      default:
-        return true
-      }
-
     // Identifiers do not sequence expressions.
     case .identifier, .dollarIdentifier, .wildcard:
       return false
@@ -661,6 +651,15 @@ extension Lexer.Cursor {
 
     // Allow unknown for better recovery.
     case .unknown:
+      return true
+
+    // There are a handful of keywords that are expressions, handle them.
+    case .trueKeyword, .falseKeyword, .AnyKeyword, .nilKeyword, .selfKeyword, .SelfKeyword, .superKeyword:
+      return false
+
+    // Otherwise, a regex literal can generally be parsed after a keyword.
+    default:
+      assert(previousTokenKind!.isKeywordKind)
       return true
     }
   }
@@ -700,8 +699,8 @@ extension Lexer.Cursor {
     // Re-lexing isn't a viable strategy as there could be unbalanced curly
     // braces in the regex, which interferes with the lexical structure (e.g
     // anything relying on the lexed tokens to correctly balance curly braces).
-    switch self.previousKeyword {
-    case .func, .operator:
+    switch self.previousTokenKind {
+    case .funcKeyword, .operatorKeyword:
       return nil
     default:
       break

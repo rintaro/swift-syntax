@@ -66,7 +66,7 @@ extension Parser {
   mutating func parseDeclReferenceExpr(_ flags: DeclNameOptions = []) -> RawDeclReferenceExprSyntax {
     // Consume the base name.
     let base: RawTokenSyntax
-    if let identOrSelf = self.consume(if: .identifier, .keyword(.self), .keyword(.Self)) ?? self.consume(if: .keyword(.`init`)) {
+    if let identOrSelf = self.consume(if: .identifier, .selfKeyword, .SelfKeyword) ?? self.consume(if: .initKeyword) {
       base = identOrSelf
     } else if flags.contains(.operators), let (_, _) = self.at(anyIn: Operator.self) {
       base = self.consumeAnyToken(remapping: .binaryOperator)
@@ -177,7 +177,7 @@ extension Parser {
   }
 
   mutating func parseQualifiedTypeIdentifier() -> RawTypeSyntax {
-    if self.at(.keyword(.Any)) {
+    if self.at(.AnyKeyword) {
       return RawTypeSyntax(self.parseAnyType())
     }
 
@@ -212,7 +212,7 @@ extension Parser {
     var keepGoing = self.consume(if: .period)
     var loopProgress = LoopProgressCondition()
     while keepGoing != nil && self.hasProgressed(&loopProgress) {
-      let (unexpectedBeforeName, name) = self.expect(.identifier, .keyword(.self), TokenSpec(.Self, remapping: .identifier), default: .identifier)
+      let (unexpectedBeforeName, name) = self.expect(.identifier, .selfKeyword, TokenSpec(.SelfKeyword, remapping: .identifier), default: .identifier)
       let generics: RawGenericArgumentClauseSyntax?
       if self.atContextualPunctuator("<") {
         generics = self.parseGenericArguments()
@@ -294,7 +294,7 @@ extension Lexer.Lexeme {
       return true
     case .dollarIdentifier:
       return allowDollarIdentifier
-    case .keyword(.inout):
+    case .inoutKeyword:
       // `inout` cannot be an argument label for historical reasons.
       return false
     default:
@@ -313,6 +313,6 @@ extension Lexer.Lexeme {
     // Only lexer-classified lexemes have ``RawTokenKind`` of `keyword.
     // Contextual keywords will only be made keywords when a ``RawTokenSyntax`` is
     // constructed from them.
-    return self.rawTokenKind == .keyword
+    return self.rawTokenKind.isKeywordKind
   }
 }

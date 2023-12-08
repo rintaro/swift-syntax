@@ -61,14 +61,14 @@ extension Parser {
     case identifier
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.message): self = .message
-      case TokenSpec(.renamed): self = .renamed
-      case TokenSpec(.introduced): self = .introduced
-      case TokenSpec(.deprecated): self = .deprecated
-      case TokenSpec(.obsoleted): self = .obsoleted
-      case TokenSpec(.unavailable): self = .unavailable
-      case TokenSpec(.noasync): self = .noasync
+      switch lexeme {
+      case TokenSpec(.messageKeyword): self = .message
+      case TokenSpec(.renamedKeyword): self = .renamed
+      case TokenSpec(.introducedKeyword): self = .introduced
+      case TokenSpec(.deprecatedKeyword): self = .deprecated
+      case TokenSpec(.obsoletedKeyword): self = .obsoleted
+      case TokenSpec(.unavailableKeyword): self = .unavailable
+      case TokenSpec(.noasyncKeyword): self = .noasync
       case TokenSpec(.binaryOperator) where lexeme.tokenText == "*": self = .star
       case TokenSpec(.identifier): self = .identifier
       default: return nil
@@ -77,13 +77,13 @@ extension Parser {
 
     var spec: TokenSpec {
       switch self {
-      case .message: return .keyword(.message)
-      case .renamed: return .keyword(.renamed)
-      case .introduced: return .keyword(.introduced)
-      case .deprecated: return .keyword(.deprecated)
-      case .obsoleted: return .keyword(.obsoleted)
-      case .unavailable: return .keyword(.unavailable)
-      case .noasync: return .keyword(.noasync)
+      case .message: return .messageKeyword
+      case .renamed: return .renamedKeyword
+      case .introduced: return .introducedKeyword
+      case .deprecated: return .deprecatedKeyword
+      case .obsoleted: return .obsoletedKeyword
+      case .unavailable: return .unavailableKeyword
+      case .noasync: return .noasyncKeyword
       case .star: return .binaryOperator
       case .identifier: return .identifier
       }

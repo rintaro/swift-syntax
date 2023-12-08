@@ -211,7 +211,855 @@ extension TokenSpec {
     return TokenSpec(.wildcard)
   }
   
-  static func keyword(_ keyword: Keyword) -> TokenSpec {
-    return TokenSpec(keyword)
+  static var __consumingKeyword: TokenSpec {
+    return TokenSpec(.__consumingKeyword)
+  }
+  
+  static var __ownedKeyword: TokenSpec {
+    return TokenSpec(.__ownedKeyword)
+  }
+  
+  static var __setter_accessKeyword: TokenSpec {
+    return TokenSpec(.__setter_accessKeyword)
+  }
+  
+  static var __sharedKeyword: TokenSpec {
+    return TokenSpec(.__sharedKeyword)
+  }
+  
+  static var _alignmentKeyword: TokenSpec {
+    return TokenSpec(._alignmentKeyword)
+  }
+  
+  static var _backDeployKeyword: TokenSpec {
+    return TokenSpec(._backDeployKeyword)
+  }
+  
+  static var _borrowKeyword: TokenSpec {
+    return TokenSpec(._borrowKeyword)
+  }
+  
+  static var _borrowingKeyword: TokenSpec {
+    return TokenSpec(._borrowingKeyword)
+  }
+  
+  static var _BridgeObjectKeyword: TokenSpec {
+    return TokenSpec(._BridgeObjectKeyword)
+  }
+  
+  static var _cdeclKeyword: TokenSpec {
+    return TokenSpec(._cdeclKeyword)
+  }
+  
+  static var _ClassKeyword: TokenSpec {
+    return TokenSpec(._ClassKeyword)
+  }
+  
+  static var _compilerInitializedKeyword: TokenSpec {
+    return TokenSpec(._compilerInitializedKeyword)
+  }
+  
+  static var _constKeyword: TokenSpec {
+    return TokenSpec(._constKeyword)
+  }
+  
+  static var _consumingKeyword: TokenSpec {
+    return TokenSpec(._consumingKeyword)
+  }
+  
+  static var _documentationKeyword: TokenSpec {
+    return TokenSpec(._documentationKeyword)
+  }
+  
+  static var _dynamicReplacementKeyword: TokenSpec {
+    return TokenSpec(._dynamicReplacementKeyword)
+  }
+  
+  static var _effectsKeyword: TokenSpec {
+    return TokenSpec(._effectsKeyword)
+  }
+  
+  static var _exposeKeyword: TokenSpec {
+    return TokenSpec(._exposeKeyword)
+  }
+  
+  static var _forwardKeyword: TokenSpec {
+    return TokenSpec(._forwardKeyword)
+  }
+  
+  static var _implementsKeyword: TokenSpec {
+    return TokenSpec(._implementsKeyword)
+  }
+  
+  static var _linearKeyword: TokenSpec {
+    return TokenSpec(._linearKeyword)
+  }
+  
+  static var _localKeyword: TokenSpec {
+    return TokenSpec(._localKeyword)
+  }
+  
+  static var _modifyKeyword: TokenSpec {
+    return TokenSpec(._modifyKeyword)
+  }
+  
+  static var _moveKeyword: TokenSpec {
+    return TokenSpec(._moveKeyword)
+  }
+  
+  static var _mutatingKeyword: TokenSpec {
+    return TokenSpec(._mutatingKeyword)
+  }
+  
+  static var _NativeClassKeyword: TokenSpec {
+    return TokenSpec(._NativeClassKeyword)
+  }
+  
+  static var _NativeRefCountedObjectKeyword: TokenSpec {
+    return TokenSpec(._NativeRefCountedObjectKeyword)
+  }
+  
+  static var _noMetadataKeyword: TokenSpec {
+    return TokenSpec(._noMetadataKeyword)
+  }
+  
+  static var _nonSendableKeyword: TokenSpec {
+    return TokenSpec(._nonSendableKeyword)
+  }
+  
+  static var _objcImplementationKeyword: TokenSpec {
+    return TokenSpec(._objcImplementationKeyword)
+  }
+  
+  static var _objcRuntimeNameKeyword: TokenSpec {
+    return TokenSpec(._objcRuntimeNameKeyword)
+  }
+  
+  static var _opaqueReturnTypeOfKeyword: TokenSpec {
+    return TokenSpec(._opaqueReturnTypeOfKeyword)
+  }
+  
+  static var _optimizeKeyword: TokenSpec {
+    return TokenSpec(._optimizeKeyword)
+  }
+  
+  static var _originallyDefinedInKeyword: TokenSpec {
+    return TokenSpec(._originallyDefinedInKeyword)
+  }
+  
+  static var _PackageDescriptionKeyword: TokenSpec {
+    return TokenSpec(._PackageDescriptionKeyword)
+  }
+  
+  static var _privateKeyword: TokenSpec {
+    return TokenSpec(._privateKeyword)
+  }
+  
+  static var _projectedValuePropertyKeyword: TokenSpec {
+    return TokenSpec(._projectedValuePropertyKeyword)
+  }
+  
+  static var _readKeyword: TokenSpec {
+    return TokenSpec(._readKeyword)
+  }
+  
+  static var _RefCountedObjectKeyword: TokenSpec {
+    return TokenSpec(._RefCountedObjectKeyword)
+  }
+  
+  static var _semanticsKeyword: TokenSpec {
+    return TokenSpec(._semanticsKeyword)
+  }
+  
+  static var _specializeKeyword: TokenSpec {
+    return TokenSpec(._specializeKeyword)
+  }
+  
+  static var _spiKeyword: TokenSpec {
+    return TokenSpec(._spiKeyword)
+  }
+  
+  static var _spi_availableKeyword: TokenSpec {
+    return TokenSpec(._spi_availableKeyword)
+  }
+  
+  static var _swift_native_objc_runtime_baseKeyword: TokenSpec {
+    return TokenSpec(._swift_native_objc_runtime_baseKeyword)
+  }
+  
+  static var _TrivialKeyword: TokenSpec {
+    return TokenSpec(._TrivialKeyword)
+  }
+  
+  static var _TrivialAtMostKeyword: TokenSpec {
+    return TokenSpec(._TrivialAtMostKeyword)
+  }
+  
+  static var _TrivialStrideKeyword: TokenSpec {
+    return TokenSpec(._TrivialStrideKeyword)
+  }
+  
+  static var _typeEraserKeyword: TokenSpec {
+    return TokenSpec(._typeEraserKeyword)
+  }
+  
+  static var _unavailableFromAsyncKeyword: TokenSpec {
+    return TokenSpec(._unavailableFromAsyncKeyword)
+  }
+  
+  static var _underlyingVersionKeyword: TokenSpec {
+    return TokenSpec(._underlyingVersionKeyword)
+  }
+  
+  static var _UnknownLayoutKeyword: TokenSpec {
+    return TokenSpec(._UnknownLayoutKeyword)
+  }
+  
+  static var _versionKeyword: TokenSpec {
+    return TokenSpec(._versionKeyword)
+  }
+  
+  static var accessesKeyword: TokenSpec {
+    return TokenSpec(.accessesKeyword)
+  }
+  
+  static var actorKeyword: TokenSpec {
+    return TokenSpec(.actorKeyword)
+  }
+  
+  static var addressWithNativeOwnerKeyword: TokenSpec {
+    return TokenSpec(.addressWithNativeOwnerKeyword)
+  }
+  
+  static var addressWithOwnerKeyword: TokenSpec {
+    return TokenSpec(.addressWithOwnerKeyword)
+  }
+  
+  static var anyKeyword: TokenSpec {
+    return TokenSpec(.anyKeyword)
+  }
+  
+  static var AnyKeyword: TokenSpec {
+    return TokenSpec(.AnyKeyword)
+  }
+  
+  static var asKeyword: TokenSpec {
+    return TokenSpec(.asKeyword)
+  }
+  
+  static var assignmentKeyword: TokenSpec {
+    return TokenSpec(.assignmentKeyword)
+  }
+  
+  static var associatedtypeKeyword: TokenSpec {
+    return TokenSpec(.associatedtypeKeyword)
+  }
+  
+  static var associativityKeyword: TokenSpec {
+    return TokenSpec(.associativityKeyword)
+  }
+  
+  static var asyncKeyword: TokenSpec {
+    return TokenSpec(.asyncKeyword)
+  }
+  
+  static var attachedKeyword: TokenSpec {
+    return TokenSpec(.attachedKeyword)
+  }
+  
+  static var autoclosureKeyword: TokenSpec {
+    return TokenSpec(.autoclosureKeyword)
+  }
+  
+  static var availabilityKeyword: TokenSpec {
+    return TokenSpec(.availabilityKeyword)
+  }
+  
+  static var availableKeyword: TokenSpec {
+    return TokenSpec(.availableKeyword)
+  }
+  
+  static var awaitKeyword: TokenSpec {
+    return TokenSpec(.awaitKeyword)
+  }
+  
+  static var backDeployedKeyword: TokenSpec {
+    return TokenSpec(.backDeployedKeyword)
+  }
+  
+  static var beforeKeyword: TokenSpec {
+    return TokenSpec(.beforeKeyword)
+  }
+  
+  static var blockKeyword: TokenSpec {
+    return TokenSpec(.blockKeyword)
+  }
+  
+  static var borrowingKeyword: TokenSpec {
+    return TokenSpec(.borrowingKeyword)
+  }
+  
+  static var breakKeyword: TokenSpec {
+    return TokenSpec(.breakKeyword)
+  }
+  
+  static var canImportKeyword: TokenSpec {
+    return TokenSpec(.canImportKeyword)
+  }
+  
+  static var caseKeyword: TokenSpec {
+    return TokenSpec(.caseKeyword)
+  }
+  
+  static var catchKeyword: TokenSpec {
+    return TokenSpec(.catchKeyword)
+  }
+  
+  static var classKeyword: TokenSpec {
+    return TokenSpec(.classKeyword)
+  }
+  
+  static var compilerKeyword: TokenSpec {
+    return TokenSpec(.compilerKeyword)
+  }
+  
+  static var consumeKeyword: TokenSpec {
+    return TokenSpec(.consumeKeyword)
+  }
+  
+  static var copyKeyword: TokenSpec {
+    return TokenSpec(.copyKeyword)
+  }
+  
+  static var consumingKeyword: TokenSpec {
+    return TokenSpec(.consumingKeyword)
+  }
+  
+  static var continueKeyword: TokenSpec {
+    return TokenSpec(.continueKeyword)
+  }
+  
+  static var convenienceKeyword: TokenSpec {
+    return TokenSpec(.convenienceKeyword)
+  }
+  
+  static var conventionKeyword: TokenSpec {
+    return TokenSpec(.conventionKeyword)
+  }
+  
+  static var cTypeKeyword: TokenSpec {
+    return TokenSpec(.cTypeKeyword)
+  }
+  
+  static var defaultKeyword: TokenSpec {
+    return TokenSpec(.defaultKeyword)
+  }
+  
+  static var deferKeyword: TokenSpec {
+    return TokenSpec(.deferKeyword)
+  }
+  
+  static var deinitKeyword: TokenSpec {
+    return TokenSpec(.deinitKeyword)
+  }
+  
+  static var deprecatedKeyword: TokenSpec {
+    return TokenSpec(.deprecatedKeyword)
+  }
+  
+  static var derivativeKeyword: TokenSpec {
+    return TokenSpec(.derivativeKeyword)
+  }
+  
+  static var didSetKeyword: TokenSpec {
+    return TokenSpec(.didSetKeyword)
+  }
+  
+  static var differentiableKeyword: TokenSpec {
+    return TokenSpec(.differentiableKeyword)
+  }
+  
+  static var distributedKeyword: TokenSpec {
+    return TokenSpec(.distributedKeyword)
+  }
+  
+  static var doKeyword: TokenSpec {
+    return TokenSpec(.doKeyword)
+  }
+  
+  static var dynamicKeyword: TokenSpec {
+    return TokenSpec(.dynamicKeyword)
+  }
+  
+  static var eachKeyword: TokenSpec {
+    return TokenSpec(.eachKeyword)
+  }
+  
+  static var elseKeyword: TokenSpec {
+    return TokenSpec(.elseKeyword)
+  }
+  
+  static var enumKeyword: TokenSpec {
+    return TokenSpec(.enumKeyword)
+  }
+  
+  static var escapingKeyword: TokenSpec {
+    return TokenSpec(.escapingKeyword)
+  }
+  
+  static var exclusivityKeyword: TokenSpec {
+    return TokenSpec(.exclusivityKeyword)
+  }
+  
+  static var exportedKeyword: TokenSpec {
+    return TokenSpec(.exportedKeyword)
+  }
+  
+  static var extensionKeyword: TokenSpec {
+    return TokenSpec(.extensionKeyword)
+  }
+  
+  static var fallthroughKeyword: TokenSpec {
+    return TokenSpec(.fallthroughKeyword)
+  }
+  
+  static var falseKeyword: TokenSpec {
+    return TokenSpec(.falseKeyword)
+  }
+  
+  static var fileKeyword: TokenSpec {
+    return TokenSpec(.fileKeyword)
+  }
+  
+  static var fileprivateKeyword: TokenSpec {
+    return TokenSpec(.fileprivateKeyword)
+  }
+  
+  static var finalKeyword: TokenSpec {
+    return TokenSpec(.finalKeyword)
+  }
+  
+  static var forKeyword: TokenSpec {
+    return TokenSpec(.forKeyword)
+  }
+  
+  static var discardKeyword: TokenSpec {
+    return TokenSpec(.discardKeyword)
+  }
+  
+  static var forwardKeyword: TokenSpec {
+    return TokenSpec(.forwardKeyword)
+  }
+  
+  static var funcKeyword: TokenSpec {
+    return TokenSpec(.funcKeyword)
+  }
+  
+  static var getKeyword: TokenSpec {
+    return TokenSpec(.getKeyword)
+  }
+  
+  static var guardKeyword: TokenSpec {
+    return TokenSpec(.guardKeyword)
+  }
+  
+  static var higherThanKeyword: TokenSpec {
+    return TokenSpec(.higherThanKeyword)
+  }
+  
+  static var ifKeyword: TokenSpec {
+    return TokenSpec(.ifKeyword)
+  }
+  
+  static var importKeyword: TokenSpec {
+    return TokenSpec(.importKeyword)
+  }
+  
+  static var inKeyword: TokenSpec {
+    return TokenSpec(.inKeyword)
+  }
+  
+  static var indirectKeyword: TokenSpec {
+    return TokenSpec(.indirectKeyword)
+  }
+  
+  static var infixKeyword: TokenSpec {
+    return TokenSpec(.infixKeyword)
+  }
+  
+  static var initKeyword: TokenSpec {
+    return TokenSpec(.initKeyword)
+  }
+  
+  static var initializesKeyword: TokenSpec {
+    return TokenSpec(.initializesKeyword)
+  }
+  
+  static var inlineKeyword: TokenSpec {
+    return TokenSpec(.inlineKeyword)
+  }
+  
+  static var inoutKeyword: TokenSpec {
+    return TokenSpec(.inoutKeyword)
+  }
+  
+  static var internalKeyword: TokenSpec {
+    return TokenSpec(.internalKeyword)
+  }
+  
+  static var introducedKeyword: TokenSpec {
+    return TokenSpec(.introducedKeyword)
+  }
+  
+  static var isKeyword: TokenSpec {
+    return TokenSpec(.isKeyword)
+  }
+  
+  static var isolatedKeyword: TokenSpec {
+    return TokenSpec(.isolatedKeyword)
+  }
+  
+  static var kindKeyword: TokenSpec {
+    return TokenSpec(.kindKeyword)
+  }
+  
+  static var lazyKeyword: TokenSpec {
+    return TokenSpec(.lazyKeyword)
+  }
+  
+  static var leftKeyword: TokenSpec {
+    return TokenSpec(.leftKeyword)
+  }
+  
+  static var letKeyword: TokenSpec {
+    return TokenSpec(.letKeyword)
+  }
+  
+  static var lineKeyword: TokenSpec {
+    return TokenSpec(.lineKeyword)
+  }
+  
+  static var linearKeyword: TokenSpec {
+    return TokenSpec(.linearKeyword)
+  }
+  
+  static var lowerThanKeyword: TokenSpec {
+    return TokenSpec(.lowerThanKeyword)
+  }
+  
+  static var macroKeyword: TokenSpec {
+    return TokenSpec(.macroKeyword)
+  }
+  
+  static var messageKeyword: TokenSpec {
+    return TokenSpec(.messageKeyword)
+  }
+  
+  static var metadataKeyword: TokenSpec {
+    return TokenSpec(.metadataKeyword)
+  }
+  
+  static var moduleKeyword: TokenSpec {
+    return TokenSpec(.moduleKeyword)
+  }
+  
+  static var mutableAddressWithNativeOwnerKeyword: TokenSpec {
+    return TokenSpec(.mutableAddressWithNativeOwnerKeyword)
+  }
+  
+  static var mutableAddressWithOwnerKeyword: TokenSpec {
+    return TokenSpec(.mutableAddressWithOwnerKeyword)
+  }
+  
+  static var mutatingKeyword: TokenSpec {
+    return TokenSpec(.mutatingKeyword)
+  }
+  
+  static var nilKeyword: TokenSpec {
+    return TokenSpec(.nilKeyword)
+  }
+  
+  static var noasyncKeyword: TokenSpec {
+    return TokenSpec(.noasyncKeyword)
+  }
+  
+  static var noDerivativeKeyword: TokenSpec {
+    return TokenSpec(.noDerivativeKeyword)
+  }
+  
+  static var noescapeKeyword: TokenSpec {
+    return TokenSpec(.noescapeKeyword)
+  }
+  
+  static var noneKeyword: TokenSpec {
+    return TokenSpec(.noneKeyword)
+  }
+  
+  static var nonisolatedKeyword: TokenSpec {
+    return TokenSpec(.nonisolatedKeyword)
+  }
+  
+  static var nonmutatingKeyword: TokenSpec {
+    return TokenSpec(.nonmutatingKeyword)
+  }
+  
+  static var objcKeyword: TokenSpec {
+    return TokenSpec(.objcKeyword)
+  }
+  
+  static var obsoletedKeyword: TokenSpec {
+    return TokenSpec(.obsoletedKeyword)
+  }
+  
+  static var ofKeyword: TokenSpec {
+    return TokenSpec(.ofKeyword)
+  }
+  
+  static var openKeyword: TokenSpec {
+    return TokenSpec(.openKeyword)
+  }
+  
+  static var operatorKeyword: TokenSpec {
+    return TokenSpec(.operatorKeyword)
+  }
+  
+  static var optionalKeyword: TokenSpec {
+    return TokenSpec(.optionalKeyword)
+  }
+  
+  static var overrideKeyword: TokenSpec {
+    return TokenSpec(.overrideKeyword)
+  }
+  
+  static var packageKeyword: TokenSpec {
+    return TokenSpec(.packageKeyword)
+  }
+  
+  static var postfixKeyword: TokenSpec {
+    return TokenSpec(.postfixKeyword)
+  }
+  
+  static var precedencegroupKeyword: TokenSpec {
+    return TokenSpec(.precedencegroupKeyword)
+  }
+  
+  static var prefixKeyword: TokenSpec {
+    return TokenSpec(.prefixKeyword)
+  }
+  
+  static var privateKeyword: TokenSpec {
+    return TokenSpec(.privateKeyword)
+  }
+  
+  static var ProtocolKeyword: TokenSpec {
+    return TokenSpec(.ProtocolKeyword)
+  }
+  
+  static var protocolKeyword: TokenSpec {
+    return TokenSpec(.protocolKeyword)
+  }
+  
+  static var publicKeyword: TokenSpec {
+    return TokenSpec(.publicKeyword)
+  }
+  
+  static var reasyncKeyword: TokenSpec {
+    return TokenSpec(.reasyncKeyword)
+  }
+  
+  static var renamedKeyword: TokenSpec {
+    return TokenSpec(.renamedKeyword)
+  }
+  
+  static var repeatKeyword: TokenSpec {
+    return TokenSpec(.repeatKeyword)
+  }
+  
+  static var requiredKeyword: TokenSpec {
+    return TokenSpec(.requiredKeyword)
+  }
+  
+  static var _resultDependsOnKeyword: TokenSpec {
+    return TokenSpec(._resultDependsOnKeyword)
+  }
+  
+  static var _resultDependsOnSelfKeyword: TokenSpec {
+    return TokenSpec(._resultDependsOnSelfKeyword)
+  }
+  
+  static var rethrowsKeyword: TokenSpec {
+    return TokenSpec(.rethrowsKeyword)
+  }
+  
+  static var retroactiveKeyword: TokenSpec {
+    return TokenSpec(.retroactiveKeyword)
+  }
+  
+  static var returnKeyword: TokenSpec {
+    return TokenSpec(.returnKeyword)
+  }
+  
+  static var reverseKeyword: TokenSpec {
+    return TokenSpec(.reverseKeyword)
+  }
+  
+  static var rightKeyword: TokenSpec {
+    return TokenSpec(.rightKeyword)
+  }
+  
+  static var safeKeyword: TokenSpec {
+    return TokenSpec(.safeKeyword)
+  }
+  
+  static var selfKeyword: TokenSpec {
+    return TokenSpec(.selfKeyword)
+  }
+  
+  static var SelfKeyword: TokenSpec {
+    return TokenSpec(.SelfKeyword)
+  }
+  
+  static var SendableKeyword: TokenSpec {
+    return TokenSpec(.SendableKeyword)
+  }
+  
+  static var setKeyword: TokenSpec {
+    return TokenSpec(.setKeyword)
+  }
+  
+  static var someKeyword: TokenSpec {
+    return TokenSpec(.someKeyword)
+  }
+  
+  static var sourceFileKeyword: TokenSpec {
+    return TokenSpec(.sourceFileKeyword)
+  }
+  
+  static var spiKeyword: TokenSpec {
+    return TokenSpec(.spiKeyword)
+  }
+  
+  static var spiModuleKeyword: TokenSpec {
+    return TokenSpec(.spiModuleKeyword)
+  }
+  
+  static var staticKeyword: TokenSpec {
+    return TokenSpec(.staticKeyword)
+  }
+  
+  static var structKeyword: TokenSpec {
+    return TokenSpec(.structKeyword)
+  }
+  
+  static var subscriptKeyword: TokenSpec {
+    return TokenSpec(.subscriptKeyword)
+  }
+  
+  static var superKeyword: TokenSpec {
+    return TokenSpec(.superKeyword)
+  }
+  
+  static var swiftKeyword: TokenSpec {
+    return TokenSpec(.swiftKeyword)
+  }
+  
+  static var switchKeyword: TokenSpec {
+    return TokenSpec(.switchKeyword)
+  }
+  
+  static var targetKeyword: TokenSpec {
+    return TokenSpec(.targetKeyword)
+  }
+  
+  static var thenKeyword: TokenSpec {
+    return TokenSpec(.thenKeyword)
+  }
+  
+  static var throwKeyword: TokenSpec {
+    return TokenSpec(.throwKeyword)
+  }
+  
+  static var throwsKeyword: TokenSpec {
+    return TokenSpec(.throwsKeyword)
+  }
+  
+  static var transposeKeyword: TokenSpec {
+    return TokenSpec(.transposeKeyword)
+  }
+  
+  static var trueKeyword: TokenSpec {
+    return TokenSpec(.trueKeyword)
+  }
+  
+  static var tryKeyword: TokenSpec {
+    return TokenSpec(.tryKeyword)
+  }
+  
+  static var TypeKeyword: TokenSpec {
+    return TokenSpec(.TypeKeyword)
+  }
+  
+  static var typealiasKeyword: TokenSpec {
+    return TokenSpec(.typealiasKeyword)
+  }
+  
+  static var unavailableKeyword: TokenSpec {
+    return TokenSpec(.unavailableKeyword)
+  }
+  
+  static var uncheckedKeyword: TokenSpec {
+    return TokenSpec(.uncheckedKeyword)
+  }
+  
+  static var unownedKeyword: TokenSpec {
+    return TokenSpec(.unownedKeyword)
+  }
+  
+  static var unsafeKeyword: TokenSpec {
+    return TokenSpec(.unsafeKeyword)
+  }
+  
+  static var unsafeAddressKeyword: TokenSpec {
+    return TokenSpec(.unsafeAddressKeyword)
+  }
+  
+  static var unsafeMutableAddressKeyword: TokenSpec {
+    return TokenSpec(.unsafeMutableAddressKeyword)
+  }
+  
+  static var varKeyword: TokenSpec {
+    return TokenSpec(.varKeyword)
+  }
+  
+  static var visibilityKeyword: TokenSpec {
+    return TokenSpec(.visibilityKeyword)
+  }
+  
+  static var weakKeyword: TokenSpec {
+    return TokenSpec(.weakKeyword)
+  }
+  
+  static var whereKeyword: TokenSpec {
+    return TokenSpec(.whereKeyword)
+  }
+  
+  static var whileKeyword: TokenSpec {
+    return TokenSpec(.whileKeyword)
+  }
+  
+  static var willSetKeyword: TokenSpec {
+    return TokenSpec(.willSetKeyword)
+  }
+  
+  static var witness_methodKeyword: TokenSpec {
+    return TokenSpec(.witness_methodKeyword)
+  }
+  
+  static var wrtKeyword: TokenSpec {
+    return TokenSpec(.wrtKeyword)
+  }
+  
+  static var yieldKeyword: TokenSpec {
+    return TokenSpec(.yieldKeyword)
   }
 }

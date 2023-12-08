@@ -12,7 +12,239 @@
 //
 //===----------------------------------------------------------------------===//
 
-import SwiftSyntax
+@_spi(RawSyntax) import SwiftSyntax
+
+extension RawTokenKind {
+  static func lexerClassifiedKeyword(from text: SyntaxText) -> Self? {
+    switch text.count {
+    case 2:
+      switch text {
+      case "as":return .asKeyword
+      case "do":return .doKeyword
+      case "if":return .ifKeyword
+      case "in":return .inKeyword
+      case "is":return .isKeyword
+      default:
+        return nil
+      }
+    case 3:
+      switch text {
+      case "Any":return .AnyKeyword
+      case "for":return .forKeyword
+      case "let":return .letKeyword
+      case "nil":return .nilKeyword
+      case "try":return .tryKeyword
+      case "var":return .varKeyword
+      default:
+        return nil
+      }
+    case 4:
+      switch text {
+      case "case":return .caseKeyword
+      case "else":return .elseKeyword
+      case "enum":return .enumKeyword
+      case "func":return .funcKeyword
+      case "init":return .initKeyword
+      case "self":return .selfKeyword
+      case "Self":return .SelfKeyword
+      case "true":return .trueKeyword
+      default:
+        return nil
+      }
+    case 5:
+      switch text {
+      case "break":return .breakKeyword
+      case "catch":return .catchKeyword
+      case "class":return .classKeyword
+      case "defer":return .deferKeyword
+      case "false":return .falseKeyword
+      case "guard":return .guardKeyword
+      case "inout":return .inoutKeyword
+      case "super":return .superKeyword
+      case "throw":return .throwKeyword
+      case "where":return .whereKeyword
+      case "while":return .whileKeyword
+      default:
+        return nil
+      }
+    case 6:
+      switch text {
+      case "deinit":return .deinitKeyword
+      case "import":return .importKeyword
+      case "public":return .publicKeyword
+      case "repeat":return .repeatKeyword
+      case "return":return .returnKeyword
+      case "static":return .staticKeyword
+      case "struct":return .structKeyword
+      case "switch":return .switchKeyword
+      case "throws":return .throwsKeyword
+      default:
+        return nil
+      }
+    case 7:
+      switch text {
+      case "default":return .defaultKeyword
+      case "private":return .privateKeyword
+      default:
+        return nil
+      }
+    case 8:
+      switch text {
+      case "continue":return .continueKeyword
+      case "internal":return .internalKeyword
+      case "operator":return .operatorKeyword
+      case "protocol":return .protocolKeyword
+      case "rethrows":return .rethrowsKeyword
+      default:
+        return nil
+      }
+    case 9:
+      switch text {
+      case "extension":return .extensionKeyword
+      case "subscript":return .subscriptKeyword
+      case "typealias":return .typealiasKeyword
+      default:
+        return nil
+      }
+    case 11:
+      switch text {
+      case "fallthrough":return .fallthroughKeyword
+      case "fileprivate":return .fileprivateKeyword
+      default:
+        return nil
+      }
+    case 14:
+      switch text {
+      case "associatedtype":return .associatedtypeKeyword
+      default:
+        return nil
+      }
+    case 15:
+      switch text {
+      case "precedencegroup":return .precedencegroupKeyword
+      default:
+        return nil
+      }
+    default:
+      return nil
+    }
+  }
+  
+  /// Whether the token kind is switched from being an identifier to being a keyword in the lexer.
+  /// This is true for keywords that used to be considered non-contextual.
+  var isLexerClassifiedKeyword: Bool {
+    switch self {
+    case .AnyKeyword:
+      return true
+    case .asKeyword:
+      return true
+    case .associatedtypeKeyword:
+      return true
+    case .breakKeyword:
+      return true
+    case .caseKeyword:
+      return true
+    case .catchKeyword:
+      return true
+    case .classKeyword:
+      return true
+    case .continueKeyword:
+      return true
+    case .defaultKeyword:
+      return true
+    case .deferKeyword:
+      return true
+    case .deinitKeyword:
+      return true
+    case .doKeyword:
+      return true
+    case .elseKeyword:
+      return true
+    case .enumKeyword:
+      return true
+    case .extensionKeyword:
+      return true
+    case .fallthroughKeyword:
+      return true
+    case .falseKeyword:
+      return true
+    case .fileprivateKeyword:
+      return true
+    case .forKeyword:
+      return true
+    case .funcKeyword:
+      return true
+    case .guardKeyword:
+      return true
+    case .ifKeyword:
+      return true
+    case .importKeyword:
+      return true
+    case .inKeyword:
+      return true
+    case .initKeyword:
+      return true
+    case .inoutKeyword:
+      return true
+    case .internalKeyword:
+      return true
+    case .isKeyword:
+      return true
+    case .letKeyword:
+      return true
+    case .nilKeyword:
+      return true
+    case .operatorKeyword:
+      return true
+    case .precedencegroupKeyword:
+      return true
+    case .privateKeyword:
+      return true
+    case .protocolKeyword:
+      return true
+    case .publicKeyword:
+      return true
+    case .repeatKeyword:
+      return true
+    case .rethrowsKeyword:
+      return true
+    case .returnKeyword:
+      return true
+    case .selfKeyword:
+      return true
+    case .SelfKeyword:
+      return true
+    case .staticKeyword:
+      return true
+    case .structKeyword:
+      return true
+    case .subscriptKeyword:
+      return true
+    case .superKeyword:
+      return true
+    case .switchKeyword:
+      return true
+    case .throwKeyword:
+      return true
+    case .throwsKeyword:
+      return true
+    case .trueKeyword:
+      return true
+    case .tryKeyword:
+      return true
+    case .typealiasKeyword:
+      return true
+    case .varKeyword:
+      return true
+    case .whereKeyword:
+      return true
+    case .whileKeyword:
+      return true
+    default:
+      return false
+    }
+  }
+}
 
 extension Keyword {
   /// Whether the token kind is switched from being an identifier to being a keyword in the lexer.

@@ -248,7 +248,7 @@ extension Parser {
 
     // Parse a 'where' clause if present.
     let whereClause: RawGenericWhereClauseSyntax?
-    if self.at(.keyword(.where)) {
+    if self.at(.whereKeyword) {
       whereClause = self.parseGenericWhereClause()
     } else {
       whereClause = nil
@@ -292,7 +292,7 @@ extension Parser {
       var loopProgress = LoopProgressCondition()
       repeat {
         let type: RawTypeSyntax
-        if let classKeyword = self.consume(if: .keyword(.class)) {
+        if let classKeyword = self.consume(if: .classKeyword) {
           type = RawTypeSyntax(
             RawClassRestrictionTypeSyntax(
               classKeyword: classKeyword,
@@ -368,7 +368,7 @@ extension Parser {
     return self.withLookahead {
       $0.consume(if: .leftParen)
       guard $0.canParseType() else { return false }
-      return $0.at(.rightParen, .keyword(.where), .leftBrace) || $0.at(.endOfFile)
+      return $0.at(.rightParen, .whereKeyword, .leftBrace) || $0.at(.endOfFile)
     }
   }
 }

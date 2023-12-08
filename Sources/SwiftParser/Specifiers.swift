@@ -23,10 +23,10 @@ public enum AsyncEffectSpecifier: TokenSpecSet {
   init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
     // We'll take 'await' too for recovery but they have to be on the same line
     // as the declaration they're modifying.
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(.async): self = .async
-    case TokenSpec(.await, allowAtStartOfLine: false): self = .await
-    case TokenSpec(.reasync): self = .reasync
+    switch lexeme {
+    case TokenSpec(.asyncKeyword): self = .async
+    case TokenSpec(.awaitKeyword, allowAtStartOfLine: false): self = .await
+    case TokenSpec(.reasyncKeyword): self = .reasync
     default: return nil
     }
   }
@@ -43,9 +43,9 @@ public enum AsyncEffectSpecifier: TokenSpecSet {
 
   var spec: TokenSpec {
     switch self {
-    case .async: return .keyword(.async)
-    case .await: return TokenSpec(.await, allowAtStartOfLine: false)
-    case .reasync: return .keyword(.reasync)
+    case .async: return TokenSpec(.asyncKeyword)
+    case .await: return TokenSpec(.awaitKeyword, allowAtStartOfLine: false)
+    case .reasync: return TokenSpec(.reasyncKeyword)
     }
   }
 }
@@ -60,11 +60,11 @@ public enum ThrowsEffectSpecifier: TokenSpecSet {
   init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
     // We'll take 'throw' and 'try' too for recovery but they have to
     // be on the same line as the declaration they're modifying.
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(.rethrows): self = .rethrows
-    case TokenSpec(.throw, allowAtStartOfLine: false): self = .throw
-    case TokenSpec(.throws): self = .throws
-    case TokenSpec(.try, allowAtStartOfLine: false): self = .try
+    switch lexeme {
+    case TokenSpec(.rethrowsKeyword): self = .rethrows
+    case TokenSpec(.throwKeyword, allowAtStartOfLine: false): self = .throw
+    case TokenSpec(.throwsKeyword): self = .throws
+    case TokenSpec(.tryKeyword, allowAtStartOfLine: false): self = .try
     default: return nil
     }
   }
@@ -82,10 +82,10 @@ public enum ThrowsEffectSpecifier: TokenSpecSet {
 
   var spec: TokenSpec {
     switch self {
-    case .rethrows: return .keyword(.rethrows)
-    case .throw: return TokenSpec(.throw, allowAtStartOfLine: false)
-    case .throws: return .keyword(.throws)
-    case .try: return TokenSpec(.try, allowAtStartOfLine: false)
+    case .rethrows: return TokenSpec(.rethrowsKeyword)
+    case .throw: return TokenSpec(.throwKeyword, allowAtStartOfLine: false)
+    case .throws: return TokenSpec(.throwsKeyword)
+    case .try: return TokenSpec(.tryKeyword, allowAtStartOfLine: false)
     }
   }
 }
@@ -217,15 +217,15 @@ extension RawFunctionEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case await
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.await, allowAtStartOfLine: false): self = .await
+      switch lexeme {
+      case TokenSpec(.awaitKeyword, allowAtStartOfLine: false): self = .await
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .await: return TokenSpec(.await, allowAtStartOfLine: false)
+      case .await: return TokenSpec(.awaitKeyword, allowAtStartOfLine: false)
       }
     }
   }
@@ -235,17 +235,17 @@ extension RawFunctionEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case reasync
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.async): self = .async
-      case TokenSpec(.reasync): self = .reasync
+      switch lexeme {
+      case TokenSpec(.asyncKeyword): self = .async
+      case TokenSpec(.reasyncKeyword): self = .reasync
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .async: return .keyword(.async)
-      case .reasync: return .keyword(.reasync)
+      case .async: return TokenSpec(.asyncKeyword)
+      case .reasync: return TokenSpec(.reasyncKeyword)
       }
     }
   }
@@ -255,17 +255,17 @@ extension RawFunctionEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case `throw`
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.try, allowAtStartOfLine: false): self = .try
-      case TokenSpec(.throw, allowAtStartOfLine: false): self = .throw
+      switch lexeme {
+      case TokenSpec(.tryKeyword, allowAtStartOfLine: false): self = .try
+      case TokenSpec(.throwKeyword, allowAtStartOfLine: false): self = .throw
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .try: return TokenSpec(.try, allowAtStartOfLine: false)
-      case .throw: return TokenSpec(.throw, allowAtStartOfLine: false)
+      case .try: return TokenSpec(.tryKeyword, allowAtStartOfLine: false)
+      case .throw: return TokenSpec(.throwKeyword, allowAtStartOfLine: false)
       }
     }
   }
@@ -275,17 +275,17 @@ extension RawFunctionEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case `throws`
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.rethrows): self = .rethrows
-      case TokenSpec(.throws): self = .throws
+      switch lexeme {
+      case TokenSpec(.rethrowsKeyword): self = .rethrows
+      case TokenSpec(.throwsKeyword): self = .throws
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .rethrows: return .keyword(.rethrows)
-      case .throws: return .keyword(.throws)
+      case .rethrows: return .rethrowsKeyword
+      case .throws: return .throwsKeyword
       }
     }
   }
@@ -297,17 +297,17 @@ extension RawTypeEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case reasync
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.await, allowAtStartOfLine: false): self = .await
-      case TokenSpec(.reasync): self = .reasync
+      switch lexeme {
+      case TokenSpec(.awaitKeyword, allowAtStartOfLine: false): self = .await
+      case TokenSpec(.reasyncKeyword): self = .reasync
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .await: return TokenSpec(.await, allowAtStartOfLine: false)
-      case .reasync: return .keyword(.reasync)
+      case .await: return TokenSpec(.awaitKeyword, allowAtStartOfLine: false)
+      case .reasync: return .reasyncKeyword
       }
     }
   }
@@ -316,15 +316,15 @@ extension RawTypeEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case async
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.async): self = .async
+      switch lexeme {
+      case TokenSpec(.asyncKeyword): self = .async
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .async: return .keyword(.async)
+      case .async: return .asyncKeyword
       }
     }
   }
@@ -335,19 +335,19 @@ extension RawTypeEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case `throw`
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.rethrows): self = .rethrows
-      case TokenSpec(.try, allowAtStartOfLine: false): self = .try
-      case TokenSpec(.throw, allowAtStartOfLine: false): self = .throw
+      switch lexeme {
+      case TokenSpec(.rethrowsKeyword): self = .rethrows
+      case TokenSpec(.tryKeyword, allowAtStartOfLine: false): self = .try
+      case TokenSpec(.throwKeyword, allowAtStartOfLine: false): self = .throw
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .rethrows: return .keyword(.rethrows)
-      case .try: return TokenSpec(.try, allowAtStartOfLine: false)
-      case .throw: return TokenSpec(.throw, allowAtStartOfLine: false)
+      case .rethrows: return .rethrowsKeyword
+      case .try: return TokenSpec(.tryKeyword, allowAtStartOfLine: false)
+      case .throw: return TokenSpec(.throwKeyword, allowAtStartOfLine: false)
       }
     }
   }
@@ -356,15 +356,15 @@ extension RawTypeEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case `throws`
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.throws): self = .throws
+      switch lexeme {
+      case TokenSpec(.throwsKeyword): self = .throws
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .throws: return .keyword(.throws)
+      case .throws: return .throwsKeyword
       }
     }
   }
@@ -376,17 +376,17 @@ extension RawAccessorEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case reasync
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.await, allowAtStartOfLine: false): self = .await
-      case TokenSpec(.reasync): self = .reasync
+      switch lexeme {
+      case TokenSpec(.awaitKeyword, allowAtStartOfLine: false): self = .await
+      case TokenSpec(.reasyncKeyword): self = .reasync
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .await: return TokenSpec(.await, allowAtStartOfLine: false)
-      case .reasync: return .keyword(.reasync)
+      case .await: return TokenSpec(.awaitKeyword, allowAtStartOfLine: false)
+      case .reasync: return .reasyncKeyword
       }
     }
   }
@@ -395,15 +395,15 @@ extension RawAccessorEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case async
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.async): self = .async
+      switch lexeme {
+      case TokenSpec(.asyncKeyword): self = .async
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .async: return .keyword(.async)
+      case .async: return .asyncKeyword
       }
     }
   }
@@ -414,19 +414,19 @@ extension RawAccessorEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case `throw`
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.rethrows): self = .rethrows
-      case TokenSpec(.try, allowAtStartOfLine: false): self = .try
-      case TokenSpec(.throw, allowAtStartOfLine: false): self = .throw
+      switch lexeme {
+      case TokenSpec(.rethrowsKeyword): self = .rethrows
+      case TokenSpec(.tryKeyword, allowAtStartOfLine: false): self = .try
+      case TokenSpec(.throwKeyword, allowAtStartOfLine: false): self = .throw
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .rethrows: return .keyword(.rethrows)
-      case .try: return TokenSpec(.try, allowAtStartOfLine: false)
-      case .throw: return TokenSpec(.throw, allowAtStartOfLine: false)
+      case .rethrows: return .rethrowsKeyword
+      case .try: return TokenSpec(.tryKeyword, allowAtStartOfLine: false)
+      case .throw: return TokenSpec(.throwKeyword, allowAtStartOfLine: false)
       }
     }
   }
@@ -435,15 +435,15 @@ extension RawAccessorEffectSpecifiersSyntax: RawEffectSpecifiersTrait {
     case `throws`
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.throws): self = .throws
+      switch lexeme {
+      case TokenSpec(.throwsKeyword): self = .throws
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .throws: return .keyword(.throws)
+      case .throws: return .throwsKeyword
       }
     }
   }
@@ -455,17 +455,17 @@ extension RawDeinitializerEffectSpecifiersSyntax: RawMisplacedEffectSpecifiersTr
     case reasync
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.await, allowAtStartOfLine: false): self = .await
-      case TokenSpec(.reasync): self = .reasync
+      switch lexeme {
+      case TokenSpec(.awaitKeyword, allowAtStartOfLine: false): self = .await
+      case TokenSpec(.reasyncKeyword): self = .reasync
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .await: return TokenSpec(.await, allowAtStartOfLine: false)
-      case .reasync: return .keyword(.reasync)
+      case .await: return TokenSpec(.awaitKeyword, allowAtStartOfLine: false)
+      case .reasync: return .reasyncKeyword
       }
     }
   }
@@ -474,15 +474,15 @@ extension RawDeinitializerEffectSpecifiersSyntax: RawMisplacedEffectSpecifiersTr
     case async
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.async): self = .async
+      switch lexeme {
+      case TokenSpec(.asyncKeyword): self = .async
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .async: return .keyword(.async)
+      case .async: return .asyncKeyword
       }
     }
   }
@@ -494,21 +494,21 @@ extension RawDeinitializerEffectSpecifiersSyntax: RawMisplacedEffectSpecifiersTr
     case `throws`
 
     init?(lexeme: Lexer.Lexeme, experimentalFeatures: Parser.ExperimentalFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.rethrows): self = .rethrows
-      case TokenSpec(.try, allowAtStartOfLine: false): self = .try
-      case TokenSpec(.throw, allowAtStartOfLine: false): self = .throw
-      case TokenSpec(.throws): self = .throws
+      switch lexeme {
+      case TokenSpec(.rethrowsKeyword): self = .rethrows
+      case TokenSpec(.tryKeyword, allowAtStartOfLine: false): self = .try
+      case TokenSpec(.throwKeyword, allowAtStartOfLine: false): self = .throw
+      case TokenSpec(.throwsKeyword): self = .throws
       default: return nil
       }
     }
 
     var spec: TokenSpec {
       switch self {
-      case .rethrows: return .keyword(.rethrows)
-      case .try: return TokenSpec(.try, allowAtStartOfLine: false)
-      case .throw: return TokenSpec(.throw, allowAtStartOfLine: false)
-      case .throws: return .keyword(.throws)
+      case .rethrows: return .rethrowsKeyword
+      case .try: return TokenSpec(.tryKeyword, allowAtStartOfLine: false)
+      case .throw: return TokenSpec(.throwKeyword, allowAtStartOfLine: false)
+      case .throws: return .throwsKeyword
       }
     }
   }
@@ -618,7 +618,7 @@ extension Parser {
       if asyncKeyword == nil {
         // Let's synthesize a missing 'async'. If we find a real async specifier
         // later, we will replace the missing token by the present token.
-        asyncKeyword = missingToken(.keyword(.async))
+        asyncKeyword = missingToken(.asyncKeyword)
       }
     }
     if let (_, handle) = self.canRecoverTo(anyIn: S.CorrectAsyncTokenKinds.self) {
@@ -636,7 +636,7 @@ extension Parser {
         if throwsClause == nil {
           // Let's synthesize a missing 'throws'. If we find a real throws specifier
           // later, we will replace the missing token by the present token.
-          throwsClause = RawThrowsClauseSyntax(throwsSpecifier: missingToken(.keyword(.throws)), leftParen: nil, type: nil, rightParen: nil, arena: self.arena)
+          throwsClause = RawThrowsClauseSyntax(throwsSpecifier: missingToken(.throwsKeyword), leftParen: nil, type: nil, rightParen: nil, arena: self.arena)
         }
       } else {
         break
@@ -657,7 +657,7 @@ extension Parser {
         unexpectedAfterThrowsClause.append(RawSyntax(misspelledAsync))
         if asyncKeyword == nil {
           // Handle `async` after `throws`
-          asyncKeyword = missingToken(.keyword(.async))
+          asyncKeyword = missingToken(.asyncKeyword)
         }
       } else if let (_, handle, _) = self.at(anyIn: S.MisspelledThrowsTokenKinds.self, or: S.CorrectThrowsTokenKinds.self) {
         let misspelledThrows = self.eat(handle)
@@ -717,7 +717,7 @@ extension Parser {
         if beforeAsync {
           // Let's synthesize a missing 'async'. If we find a real async specifier
           // later, we will replace the missing token by the present token.
-          asyncKeyword = missingToken(.async)
+          asyncKeyword = missingToken(.asyncKeyword)
         }
         fallthrough
       default:
@@ -758,7 +758,7 @@ extension Parser {
           if matchedSubset == S.CorrectAsyncTokenKinds.self {
             synthesizedAsync = missingToken(spec)
           } else {
-            synthesizedAsync = missingToken(.async)
+            synthesizedAsync = missingToken(.asyncKeyword)
           }
         }
       } else if let (spec, handle, matchedSubset) = self.at(anyIn: S.MisspelledThrowsTokenKinds.self, or: S.CorrectThrowsTokenKinds.self) {
@@ -768,7 +768,7 @@ extension Parser {
           if matchedSubset == S.CorrectThrowsTokenKinds.self {
             synthesizedThrows = missingToken(spec)
           } else {
-            synthesizedThrows = missingToken(.throws)
+            synthesizedThrows = missingToken(.throwsKeyword)
           }
         }
       } else {

@@ -151,10 +151,10 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
     // a primitive integer compare, without, it calls into `__derived_enum_equals`.
     @_spi(RawSyntax)
     @frozen
-    public enum RawTokenKind: UInt8, Equatable, Hashable
+    public enum RawTokenKind: UInt16, Equatable, Hashable
     """
   ) {
-    for tokenSpec in Token.allCases.map(\.spec) {
+    for tokenSpec in Token.allCases.map(\.spec) where tokenSpec.kind != .keyword {
       DeclSyntax(
         """
         \(tokenSpec.apiAttributes)\
@@ -162,22 +162,32 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
         """
       )
     }
+    for keywordSpec in Keyword.allCases.map(\.spec) {
+      DeclSyntax(
+        """
+        case \(keywordSpec.rawTokenKindCaseName)
+        """
+      )
+    }
 
     try VariableDeclSyntax(
       """
-      @_spi(RawSyntax)
       public var defaultText: SyntaxText?
       """
     ) {
       try! SwitchExprSyntax("switch self") {
-        for tokenSpec in Token.allCases.map(\.spec) {
+        for tokenSpec in Token.allCases.map(\.spec) where tokenSpec.kind != .keyword {
           if let text = tokenSpec.text {
             SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
               StmtSyntax("return \(literal: text)")
             }
           }
         }
-
+        for keywordSpec in Keyword.allCases.map(\.spec) {
+          SwitchCaseSyntax("case .\(keywordSpec.rawTokenKindCaseName):") {
+            StmtSyntax("return \(literal: keywordSpec.name)")
+          }
+        }
         SwitchCaseSyntax("default:") {
           StmtSyntax("return nil")
         }
@@ -196,10 +206,33 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
       """
     ) {
       try! SwitchExprSyntax("switch self") {
-        for tokenSpec in Token.allCases.map(\.spec) {
-          SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
-            StmtSyntax("return \(raw: tokenSpec.kind == .punctuation)")
+        for tokenSpec in Token.allCases.map(\.spec) where tokenSpec.kind != .keyword {
+          if tokenSpec.kind == .punctuation {
+            SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
+              StmtSyntax("return true")
+            }
           }
+        }
+        SwitchCaseSyntax("default:") {
+          StmtSyntax("return false")
+        }
+      }
+    }
+
+    try! VariableDeclSyntax(
+      """
+      /// Returns `true` if the token is a keyword.
+      public var isKeywordKind: Bool
+      """
+    ) {
+      try! SwitchExprSyntax("switch self") {
+        for keywordSpec in Keyword.allCases.map(\.spec) {
+          SwitchCaseSyntax("case .\(keywordSpec.rawTokenKindCaseName):") {
+            StmtSyntax("return true")
+          }
+        }
+        SwitchCaseSyntax("default:") {
+          StmtSyntax("return false")
         }
       }
     }
@@ -214,19 +247,8 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
       """
     ) {
       try! SwitchExprSyntax("switch rawKind") {
-        for tokenSpec in Token.allCases.map(\.spec) {
-          if tokenSpec.kind == .keyword {
-            SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
-              DeclSyntax("var text = text")
-              StmtSyntax(
-                """
-                return text.withSyntaxText { text in
-                  return .keyword(Keyword(text)!)
-                }
-                """
-              )
-            }
-          } else if tokenSpec.text != nil {
+        for tokenSpec in Token.allCases.map(\.spec) where tokenSpec.kind != .keyword {
+          if tokenSpec.text != nil {
             SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
               ExprSyntax("precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)")
               StmtSyntax("return .\(tokenSpec.varOrCaseName)")
@@ -235,6 +257,15 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
             SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
               StmtSyntax("return .\(tokenSpec.varOrCaseName)(text)")
             }
+          }
+        }
+        for keywordSpec in Keyword.allCases.map(\.spec) {
+          SwitchCaseSyntax("case .\(keywordSpec.rawTokenKindCaseName):") {
+            StmtSyntax(
+              """
+              return .keyword(.\(keywordSpec.varOrCaseName))
+              """
+            )
           }
         }
       }
@@ -252,7 +283,7 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
         for tokenSpec in Token.allCases.map(\.spec) {
           if tokenSpec.kind == .keyword {
             SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName)(let keyword):") {
-              StmtSyntax("return (.\(tokenSpec.varOrCaseName), String(syntaxText: keyword.defaultText))")
+              StmtSyntax("return (keyword.rawTokenKind, String(syntaxText: keyword.defaultText))")
             }
           } else if tokenSpec.text != nil {
             SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {

@@ -138,7 +138,7 @@ extension Parser {
         arena: self.arena
       )
     }
-    if self.at(.keyword(.case), .keyword(.default)) {
+    if self.at(.caseKeyword, .defaultKeyword) {
       // 'case' and 'default' are invalid in code block items.
       // Parse them and put them in their own CodeBlockItem but as an unexpected node.
       let switchCase = self.parseSwitchCase()
@@ -183,12 +183,12 @@ extension Parser {
     // We could also achieve this by more eagerly attempting to parse an 'if'
     // or 'switch' as an expression when in statement position, but that
     // could result in less useful recovery behavior.
-    if at(.keyword(.as)),
+    if at(.asKeyword),
       let expr = stmt.as(RawExpressionStmtSyntax.self)?.expression
     {
       if expr.is(RawDoExprSyntax.self) || expr.is(RawIfExprSyntax.self) || expr.is(RawSwitchExprSyntax.self) {
         let (op, rhs) = parseUnresolvedAsExpr(
-          handle: .init(spec: .keyword(.as))
+          handle: .init(spec: .asKeyword)
         )
         let sequence = RawExprSyntax(
           RawSequenceExprSyntax(

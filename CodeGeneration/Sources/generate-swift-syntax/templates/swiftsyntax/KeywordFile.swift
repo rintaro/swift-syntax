@@ -73,5 +73,19 @@ let keywordFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
       }
       """
     )
+
+    try! VariableDeclSyntax(
+      """
+      var rawTokenKind: RawTokenKind
+      """
+    ) {
+      try! SwitchExprSyntax("switch self") {
+        for keywordSpec in Keyword.allCases.map(\.spec) {
+          SwitchCaseSyntax("case .\(keywordSpec.varOrCaseName):") {
+            StmtSyntax("return .\(keywordSpec.rawTokenKindCaseName)")
+          }
+        }
+      }
+    }
   }
 }
