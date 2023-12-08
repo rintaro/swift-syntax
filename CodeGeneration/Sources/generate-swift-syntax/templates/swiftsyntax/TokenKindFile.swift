@@ -151,7 +151,7 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
     // a primitive integer compare, without, it calls into `__derived_enum_equals`.
     @_spi(RawSyntax)
     @frozen
-    public enum RawTokenKind: UInt16, Equatable, Hashable
+    public enum RawTokenKind: Hashable
     """
   ) {
     for tokenSpec in Token.allCases.map(\.spec) where tokenSpec.kind != .keyword {
@@ -236,6 +236,45 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
         }
       }
     }
+
+    try! VariableDeclSyntax(
+      """
+      @inlinable
+      var _index: Int
+      """
+    ) {
+      try! SwitchExprSyntax("switch self") {
+        var i = (0..<Int.max).makeIterator()
+        for tokenSpec in Token.allCases.map(\.spec) where tokenSpec.kind != .keyword {
+          SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
+            StmtSyntax("return \(literal: i.next()!)")
+          }
+        }
+        for keywordSpec in Keyword.allCases.map(\.spec) {
+          SwitchCaseSyntax("case .\(keywordSpec.rawTokenKindCaseName):") {
+            StmtSyntax("return \(literal: i.next()!)")
+          }
+        }
+      }
+    }
+
+    DeclSyntax(
+      """
+      @inlinable
+      public static func == (lhs: Self, rhs: Self) -> Bool {
+        return lhs._index == rhs._index
+      }
+      """
+    )
+
+    DeclSyntax(
+      """
+      @inlinable
+      public func hash(into hasher: inout Hasher) {
+        hasher.combine(self._index)
+      }
+      """
+    )
   }
 
   try! ExtensionDeclSyntax("extension TokenKind") {
