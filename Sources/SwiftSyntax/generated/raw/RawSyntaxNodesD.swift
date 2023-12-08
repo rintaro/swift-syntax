@@ -2,27 +2,31 @@
 public protocol RawDeclSyntaxNodeProtocol: RawSyntaxNodeProtocol {}
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeclModifierDetailSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .declModifierDetail
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -84,27 +88,31 @@ public struct RawDeclModifierDetailSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeclModifierListSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .declModifierList
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -112,6 +120,7 @@ public struct RawDeclModifierListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
   
+  @inlinable
   public init(elements: [RawDeclModifierSyntax], arena: __shared SyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .declModifierList, uninitializedCount: elements.count, arena: arena) { layout in
@@ -126,6 +135,7 @@ public struct RawDeclModifierListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
   
+  @inlinable
   public var elements: [RawDeclModifierSyntax] {
     layoutView.children.map {
       RawDeclModifierSyntax(raw: $0!)
@@ -134,27 +144,31 @@ public struct RawDeclModifierListSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeclModifierSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .declModifier
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -204,27 +218,31 @@ public struct RawDeclModifierSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeclNameArgumentListSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .declNameArgumentList
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -232,6 +250,7 @@ public struct RawDeclNameArgumentListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
   
+  @inlinable
   public init(elements: [RawDeclNameArgumentSyntax], arena: __shared SyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .declNameArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
@@ -246,6 +265,7 @@ public struct RawDeclNameArgumentListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
   
+  @inlinable
   public var elements: [RawDeclNameArgumentSyntax] {
     layoutView.children.map {
       RawDeclNameArgumentSyntax(raw: $0!)
@@ -254,27 +274,31 @@ public struct RawDeclNameArgumentListSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeclNameArgumentSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .declNameArgument
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -324,27 +348,31 @@ public struct RawDeclNameArgumentSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeclNameArgumentsSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .declNameArguments
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -406,27 +434,31 @@ public struct RawDeclNameArgumentsSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeclReferenceExprSyntax: RawExprSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .declReferenceExpr
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -476,13 +508,14 @@ public struct RawDeclReferenceExprSyntax: RawExprSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeclSyntax: RawDeclSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     switch raw.kind {
     case .accessorDecl, .actorDecl, .associatedTypeDecl, .classDecl, .deinitializerDecl, .editorPlaceholderDecl, .enumCaseDecl, .enumDecl, .extensionDecl, .functionDecl, .ifConfigDecl, .importDecl, .initializerDecl, .macroDecl, .macroExpansionDecl, .missingDecl, .operatorDecl, .poundSourceLocation, .precedenceGroupDecl, .protocolDecl, .structDecl, .subscriptDecl, .typeAliasDecl, .variableDecl:
       return true
@@ -493,15 +526,18 @@ public struct RawDeclSyntax: RawDeclSyntaxNodeProtocol {
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -509,33 +545,38 @@ public struct RawDeclSyntax: RawDeclSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
   
+  @inlinable
   public init(_ other: some RawDeclSyntaxNodeProtocol) {
     self.init(unchecked: other.raw)
   }
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeferStmtSyntax: RawStmtSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .deferStmt
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -585,27 +626,31 @@ public struct RawDeferStmtSyntax: RawStmtSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeinitializerDeclSyntax: RawDeclSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .deinitializerDecl
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -691,27 +736,31 @@ public struct RawDeinitializerDeclSyntax: RawDeclSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDeinitializerEffectSpecifiersSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .deinitializerEffectSpecifiers
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -749,27 +798,31 @@ public struct RawDeinitializerEffectSpecifiersSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDerivativeAttributeArgumentsSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .derivativeAttributeArguments
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -879,27 +932,31 @@ public struct RawDerivativeAttributeArgumentsSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDesignatedTypeListSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .designatedTypeList
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -907,6 +964,7 @@ public struct RawDesignatedTypeListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
   
+  @inlinable
   public init(elements: [RawDesignatedTypeSyntax], arena: __shared SyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .designatedTypeList, uninitializedCount: elements.count, arena: arena) { layout in
@@ -921,6 +979,7 @@ public struct RawDesignatedTypeListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
   
+  @inlinable
   public var elements: [RawDesignatedTypeSyntax] {
     layoutView.children.map {
       RawDesignatedTypeSyntax(raw: $0!)
@@ -929,27 +988,31 @@ public struct RawDesignatedTypeListSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDesignatedTypeSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .designatedType
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -999,27 +1062,31 @@ public struct RawDesignatedTypeSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDictionaryElementListSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .dictionaryElementList
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1027,6 +1094,7 @@ public struct RawDictionaryElementListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
   
+  @inlinable
   public init(elements: [RawDictionaryElementSyntax], arena: __shared SyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .dictionaryElementList, uninitializedCount: elements.count, arena: arena) { layout in
@@ -1041,6 +1109,7 @@ public struct RawDictionaryElementListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
   
+  @inlinable
   public var elements: [RawDictionaryElementSyntax] {
     layoutView.children.map {
       RawDictionaryElementSyntax(raw: $0!)
@@ -1049,27 +1118,31 @@ public struct RawDictionaryElementListSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDictionaryElementSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .dictionaryElement
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1143,16 +1216,19 @@ public struct RawDictionaryElementSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDictionaryExprSyntax: RawExprSyntaxNodeProtocol {
+  @frozen
   public enum Content: RawSyntaxNodeProtocol {
     case `colon`(RawTokenSyntax)
     case `elements`(RawDictionaryElementListSyntax)
     
+    @inlinable
     public static func isKindOf(_ raw: RawSyntax) -> Bool {
       return RawTokenSyntax.isKindOf(raw) || RawDictionaryElementListSyntax.isKindOf(raw)
     }
     
-    public var raw: RawSyntax {
+    @inlinable public var raw: RawSyntax {
       switch self {
       case .colon(let node):
         return node.raw
@@ -1161,7 +1237,7 @@ public struct RawDictionaryExprSyntax: RawExprSyntaxNodeProtocol {
       }
     }
     
-    public init?(_ other: some RawSyntaxNodeProtocol) {
+    @inlinable public init?(_ other: some RawSyntaxNodeProtocol) {
       if let node = RawTokenSyntax(other) {
         self = .colon(node)
         return
@@ -1174,26 +1250,29 @@ public struct RawDictionaryExprSyntax: RawExprSyntaxNodeProtocol {
     }
   }
   
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .dictionaryExpr
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1255,27 +1334,31 @@ public struct RawDictionaryExprSyntax: RawExprSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDictionaryTypeSyntax: RawTypeSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .dictionaryType
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1361,27 +1444,31 @@ public struct RawDictionaryTypeSyntax: RawTypeSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDifferentiabilityArgumentListSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .differentiabilityArgumentList
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1389,6 +1476,7 @@ public struct RawDifferentiabilityArgumentListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
   
+  @inlinable
   public init(elements: [RawDifferentiabilityArgumentSyntax], arena: __shared SyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .differentiabilityArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
@@ -1403,6 +1491,7 @@ public struct RawDifferentiabilityArgumentListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
   
+  @inlinable
   public var elements: [RawDifferentiabilityArgumentSyntax] {
     layoutView.children.map {
       RawDifferentiabilityArgumentSyntax(raw: $0!)
@@ -1411,27 +1500,31 @@ public struct RawDifferentiabilityArgumentListSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDifferentiabilityArgumentSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .differentiabilityArgument
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1481,27 +1574,31 @@ public struct RawDifferentiabilityArgumentSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDifferentiabilityArgumentsSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .differentiabilityArguments
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1563,16 +1660,19 @@ public struct RawDifferentiabilityArgumentsSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDifferentiabilityWithRespectToArgumentSyntax: RawSyntaxNodeProtocol {
+  @frozen
   public enum Arguments: RawSyntaxNodeProtocol {
     case `argument`(RawDifferentiabilityArgumentSyntax)
     case `argumentList`(RawDifferentiabilityArgumentsSyntax)
     
+    @inlinable
     public static func isKindOf(_ raw: RawSyntax) -> Bool {
       return RawDifferentiabilityArgumentSyntax.isKindOf(raw) || RawDifferentiabilityArgumentsSyntax.isKindOf(raw)
     }
     
-    public var raw: RawSyntax {
+    @inlinable public var raw: RawSyntax {
       switch self {
       case .argument(let node):
         return node.raw
@@ -1581,7 +1681,7 @@ public struct RawDifferentiabilityWithRespectToArgumentSyntax: RawSyntaxNodeProt
       }
     }
     
-    public init?(_ other: some RawSyntaxNodeProtocol) {
+    @inlinable public init?(_ other: some RawSyntaxNodeProtocol) {
       if let node = RawDifferentiabilityArgumentSyntax(other) {
         self = .argument(node)
         return
@@ -1594,26 +1694,29 @@ public struct RawDifferentiabilityWithRespectToArgumentSyntax: RawSyntaxNodeProt
     }
   }
   
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .differentiabilityWithRespectToArgument
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1675,27 +1778,31 @@ public struct RawDifferentiabilityWithRespectToArgumentSyntax: RawSyntaxNodeProt
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDifferentiableAttributeArgumentsSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .differentiableAttributeArguments
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1781,27 +1888,31 @@ public struct RawDifferentiableAttributeArgumentsSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDiscardAssignmentExprSyntax: RawExprSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .discardAssignmentExpr
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1839,27 +1950,31 @@ public struct RawDiscardAssignmentExprSyntax: RawExprSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDiscardStmtSyntax: RawStmtSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .discardStmt
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1912,27 +2027,31 @@ public struct RawDiscardStmtSyntax: RawStmtSyntaxNodeProtocol {
 @_spi(ExperimentalLanguageFeatures)
 #endif
 @_spi(RawSyntax)
+@frozen
 public struct RawDoExprSyntax: RawExprSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .doExpr
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -1994,27 +2113,31 @@ public struct RawDoExprSyntax: RawExprSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDoStmtSyntax: RawStmtSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .doStmt
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -2088,27 +2211,31 @@ public struct RawDoStmtSyntax: RawStmtSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDocumentationAttributeArgumentListSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .documentationAttributeArgumentList
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -2116,6 +2243,7 @@ public struct RawDocumentationAttributeArgumentListSyntax: RawSyntaxNodeProtocol
     self.init(unchecked: other.raw)
   }
   
+  @inlinable
   public init(elements: [RawDocumentationAttributeArgumentSyntax], arena: __shared SyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .documentationAttributeArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
@@ -2130,6 +2258,7 @@ public struct RawDocumentationAttributeArgumentListSyntax: RawSyntaxNodeProtocol
     self.init(unchecked: raw)
   }
   
+  @inlinable
   public var elements: [RawDocumentationAttributeArgumentSyntax] {
     layoutView.children.map {
       RawDocumentationAttributeArgumentSyntax(raw: $0!)
@@ -2138,16 +2267,19 @@ public struct RawDocumentationAttributeArgumentListSyntax: RawSyntaxNodeProtocol
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDocumentationAttributeArgumentSyntax: RawSyntaxNodeProtocol {
+  @frozen
   public enum Value: RawSyntaxNodeProtocol {
     case `token`(RawTokenSyntax)
     case `string`(RawStringLiteralExprSyntax)
     
+    @inlinable
     public static func isKindOf(_ raw: RawSyntax) -> Bool {
       return RawTokenSyntax.isKindOf(raw) || RawStringLiteralExprSyntax.isKindOf(raw)
     }
     
-    public var raw: RawSyntax {
+    @inlinable public var raw: RawSyntax {
       switch self {
       case .token(let node):
         return node.raw
@@ -2156,7 +2288,7 @@ public struct RawDocumentationAttributeArgumentSyntax: RawSyntaxNodeProtocol {
       }
     }
     
-    public init?(_ other: some RawSyntaxNodeProtocol) {
+    @inlinable public init?(_ other: some RawSyntaxNodeProtocol) {
       if let node = RawTokenSyntax(other) {
         self = .token(node)
         return
@@ -2169,26 +2301,29 @@ public struct RawDocumentationAttributeArgumentSyntax: RawSyntaxNodeProtocol {
     }
   }
   
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .documentationAttributeArgument
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil
@@ -2262,27 +2397,31 @@ public struct RawDocumentationAttributeArgumentSyntax: RawSyntaxNodeProtocol {
 }
 
 @_spi(RawSyntax)
+@frozen
 public struct RawDynamicReplacementAttributeArgumentsSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public var layoutView: RawSyntaxLayoutView {
     return raw.layoutView!
   }
   
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  @inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .dynamicReplacementAttributeArguments
   }
   
   public var raw: RawSyntax
   
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
   
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
   
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else {
       return nil

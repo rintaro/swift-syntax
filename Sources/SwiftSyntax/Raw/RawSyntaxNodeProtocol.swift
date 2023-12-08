@@ -26,27 +26,33 @@ public protocol RawSyntaxNodeProtocol: CustomStringConvertible, TextOutputStream
 
 public extension RawSyntaxNodeProtocol {
   /// Cast to the specified raw syntax type if possible.
+  @inlinable
   func `as`<Node: RawSyntaxNodeProtocol>(_: Node.Type) -> Node? {
     Node(self)
   }
 
   /// Check if this instance can be cast to the specified syntax type.
+  @inlinable
   func `is`<Node: RawSyntaxNodeProtocol>(_: Node.Type) -> Bool {
     Node.isKindOf(self.raw)
   }
 
+  @inlinable
   func cast<S: RawSyntaxNodeProtocol>(_ syntaxType: S.Type) -> S {
     return self.as(S.self)!
   }
 
+  @inlinable
   var description: String {
     raw.description
   }
 
+  @inlinable
   func write(to target: inout some TextOutputStream) {
     raw.write(to: &target)
   }
 
+  @inlinable
   var isEmpty: Bool {
     return raw.byteLength == 0
   }
@@ -55,6 +61,7 @@ public extension RawSyntaxNodeProtocol {
   ///  - missing nodes or
   ///  - unexpected nodes or
   ///  - tokens with a ``TokenDiagnostic`` of severity `error`
+  @inlinable
   var hasError: Bool {
     return raw.recursiveFlags.contains(.hasError)
   }
@@ -62,19 +69,20 @@ public extension RawSyntaxNodeProtocol {
 
 /// ``RawSyntax`` itself conforms to `RawSyntaxNodeProtocol`.
 extension RawSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
+  @inlinable
   public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return true
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var raw: RawSyntax { self }
 
+  @inlinable
   init(raw: RawSyntax) {
     self = raw
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public init(_ other: some RawSyntaxNodeProtocol) {
     self.init(raw: other.raw)
   }
@@ -98,85 +106,86 @@ extension Slice {
 #endif
 
 @_spi(RawSyntax)
+@frozen
 public struct RawTokenSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
   public typealias SyntaxType = TokenSyntax
 
-  @_spi(RawSyntax)
   public var tokenView: RawSyntaxTokenView {
     return raw.tokenView!
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .token
   }
 
-  @_spi(RawSyntax)
   public var raw: RawSyntax
 
+  @inlinable
   init(raw: RawSyntax) {
     precondition(Self.isKindOf(raw))
     self.raw = raw
   }
 
-  private init(unchecked raw: RawSyntax) {
+  @inlinable
+  init(unchecked raw: RawSyntax) {
     self.raw = raw
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else { return nil }
     self.init(unchecked: other.raw)
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var tokenKind: RawTokenKind {
     return tokenView.rawKind
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var tokenText: SyntaxText {
     return tokenView.rawText
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var byteLength: Int {
     return raw.byteLength
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var presence: SourcePresence {
     tokenView.presence
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var isMissing: Bool {
     presence == .missing
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var leadingTriviaByteLength: Int {
     return tokenView.leadingTriviaByteLength
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var leadingTriviaPieces: [RawTriviaPiece] {
     tokenView.leadingRawTriviaPieces
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var trailingTriviaByteLength: Int {
     return tokenView.trailingTriviaByteLength
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var trailingTriviaPieces: [RawTriviaPiece] {
     tokenView.trailingRawTriviaPieces
   }
 
   /// Creates a ``RawTokenSyntax``. `wholeText` must be managed by the same
   /// `arena`. `textRange` is a range of the token text in `wholeText`.
+  @inlinable
   public init(
     kind: RawTokenKind,
     wholeText: SyntaxText,

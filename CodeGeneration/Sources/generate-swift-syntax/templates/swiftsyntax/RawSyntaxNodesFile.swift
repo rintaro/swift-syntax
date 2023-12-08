@@ -53,12 +53,14 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
       try! StructDeclSyntax(
         """
         \(node.apiAttributes(forRaw: true))\
+        @frozen
         public struct \(node.kind.rawType): \(node.kind.isBase ? node.kind.rawProtocolType : node.base.rawProtocolType)
         """
       ) {
         for (name, choices) in node.childrenChoicesEnums {
           try EnumDeclSyntax(
             """
+            @frozen
             public enum \(name): RawSyntaxNodeProtocol
             """
           ) {
@@ -68,13 +70,14 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
 
             DeclSyntax(
               """
+              @inlinable
               public static func isKindOf(_ raw: RawSyntax) -> Bool {
                 return \(raw: choices.map { "\($0.kind.rawType).isKindOf(raw)" }.joined(separator: " || "))
               }
               """
             )
 
-            try VariableDeclSyntax("public var raw: RawSyntax") {
+            try VariableDeclSyntax("@inlinable public var raw: RawSyntax") {
               try SwitchExprSyntax("switch self") {
                 for (swiftName, _) in choices {
                   SwitchCaseSyntax("case .\(swiftName)(let node): return node.raw")
@@ -82,7 +85,7 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
               }
             }
 
-            try InitializerDeclSyntax("public init?(_ other: some RawSyntaxNodeProtocol)") {
+            try InitializerDeclSyntax("@inlinable public init?(_ other: some RawSyntaxNodeProtocol)") {
               for (swiftName, kind) in choices {
                 StmtSyntax(
                   """
@@ -101,14 +104,14 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
 
         DeclSyntax(
           """
-          @_spi(RawSyntax)
+          @inlinable
           public var layoutView: RawSyntaxLayoutView {
             return raw.layoutView!
           }
           """
         )
 
-        try FunctionDeclSyntax("public static func isKindOf(_ raw: RawSyntax) -> Bool") {
+        try FunctionDeclSyntax("@inlinable public static func isKindOf(_ raw: RawSyntax) -> Bool") {
           if node.kind.isBase {
 
             let cases = SwitchCaseItemListSyntax {
@@ -138,6 +141,7 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
 
         DeclSyntax(
           """
+          @inlinable
           init(raw: RawSyntax) {
             precondition(Self.isKindOf(raw))
             self.raw = raw
@@ -147,7 +151,8 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
 
         DeclSyntax(
           """
-          private init(unchecked raw: RawSyntax) {
+          @inlinable
+          init(unchecked raw: RawSyntax) {
             self.raw = raw
           }
           """
@@ -155,6 +160,7 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
 
         DeclSyntax(
           """
+          @inlinable
           public init?(_ other: some RawSyntaxNodeProtocol) {
             guard Self.isKindOf(other.raw) else { return nil }
             self.init(unchecked: other.raw)
@@ -165,6 +171,7 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
         if node.kind.isBase {
           DeclSyntax(
             """
+            @inlinable
             public init(_ other: some \(node.kind.rawType)NodeProtocol) {
               self.init(unchecked: other.raw)
             }
@@ -176,6 +183,7 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
           let element = node.elementChoices.only != nil ? node.elementChoices.only!.rawType : "Element"
           DeclSyntax(
             """
+            @inlinable
             public init(elements: [\(element)], arena: __shared SyntaxArena) {
               let raw = RawSyntax.makeLayout(
                 kind: .\(node.varOrCaseName), uninitializedCount: elements.count, arena: arena) { layout in
@@ -192,6 +200,7 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
 
           DeclSyntax(
             """
+            @inlinable
             public var elements: [Raw\(node.collectionElementType.syntaxBaseName)] {
               layoutView.children.map { Raw\(node.collectionElementType.syntaxBaseName)(raw: $0!) }
             }

@@ -479,8 +479,8 @@ extension TokenKind: Equatable {
 // because it significantly improves performance when comparing two
 // `RawTokenBaseKind` for equality. With the raw value, it compiles down to
 // a primitive integer compare, without, it calls into `__derived_enum_equals`.
-@frozen // FIXME: Not actually stable, works around a miscompile
 @_spi(RawSyntax)
+@frozen
 public enum RawTokenKind: UInt16, Equatable, Hashable {
   case arrow
   case atSign
@@ -1243,12 +1243,13 @@ public enum RawTokenKind: UInt16, Equatable, Hashable {
       return nil
     }
   }
-  
+
   /// Returns `true` if the token is a Swift punctuator.
   ///
   /// Punctuation tokens generally separate identifiers from each other. For
   /// example, the '<' and '>' characters in a generic parameter list, or the
   /// quote characters in a string literal.
+  @inlinable
   public var isPunctuation: Bool {
     switch self {
     case .arrow:
@@ -1311,6 +1312,7 @@ public enum RawTokenKind: UInt16, Equatable, Hashable {
   }
   
   /// Returns `true` if the token is a keyword.
+  @inlinable
   public var isKeywordKind: Bool {
     switch self {
     case .__consumingKeyword:

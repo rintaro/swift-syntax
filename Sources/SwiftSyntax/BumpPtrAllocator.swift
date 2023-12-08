@@ -138,6 +138,7 @@ public class BumpPtrAllocator {
   /// In general, using ``BumpPtrAllocator`` for placing non-trivial values (e.g.
   /// class instances, existentials, etc.) is strongly discouraged because they
   /// are not automatically deinitialized.
+  @inlinable
   public func allocate<T>(_: T.Type, count: Int) -> UnsafeMutableBufferPointer<T> {
     let allocated = allocate(
       byteCount: MemoryLayout<T>.stride * count,

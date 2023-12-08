@@ -147,6 +147,8 @@ public class SyntaxArena {
 
   /// Copies a `RawSyntaxData` to the memory this arena manages, and returns the
   /// pointer to the destination.
+  @_spi(RawSyntax)
+  @usableFromInline
   func intern(_ value: RawSyntaxData) -> UnsafePointer<RawSyntaxData> {
     let allocated = allocator.allocate(RawSyntaxData.self, count: 1).baseAddress!
     allocated.initialize(to: value)
@@ -264,30 +266,39 @@ public class ParsingSyntaxArena: SyntaxArena {
 /// `RawSyntaxData` holds its ``SyntaxArena`` in this form to prevent their cyclic
 /// strong references. Also, passing around ``SyntaxArena`` in this form doesn't
 /// cause any ref-counting traffic.
+@_spi(RawSyntax)
+@usableFromInline
+@frozen
 struct SyntaxArenaRef: Hashable {
   private let _value: Unmanaged<SyntaxArena>
 
+  @usableFromInline
   init(_ value: __shared SyntaxArena) {
     self._value = .passUnretained(value)
   }
 
-  /// Returns the ``SyntaxArena``
+  /// Returns the ``SyntaxArena`
+  @usableFromInline
   var value: SyntaxArena {
     get { self._value.takeUnretainedValue() }
   }
 
+  @usableFromInline
   func retain() {
     _ = self._value.retain()
   }
 
+  @usableFromInline
   func release() {
     self._value.release()
   }
 
+  @usableFromInline
   func hash(into hasher: inout Hasher) {
     hasher.combine(_value.toOpaque())
   }
 
+  @usableFromInline
   static func == (lhs: SyntaxArenaRef, rhs: SyntaxArenaRef) -> Bool {
     return lhs._value.toOpaque() == rhs._value.toOpaque()
   }
