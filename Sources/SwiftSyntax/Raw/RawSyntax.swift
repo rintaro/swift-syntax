@@ -10,7 +10,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-@_spi(RawSyntax) public typealias RawSyntaxBuffer = UnsafeBufferPointer<RawSyntax?>
+@_spi(RawSyntax)
+public typealias RawSyntaxBuffer = UnsafeBufferPointer<RawSyntax?>
+
+@usableFromInline
+@_spi(RawSyntax)
 typealias RawTriviaPieceBuffer = UnsafeBufferPointer<RawTriviaPiece>
 
 fileprivate extension SyntaxKind {
@@ -20,23 +24,41 @@ fileprivate extension SyntaxKind {
   }
 }
 
+@usableFromInline
+@frozen
 struct RecursiveRawSyntaxFlags: OptionSet {
+  @usableFromInline
   let rawValue: UInt8
+
+  @inlinable
+  init(rawValue: UInt8) {
+    self.rawValue = rawValue
+  }
 
   /// Whether the tree contained by this layout has any
   ///  - missing nodes or
   ///  - unexpected nodes or
   ///  - tokens with a ``TokenDiagnostic`` of severity `error`
+  @usableFromInline
   static let hasError = RecursiveRawSyntaxFlags(rawValue: 1 << 0)
   /// Whether the tree contained by this layout has any tokens with a
   /// ``TokenDiagnostic`` of severity `warning`.
+  @usableFromInline
   static let hasWarning = RecursiveRawSyntaxFlags(rawValue: 1 << 1)
+  @usableFromInline
   static let hasSequenceExpr = RecursiveRawSyntaxFlags(rawValue: 1 << 2)
+  @usableFromInline
   static let hasMaximumNestingLevelOverflow = RecursiveRawSyntaxFlags(rawValue: 1 << 3)
 }
 
 /// Node data for RawSyntax tree. Tagged union plus common data.
+@_spi(RawSyntax)
+@usableFromInline
+@frozen
 internal struct RawSyntaxData {
+  @_spi(RawSyntax)
+  @usableFromInline
+  @frozen
   internal enum Payload {
     case parsedToken(ParsedToken)
     case materializedToken(MaterializedToken)
@@ -47,18 +69,25 @@ internal struct RawSyntaxData {
   ///
   /// The RawSyntax's `arena` must have a valid trivia parsing function to
   /// lazily materialize the leading/trailing trivia pieces.
+  @_spi(RawSyntax)
+  @usableFromInline
+  @frozen
   struct ParsedToken {
+    @usableFromInline
     var tokenKind: RawTokenKind
 
     /// Whole text of this token including leading/trailing trivia.
+    @usableFromInline
     var wholeText: SyntaxText
 
     /// Range of the actual token’s text.
     ///
     /// Text in `wholeText` before `textRange.lowerBound` is leading trivia and
     /// after `textRange.upperBound` is trailing trivia.
+    @usableFromInline
     var textRange: Range<SyntaxText.Index>
 
+    @usableFromInline
     var presence: SourcePresence
 
     /// Store the members of ``TokenDiagnostic`` individually so the compiler can pack
@@ -67,6 +96,7 @@ internal struct RawSyntaxData {
     private var tokenDiagnosticKind: TokenDiagnostic.Kind?
     private var tokenDiagnosticByteOffset: UInt16
 
+    @usableFromInline
     var tokenDiagnostic: TokenDiagnostic? {
       get {
         if let kind = tokenDiagnosticKind {
@@ -97,12 +127,21 @@ internal struct RawSyntaxData {
   }
 
   /// Token typically created with `TokenSyntax.<someToken>`.
+  @_spi(RawSyntax)
+  @usableFromInline
+  @frozen
   struct MaterializedToken {
+    @usableFromInline
     var tokenKind: RawTokenKind
+    @usableFromInline
     var tokenText: SyntaxText
+    @usableFromInline
     var triviaPieces: RawTriviaPieceBuffer
+    @usableFromInline
     var numLeadingTrivia: UInt32
+    @usableFromInline
     var byteLength: UInt32
+    @usableFromInline
     var presence: SourcePresence
     /// Store the members of ``TokenDiagnostic`` individually so the compiler can pack
     /// `ParsedToken` more efficiently (saving 2 bytes)
@@ -129,6 +168,7 @@ internal struct RawSyntaxData {
       self.tokenDiagnosticByteOffset = tokenDiagnostic?.byteOffset ?? 0
     }
 
+    @usableFromInline
     var tokenDiagnostic: TokenDiagnostic? {
       get {
         if let kind = tokenDiagnosticKind {
@@ -150,35 +190,56 @@ internal struct RawSyntaxData {
   }
 
   /// Layout node including collections.
+  @_spi(RawSyntax)
+  @usableFromInline
+  @frozen
   struct Layout {
+    @usableFromInline
     var kind: SyntaxKind
+    @usableFromInline
     var layout: RawSyntaxBuffer
+    @usableFromInline
     var byteLength: Int
     /// Number of nodes in this subtree, excluding this node.
+    @usableFromInline
     var descendantCount: Int
+    @usableFromInline
     var recursiveFlags: RecursiveRawSyntaxFlags
   }
 
+  @usableFromInline
   var payload: Payload
+  @usableFromInline
   var arenaReference: SyntaxArenaRef
+
+  @inlinable
+  init(payload: Payload, arenaReference: SyntaxArenaRef) {
+    self.payload = payload
+    self.arenaReference = arenaReference
+  }
 }
 
 extension RawSyntaxData.ParsedToken {
+  @inlinable
   var tokenText: SyntaxText {
     SyntaxText(rebasing: wholeText[textRange])
   }
+  @inlinable
   var leadingTriviaText: SyntaxText {
     SyntaxText(rebasing: wholeText[..<textRange.lowerBound])
   }
+  @inlinable
   var trailingTriviaText: SyntaxText {
     SyntaxText(rebasing: wholeText[textRange.upperBound...])
   }
 }
 
 extension RawSyntaxData.MaterializedToken {
+  @inlinable
   var leadingTrivia: RawTriviaPieceBuffer {
     RawTriviaPieceBuffer(rebasing: triviaPieces[..<Int(numLeadingTrivia)])
   }
+  @inlinable
   var trailingTrivia: RawTriviaPieceBuffer {
     RawTriviaPieceBuffer(rebasing: triviaPieces[Int(numLeadingTrivia)...])
   }
@@ -188,33 +249,40 @@ extension RawSyntaxData.MaterializedToken {
 /// have no notion of identity and only provide structure to the tree. They
 /// are immutable and can be freely shared between syntax nodes.
 @_spi(RawSyntax)
+@frozen
 public struct RawSyntax {
 
   /// Pointer to the actual data which resides in a SyntaxArena.
+  @usableFromInline
   var pointer: UnsafePointer<RawSyntaxData>
+  @inlinable
   init(pointer: UnsafePointer<RawSyntaxData>) {
     self.pointer = pointer
   }
 
+  @inlinable
   init(arena: __shared SyntaxArena, payload: RawSyntaxData.Payload) {
     let arenaRef = SyntaxArenaRef(arena)
     self.init(pointer: arena.intern(RawSyntaxData(payload: payload, arenaReference: arenaRef)))
   }
 
+  @inlinable
   var rawData: RawSyntaxData {
     unsafeAddress { pointer }
   }
 
-  internal var arenaReference: SyntaxArenaRef {
+  @inlinable
+  var arenaReference: SyntaxArenaRef {
     rawData.arenaReference
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var arena: SyntaxArena {
     rawData.arenaReference.value
   }
 
-  internal var payload: RawSyntaxData.Payload {
+  @inlinable
+  var payload: RawSyntaxData.Payload {
     get { rawData.payload }
   }
 }
@@ -223,7 +291,6 @@ public struct RawSyntax {
 
 extension RawSyntax {
   /// The syntax kind of this raw syntax.
-  @_spi(RawSyntax)
   public var kind: SyntaxKind {
     switch rawData.payload {
     case .parsedToken(_): return .token
@@ -233,11 +300,12 @@ extension RawSyntax {
   }
 
   /// Whether or not this node is a token one.
-  @_spi(RawSyntax)
+  @inlinable
   public var isToken: Bool {
     kind == .token
   }
 
+  @usableFromInline
   var recursiveFlags: RecursiveRawSyntaxFlags {
     switch view {
     case .token(let tokenView):
@@ -260,6 +328,7 @@ extension RawSyntax {
   }
 
   /// Total number of nodes in this sub-tree, including `self` node.
+  @inlinable
   var totalNodes: Int {
     switch rawData.payload {
     case .parsedToken(_),
@@ -273,7 +342,7 @@ extension RawSyntax {
   /// The "width" of the node.
   ///
   /// Sum of text byte lengths of all present descendant token nodes.
-  @_spi(RawSyntax)
+  @inlinable
   public var byteLength: Int {
     switch rawData.payload {
     case .parsedToken(let dat):
@@ -293,6 +362,7 @@ extension RawSyntax {
     }
   }
 
+  @inlinable
   var totalLength: SourceLength {
     SourceLength(utf8Length: byteLength)
   }
@@ -351,12 +421,12 @@ extension RawSyntax {
 }
 
 extension RawSyntax {
-  @_spi(RawSyntax)
+  @inlinable
   public func toOpaque() -> UnsafeRawPointer {
     UnsafeRawPointer(pointer)
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public static func fromOpaque(_ pointer: UnsafeRawPointer) -> RawSyntax {
     Self(pointer: pointer.assumingMemoryBound(to: RawSyntaxData.self))
   }
@@ -445,6 +515,7 @@ extension RawSyntax: TextOutputStreamable, CustomStringConvertible {
   }
 
   /// A source-accurate description of this node.
+  @inlinable
   public var description: String {
     var s = ""
     self.write(to: &s)
@@ -454,6 +525,7 @@ extension RawSyntax: TextOutputStreamable, CustomStringConvertible {
 
 extension RawSyntax {
   /// Return the first token of a layout node that should be traversed by `viewMode`.
+  @usableFromInline
   func firstToken(viewMode: SyntaxTreeViewMode) -> RawSyntaxTokenView? {
     guard viewMode.shouldTraverse(node: self) else { return nil }
     switch view {
@@ -470,6 +542,7 @@ extension RawSyntax {
   }
 
   /// Return the last token of a layout node that should be traversed by `viewMode`.
+  @usableFromInline
   func lastToken(viewMode: SyntaxTreeViewMode) -> RawSyntaxTokenView? {
     guard viewMode.shouldTraverse(node: self) else { return nil }
     switch view {
@@ -495,22 +568,22 @@ extension RawSyntax {
 }
 
 extension RawSyntax {
-  @_spi(RawSyntax)
+  @inlinable
   public var leadingTriviaByteLength: Int {
     firstToken(viewMode: .sourceAccurate)?.leadingTriviaByteLength ?? 0
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var trailingTriviaByteLength: Int {
     lastToken(viewMode: .sourceAccurate)?.trailingTriviaByteLength ?? 0
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var leadingTriviaPieces: [RawTriviaPiece]? {
     firstToken(viewMode: .sourceAccurate)?.leadingRawTriviaPieces
   }
 
-  @_spi(RawSyntax)
+  @inlinable
   public var trailingTriviaPieces: [RawTriviaPiece]? {
     lastToken(viewMode: .sourceAccurate)?.trailingRawTriviaPieces
   }
@@ -518,21 +591,25 @@ extension RawSyntax {
   /// The length of this node’s content, without the first leading and the last
   /// trailing trivia. Intermediate trivia inside a layout node is included in
   /// this.
+  @inlinable
   var trimmedByteLength: Int {
     let result = byteLength - leadingTriviaByteLength - trailingTriviaByteLength
     precondition(result >= 0)
     return result
   }
 
+  @inlinable
   var leadingTriviaLength: SourceLength {
     SourceLength(utf8Length: leadingTriviaByteLength)
   }
 
+  @inlinable
   var trailingTriviaLength: SourceLength {
     SourceLength(utf8Length: trailingTriviaByteLength)
   }
 
   /// The length of this node excluding its leading and trailing trivia.
+  @inlinable
   var trimmedLength: SourceLength {
     SourceLength(utf8Length: trimmedByteLength)
   }
@@ -549,7 +626,8 @@ extension RawSyntax {
   ///   - textRange: Range of the token text in `wholeText`.
   ///   - presence: Whether the token appeared in the source code or if it was synthesized.
   ///   - arena: SyntaxArena to the result node data resides.
-  internal static func parsedToken(
+  @usableFromInline
+  static func parsedToken(
     kind: RawTokenKind,
     wholeText: SyntaxText,
     textRange: Range<SyntaxText.Index>,
@@ -590,7 +668,7 @@ extension RawSyntax {
   ///   - byteLength: Byte length of this token including trivia.
   ///   - presence: Whether the token appeared in the source code or if it was synthesized.
   ///   - arena: SyntaxArena to the result node data resides.
-  internal static func materializedToken(
+  static func materializedToken(
     kind: RawTokenKind,
     text: SyntaxText,
     triviaPieces: RawTriviaPieceBuffer,
@@ -914,12 +992,16 @@ extension RawSyntax: CustomReflectable {
   }
 }
 
+@_spi(RawSyntax)
+@usableFromInline
+@frozen
 enum RawSyntaxView {
   case token(RawSyntaxTokenView)
   case layout(RawSyntaxLayoutView)
 }
 
 extension RawSyntax {
+  @inlinable
   var view: RawSyntaxView {
     switch raw.payload {
     case .parsedToken, .materializedToken:

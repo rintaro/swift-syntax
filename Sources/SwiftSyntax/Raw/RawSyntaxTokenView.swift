@@ -25,11 +25,13 @@ extension RawSyntax {
 }
 
 /// A view into ``RawSyntax`` that exposes functionality that only applies to tokens.
-@_spi(RawSyntax)
+@_spi(RawSyntax) @frozen
 public struct RawSyntaxTokenView {
+  @usableFromInline
   let raw: RawSyntax
 
-  fileprivate init(raw: RawSyntax) {
+  @inlinable
+  init(raw: RawSyntax) {
     self.raw = raw
     switch raw.payload {
     case .parsedToken, .materializedToken:
@@ -41,6 +43,7 @@ public struct RawSyntaxTokenView {
 
   /// Token kind of this node.
   @_spi(RawSyntax)
+  @inlinable
   public var rawKind: RawTokenKind {
     switch raw.rawData.payload {
     case .materializedToken(let dat):
@@ -54,6 +57,7 @@ public struct RawSyntaxTokenView {
 
   /// Token text of this node.
   @_spi(RawSyntax)
+  @inlinable
   public var rawText: SyntaxText {
     switch raw.rawData.payload {
     case .parsedToken(let dat):
@@ -67,6 +71,7 @@ public struct RawSyntaxTokenView {
 
   /// The UTF-8 byte length of the leading trivia.
   @_spi(RawSyntax)
+  @inlinable
   public var leadingTriviaByteLength: Int {
     switch raw.rawData.payload {
     case .parsedToken(let dat):
@@ -80,6 +85,7 @@ public struct RawSyntaxTokenView {
 
   /// The UTF-8 byte length of the trailing trivia.
   @_spi(RawSyntax)
+  @inlinable
   public var trailingTriviaByteLength: Int {
     switch raw.rawData.payload {
     case .parsedToken(let dat):
@@ -119,12 +125,14 @@ public struct RawSyntaxTokenView {
 
   /// Returns the leading ``Trivia`` length.
   @_spi(RawSyntax)
+  @inlinable
   public var leadingTriviaLength: SourceLength {
     return SourceLength(utf8Length: leadingTriviaByteLength)
   }
 
   /// Returns the trailing ``Trivia`` length.
   @_spi(RawSyntax)
+  @inlinable
   public var trailingTriviaLength: SourceLength {
     return SourceLength(utf8Length: trailingTriviaByteLength)
   }
@@ -159,6 +167,7 @@ public struct RawSyntaxTokenView {
 
   /// Returns the leading ``Trivia``.
   @_spi(RawSyntax)
+  @inlinable
   public func formLeadingTrivia() -> Trivia {
     return Trivia(pieces: leadingRawTriviaPieces.map({ TriviaPiece(raw: $0) }))
   }
@@ -166,6 +175,7 @@ public struct RawSyntaxTokenView {
   /// Returns the trailing ``Trivia``.
   /// - Returns: nil if called on a layout node.
   @_spi(RawSyntax)
+  @inlinable
   public func formTrailingTrivia() -> Trivia {
     return Trivia(pieces: trailingRawTriviaPieces.map({ TriviaPiece(raw: $0) }))
   }
@@ -217,6 +227,7 @@ public struct RawSyntaxTokenView {
   /// The length of the token without leading or trailing trivia, assuming this
   /// is a token node.
   @_spi(RawSyntax)
+  @inlinable
   public var textByteLength: Int {
     switch raw.rawData.payload {
     case .parsedToken(let dat):
@@ -229,11 +240,13 @@ public struct RawSyntaxTokenView {
   }
 
   @_spi(RawSyntax)
+  @inlinable
   public var trimmedLength: SourceLength {
     SourceLength(utf8Length: textByteLength)
   }
 
   @_spi(RawSyntax)
+  @inlinable
   public func formKind() -> TokenKind {
     switch raw.rawData.payload {
     case .parsedToken(let dat):
@@ -246,6 +259,7 @@ public struct RawSyntaxTokenView {
   }
 
   @_spi(RawSyntax)
+  @inlinable
   public var presence: SourcePresence {
     switch raw.rawData.payload {
     case .parsedToken(let dat):
@@ -258,6 +272,7 @@ public struct RawSyntaxTokenView {
   }
 
   @_spi(RawSyntax)
+  @inlinable
   public var tokenDiagnostic: TokenDiagnostic? {
     switch raw.rawData.payload {
     case .parsedToken(let dat):
