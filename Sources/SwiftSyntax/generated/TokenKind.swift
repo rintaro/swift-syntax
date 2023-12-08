@@ -2295,141 +2295,106 @@ public enum RawTokenKind: Hashable {
 extension TokenKind {
   /// If the `rawKind` has a `defaultText`, `text` can be empty.
   @_spi(RawSyntax)
-  public static func fromRaw(kind rawKind: RawTokenKind, text: String) -> TokenKind {
+  public static func fromRaw(kind rawKind: RawTokenKind, text: SyntaxText) -> TokenKind {
+    precondition(text.isEmpty || rawKind.defaultText == nil || rawKind.defaultText == text)
     switch rawKind {
     case .arrow:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .arrow
     case .atSign:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .atSign
     case .backslash:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .backslash
     case .backtick:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .backtick
     case .binaryOperator:
-      return .binaryOperator(text)
+      return .binaryOperator(String(syntaxText: text))
     case .colon:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .colon
     case .comma:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .comma
     case .dollarIdentifier:
-      return .dollarIdentifier(text)
+      return .dollarIdentifier(String(syntaxText: text))
     case .ellipsis:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .ellipsis
     case .endOfFile:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .endOfFile
     case .equal:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .equal
     case .exclamationMark:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .exclamationMark
     case .floatLiteral:
-      return .floatLiteral(text)
+      return .floatLiteral(String(syntaxText: text))
     case .identifier:
-      return .identifier(text)
+      return .identifier(String(syntaxText: text))
     case .infixQuestionMark:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .infixQuestionMark
     case .integerLiteral:
-      return .integerLiteral(text)
+      return .integerLiteral(String(syntaxText: text))
     case .leftAngle:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .leftAngle
     case .leftBrace:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .leftBrace
     case .leftParen:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .leftParen
     case .leftSquare:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .leftSquare
     case .multilineStringQuote:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .multilineStringQuote
     case .period:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .period
     case .postfixOperator:
-      return .postfixOperator(text)
+      return .postfixOperator(String(syntaxText: text))
     case .postfixQuestionMark:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .postfixQuestionMark
     case .pound:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .pound
     case .poundAvailable:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .poundAvailable
     case .poundElse:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .poundElse
     case .poundElseif:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .poundElseif
     case .poundEndif:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .poundEndif
     case .poundIf:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .poundIf
     case .poundSourceLocation:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .poundSourceLocation
     case .poundUnavailable:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .poundUnavailable
     case .prefixAmpersand:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .prefixAmpersand
     case .prefixOperator:
-      return .prefixOperator(text)
+      return .prefixOperator(String(syntaxText: text))
     case .rawStringPoundDelimiter:
-      return .rawStringPoundDelimiter(text)
+      return .rawStringPoundDelimiter(String(syntaxText: text))
     case .regexLiteralPattern:
-      return .regexLiteralPattern(text)
+      return .regexLiteralPattern(String(syntaxText: text))
     case .regexPoundDelimiter:
-      return .regexPoundDelimiter(text)
+      return .regexPoundDelimiter(String(syntaxText: text))
     case .regexSlash:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .regexSlash
     case .rightAngle:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .rightAngle
     case .rightBrace:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .rightBrace
     case .rightParen:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .rightParen
     case .rightSquare:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .rightSquare
     case .semicolon:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .semicolon
     case .shebang:
-      return .shebang(text)
+      return .shebang(String(syntaxText: text))
     case .singleQuote:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .singleQuote
     case .stringQuote:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .stringQuote
     case .stringSegment:
-      return .stringSegment(text)
+      return .stringSegment(String(syntaxText: text))
     case .unknown:
-      return .unknown(text)
+      return .unknown(String(syntaxText: text))
     case .wildcard:
-      precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)
       return .wildcard
     case .__consumingKeyword:
       return .keyword(.__consuming)

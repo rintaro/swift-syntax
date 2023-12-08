@@ -282,19 +282,20 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
       """
       /// If the `rawKind` has a `defaultText`, `text` can be empty.
       @_spi(RawSyntax)
-      public static func fromRaw(kind rawKind: RawTokenKind, text: String) -> TokenKind
+      public static func fromRaw(kind rawKind: RawTokenKind, text: SyntaxText) -> TokenKind
       """
     ) {
+      ExprSyntax("precondition(text.isEmpty || rawKind.defaultText == nil || rawKind.defaultText == text)")
+
       try! SwitchExprSyntax("switch rawKind") {
         for tokenSpec in Token.allCases.map(\.spec) where tokenSpec.kind != .keyword {
           if tokenSpec.text != nil {
             SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
-              ExprSyntax("precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)")
               StmtSyntax("return .\(tokenSpec.varOrCaseName)")
             }
           } else {
             SwitchCaseSyntax("case .\(tokenSpec.varOrCaseName):") {
-              StmtSyntax("return .\(tokenSpec.varOrCaseName)(text)")
+              StmtSyntax("return .\(tokenSpec.varOrCaseName)(String(syntaxText: text))")
             }
           }
         }
