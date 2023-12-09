@@ -174,11 +174,6 @@ public let PATTERN_NODES: [Node] = [
         name: "wildcard",
         kind: .token(choices: [.token(.wildcard)])
       ),
-      Child(
-        name: "typeAnnotation",
-        kind: .node(kind: .typeAnnotation),
-        isOptional: true
-      ),
     ]
   ),
 
