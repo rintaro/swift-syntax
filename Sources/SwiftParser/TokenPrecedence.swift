@@ -353,7 +353,7 @@ enum TokenPrecedence: Comparable {
       ._RefCountedObjectKeyword,
       ._TrivialKeyword,
       ._TrivialAtMostKeyword,
-      ._TrivialStride,
+      ._TrivialStrideKeyword,
       ._underlyingVersionKeyword,
       ._UnknownLayoutKeyword,
       ._versionKeyword,
