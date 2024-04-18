@@ -77,7 +77,7 @@ let package = Package(
 
     .target(
       name: "SwiftCompilerPlugin",
-      dependencies: ["SwiftCompilerPluginMessageHandling", "SwiftSyntaxMacros", "_CShims"],
+      dependencies: ["SwiftCompilerPluginMessageHandling", "SwiftSyntaxMacros"],
       exclude: ["CMakeLists.txt"]
     ),
 
@@ -97,6 +97,7 @@ let package = Package(
         "SwiftSyntax",
         "SwiftSyntaxMacros",
         "SwiftSyntaxMacroExpansion",
+        "_CShims",
       ],
       exclude: ["CMakeLists.txt"]
     ),
