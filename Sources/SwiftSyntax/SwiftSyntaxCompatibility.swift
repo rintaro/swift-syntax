@@ -188,7 +188,7 @@ extension ClosureCaptureSyntax {
     _ unexpectedBetweenSpecifierAndName: UnexpectedNodesSyntax? = nil,
     name: TokenSyntax? = nil,
     _ unexpectedBetweenNameAndAssignToken: UnexpectedNodesSyntax? = nil,
-    assignToken: TokenSyntax? = nil,
+    assignToken: TokenSyntax?,
     _ unexpectedBetweenAssignTokenAndExpression: UnexpectedNodesSyntax? = nil,
     expression: some ExprSyntaxProtocol,
     _ unexpectedBetweenExpressionAndTrailingComma: UnexpectedNodesSyntax? = nil,
