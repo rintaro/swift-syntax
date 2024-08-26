@@ -52,7 +52,7 @@ public struct Syntax: SyntaxProtocol, SyntaxHashable {
 
   @inline(__always)
   public var parent: Syntax? {
-    guard let parentDataRef = data.parent else {
+    guard let parentDataRef = self.data.parent else {
       return nil
     }
     return Syntax(arena: arena, dataRef: parentDataRef)
