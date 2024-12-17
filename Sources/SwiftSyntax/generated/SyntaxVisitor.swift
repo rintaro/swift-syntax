@@ -24,9 +24,6 @@ public enum SyntaxVisitorContinueKind {
 open class SyntaxVisitor {
   public let viewMode: SyntaxTreeViewMode
 
-  /// 'Syntax' object factory recycling 'Syntax.Info' instances.
-  private let nodeFactory: SyntaxNodeFactory = SyntaxNodeFactory()
-
   public init(viewMode: SyntaxTreeViewMode) {
     self.viewMode = viewMode
   }
@@ -5277,10 +5274,9 @@ open class SyntaxVisitor {
 
   /// - Note: `node` is `inout` to avoid reference counting. See comment in `visitImpl`.
   private func visitChildren(_ node: inout Syntax) {
-    for case let (child?, info) in RawSyntaxChildren(node) where viewMode.shouldTraverse(node: child) {
-      var childNode = nodeFactory.create(parent: node, raw: child, absoluteInfo: info)
-      visit(&childNode)
-      nodeFactory.dispose(&childNode)
+    for case let childDataRef? in node.layoutBuffer where viewMode.shouldTraverse(node: childDataRef.pointee.raw) {
+      var child = Syntax(arena: node.arena, dataRef: childDataRef)
+      visit(&child)
     }
   }
 }

@@ -10,105 +10,70 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if compiler(>=6)
+@_implementationOnly private import _SwiftSyntaxCShims
+#else
+@_implementationOnly import _SwiftSyntaxCShims
+#endif
+
+// `Syntax` is a user facing "red" tree. A value is a pair of strong reference to
+// the _arena_ and a pointer to the `SyntaxData` allocated in the arena.
+// The _arena_ is shared between the all node in the tree and only in the tree.
+// Whenever the tree is modified, a new arena is created and it forms a new "tree".
+
 /// A Syntax node represents a tree of nodes with tokens at the leaves.
 /// Each node has accessors for its known children, and allows efficient
 /// iteration over the children through its `children` property.
 public struct Syntax: SyntaxProtocol, SyntaxHashable {
-  /// We need a heap indirection to store a syntax node's parent. We could use an indirect enum here but explicitly
-  /// modelling it using a class allows us to re-use these heap-allocated objects in `SyntaxVisitor`.
-  ///
-  /// - Note: `@unchecked Sendable` because `info` is mutable. In Swift 6 and above the variable can be declared as
-  ///   `nonisolated(unsafe)` but that attribute doesn't exist in previous Swift versions and a checked Sendable
-  ///   conformance generates a warning.
-  final class Info: @unchecked Sendable {
-    // For root node.
-    struct Root: Sendable {
-      private var arena: RetainedSyntaxArena
+  let arena: SyntaxDataArena
+  let dataRef: SyntaxDataReference
 
-      init(arena: RetainedSyntaxArena) {
-        self.arena = arena
-      }
-    }
-
-    // For non-root nodes.
-    struct NonRoot: Sendable {
-      var parent: Syntax
-      var absoluteInfo: AbsoluteSyntaxInfo
-    }
-
-    enum InfoImpl: Sendable {
-      case root(Root)
-      case nonRoot(NonRoot)
-    }
-
-    init(_ info: InfoImpl) {
-      self.info = info
-    }
-
-    /// The actual stored information that references the parent or the tree's root.
-    ///
-    /// - Important: Must only be set to `nil` when `Syntax.Info` is used in a memory recycling pool
-    ///    (eg. in `SyntaxVisitor`). In that case the `Syntax.Info` is considered garbage memory that can be re-used
-    ///    later. `info` needs to be set to a real value when `Syntax.Info` is recycled from the memory recycling pool.
-    #if compiler(>=6.0)
-    nonisolated(unsafe) var info: InfoImpl!
-    #else
-    var info: InfoImpl!
-    #endif
+  /// "designated" memberwise initializer of `Syntax`.
+  @_transparent  // Inline early to enable certain optimzation.
+  init(arena: __shared SyntaxDataArena, dataRef: SyntaxDataReference) {
+    self.arena = arena
+    self.dataRef = dataRef
   }
 
-  /// Reference to the node's parent or, if this node is the root of a tree, a reference to the `SyntaxArena` to keep
-  /// the syntax tree alive.
-  ///
-  /// - Important: In almost all use cases you should not access this directly. Prefer accessors like `parent`.
-  /// - Important: Must only be set to `nil` when this `Syntax` node is known to get destroyed and the `Info` should be
-  ///   stored in a memory recycling pool (eg. in `SyntaxVisitor`). After setting `info` to `nil`, this `Syntax` node
-  ///   is considered garbage and should not be accessed anymore in any way.
-  var info: Info!
-  let raw: RawSyntax
-
-  private var rootInfo: Info.Root {
-    switch info.info! {
-    case .root(let info): return info
-    case .nonRoot(let info): return info.parent.rootInfo
-    }
+  @inline(__always)
+  private var data: SyntaxData {
+    @_transparent unsafeAddress { dataRef.pointer }
   }
 
-  private var nonRootInfo: Info.NonRoot? {
-    switch info.info! {
-    case .root(_): return nil
-    case .nonRoot(let info): return info
-    }
+  @inline(__always)
+  var raw: RawSyntax {
+    data.raw
   }
 
-  public var root: Syntax {
-    return self.withUnownedSyntax {
-      var node = $0
-      while let parent = node.parent {
-        node = parent
-      }
-      return node.value
-    }
+  @inline(__always)
+  public var root: Self {
+    return Self(arena: arena, dataRef: arena.root)
   }
 
-  public var parent: Syntax? {
-    nonRootInfo?.parent
+  @inline(__always)
+  public var parent: Self? {
+    data.parent.map { Self(arena: arena, dataRef: $0) }
+  }
+
+  @inline(__always)
+  public var hasParent: Bool {
+    data.parent != nil
   }
 
   var absoluteInfo: AbsoluteSyntaxInfo {
-    nonRootInfo?.absoluteInfo ?? .forRoot(raw)
+    data.absoluteInfo
   }
 
-  var absoluteRaw: AbsoluteRawSyntax {
-    AbsoluteRawSyntax(raw: raw, info: absoluteInfo)
-  }
-
-  var indexInParent: Int {
-    Int(absoluteInfo.indexInParent)
+  /// Index in parent's layout. `nil` slots are counted.
+  var layoutIndexInParent: Int {
+    Int(absoluteInfo.layoutIndexInParent)
   }
 
   public var id: SyntaxIdentifier {
-    absoluteInfo.nodeId
+    SyntaxIdentifier(
+      rootId: UInt(rawID: arena.root.pointee.raw.id),
+      indexInTree: SyntaxIdentifier.SyntaxIndexInTree(indexInTree: absoluteInfo.indexInTree)
+    )
   }
 
   /// The position of the start of this node's leading trivia
@@ -131,27 +96,6 @@ public struct Syntax: SyntaxProtocol, SyntaxHashable {
     position + raw.totalLength
   }
 
-  /// "designated" memberwise initializer of `Syntax`.
-  // transparent because normal inlining is too late for eliminating ARC traffic for Info.
-  // FIXME: Remove @_transparent after OSSA enabled.
-  @_transparent
-  init(_ raw: RawSyntax, info: __shared Info) {
-    self.raw = raw
-    self.info = info
-  }
-
-  init(_ raw: RawSyntax, parent: Syntax, absoluteInfo: AbsoluteSyntaxInfo) {
-    self.init(raw, info: Info(.nonRoot(.init(parent: parent, absoluteInfo: absoluteInfo))))
-  }
-
-  /// Creates a `Syntax` with the provided raw syntax and parent.
-  /// - Parameters:
-  ///   - absoluteRaw: The underlying `AbsoluteRawSyntax` of this node.
-  ///   - parent: The parent of this node, or `nil` if this node is the root.
-  init(_ absoluteRaw: AbsoluteRawSyntax, parent: Syntax) {
-    self.init(absoluteRaw.raw, parent: parent, absoluteInfo: absoluteRaw.info)
-  }
-
   /// Creates a ``Syntax`` for a root raw node.
   ///
   /// - Parameters:
@@ -161,30 +105,32 @@ public struct Syntax: SyntaxProtocol, SyntaxHashable {
   ///     has a chance to retain it.
   static func forRoot(_ raw: RawSyntax, rawNodeArena: RetainedSyntaxArena) -> Syntax {
     precondition(rawNodeArena == raw.arenaReference)
-    return Syntax(raw, info: Info(.root(.init(arena: rawNodeArena))))
+    let arena = SyntaxDataArena(raw: raw, rawNodeArena: rawNodeArena)
+    return Self(arena: arena, dataRef: arena.root)
   }
 
   static func forRoot(_ raw: RawSyntax, rawNodeArena: SyntaxArena) -> Syntax {
-    precondition(rawNodeArena == raw.arenaReference)
-    return Syntax(raw, info: Info(.root(.init(arena: RetainedSyntaxArena(rawNodeArena)))))
+    return forRoot(raw, rawNodeArena: RetainedSyntaxArena(rawNodeArena))
   }
 
-  /// Returns the child data at the provided index in this data's layout.
-  /// - Note: This has O(n) performance, prefer using a proper Sequence type
-  ///         if applicable, instead of this.
-  /// - Note: This function traps if the index is out of the bounds of the
-  ///         data's layout.
+  /// References to the children data.
+  ///
+  /// - Note: The buffer is managed by the arena, and thus only valid while the arena is alive.
+  var layoutBuffer: SyntaxDataReferenceBuffer {
+    self.arena.layout(for: self.dataRef)
+  }
+
+  /// Returns the child node at the provided index in this node's layout.
+  /// - Note: This function traps if the node is a token, or the index is out of the bounds of the layout.
   ///
   /// - Parameter index: The index to create and cache.
-  /// - Parameter parent: The parent to associate the child with. This is
-  ///             normally the Syntax node that this `Syntax` belongs to.
-  /// - Returns: The child's data at the provided index.
+  /// - Returns: The child's node at the provided index.
   func child(at index: Int) -> Syntax? {
-    if raw.layoutView!.children[index] == nil { return nil }
-    var iter = RawSyntaxChildren(absoluteRaw).makeIterator()
-    for _ in 0..<index { _ = iter.next() }
-    let (raw, info) = iter.next()!
-    return Syntax(raw!, parent: self, absoluteInfo: info)
+    let layoutBuffer = self.layoutBuffer
+    guard let dataRef = layoutBuffer[index] else {
+      return nil
+    }
+    return Self(arena: self.arena, dataRef: dataRef)
   }
 
   /// Creates a copy of `self` and recursively creates ``Syntax`` nodes up to
@@ -202,12 +148,12 @@ public struct Syntax: SyntaxProtocol, SyntaxHashable {
     // recursively up to the root.
     if let parent {
       let newParent = parent.replacingChild(
-        at: indexInParent,
+        at: layoutIndexInParent,
         with: newRaw,
         rawNodeArena: rawNodeArena,
         allocationArena: allocationArena
       )
-      return Syntax(absoluteRaw.replacingSelf(newRaw, newRootId: newParent.id.rootId), parent: newParent)
+      return newParent.child(at: layoutIndexInParent)!
     } else {
       // Otherwise, we're already the root, so return the new root data.
       return .forRoot(newRaw, rawNodeArena: rawNodeArena)
@@ -295,8 +241,20 @@ public struct Syntax: SyntaxProtocol, SyntaxHashable {
     }
   }
 
-  /// Needed for the conformance to ``SyntaxProtocol``.
-  ///
+  func ancestorOrSelf<T>(mapping map: (Syntax) -> T?) -> T? {
+    if let r = map(self) {
+      return r
+    }
+    var dataRef = self.dataRef
+    while let parent = dataRef.pointee.parent {
+      dataRef = parent
+      if let r = map(Syntax(arena: arena, dataRef: dataRef)) {
+        return r
+      }
+    }
+    return nil
+  }
+
   /// Needed for the conformance to ``SyntaxProtocol``. Just returns `self`.
   public var _syntaxNode: Syntax {
     return self
@@ -372,56 +330,175 @@ extension Syntax {
   }
 }
 
-/// Temporary non-owning Syntax.
-///
-/// This can be used for handling Syntax node without ARC traffic.
-struct UnownedSyntax {
-  private let raw: RawSyntax
-  private let info: Unmanaged<Syntax.Info>
+typealias SyntaxDataReference = SyntaxArenaAllocatedPointer<SyntaxData>
+typealias SyntaxDataReferenceBuffer = SyntaxArenaAllocatedBufferPointer<SyntaxDataReference?>
 
-  @_transparent
-  init(_ node: __shared Syntax) {
-    self.raw = node.raw
-    self.info = .passUnretained(node.info.unsafelyUnwrapped)
-  }
+/// Node data for a `Syntax`, allocated and managed by `SyntaxDataArena`.
+/// NOTE: This type must be trivial as it is allocated by ‘BumpPtrAllocator’.
+struct SyntaxData: Sendable {
+  /// Underlying "green" node of this node
+  let raw: RawSyntax
+  /// Reference to the parent data. Or `nil` if this is the root.
+  let parent: SyntaxDataReference?
+  /// Index and position info in the tree.
+  let absoluteInfo: AbsoluteSyntaxInfo
+  /// Length of the children layout.
+  /// This is a cached information, equals to `raw.layoutView?.children.count ?? 0`.
+  let childCount: UInt32
 
-  /// Extract the Syntax value.
-  @inline(__always)
-  var value: Syntax {
-    Syntax(raw, info: info.takeUnretainedValue())
-  }
-
-  /// Get the parent of the Syntax value, but without retaining it.
-  @inline(__always)
-  var parent: UnownedSyntax? {
-    return info._withUnsafeGuaranteedRef {
-      switch $0.info.unsafelyUnwrapped {
-      case .nonRoot(let info):
-        return UnownedSyntax(info.parent)
-      case .root(_):
-        return nil
-      }
-    }
-  }
-
-  /// Temporarily use the Syntax value.
-  @inline(__always)
-  func withValue<T>(_ body: (Syntax) -> T) -> T {
-    info._withUnsafeGuaranteedRef {
-      body(Syntax(self.raw, info: $0))
-    }
-  }
+  // If the childCount > 0, the layout buffer (`SyntaxDataArenaReference? * childCount`) is tail allocated.
 }
 
-extension SyntaxProtocol {
-  /// Execute the `body` with ``UnownedSyntax`` of `node`.
+/// `SyntaxDataArena` manages the entire data of a "red" tree.
+final class SyntaxDataArena: @unchecked Sendable {
+  /// Mutex for locking the data when populating layout buffers.
+  private let mutex: PlatformMutex
+
+  /// Allocator.
+  private let allocator: BumpPtrAllocator
+
+  /// Retaining reference to the arena of the _root_ ``RawSyntax``
+  private let rawArena: RetainedSyntaxArena
+
+  /// Root node.
+  let root: SyntaxDataReference
+
+  init(raw: RawSyntax, rawNodeArena: RetainedSyntaxArena) {
+    precondition(rawNodeArena == raw.arenaReference)
+    assert(MemoryLayout<SyntaxData>.alignment >= MemoryLayout<UnsafePointer<SyntaxData>?>.alignment)
+
+    self.mutex = PlatformMutex.create()
+    self.allocator = BumpPtrAllocator(initialSlabSize: Self.slabSize(for: raw))
+    self.rawArena = rawNodeArena
+    self.root = Self.createDataImpl(allocator: allocator, raw: raw, parent: nil, absoluteInfo: .forRoot(raw))
+  }
+
+  deinit {
+    // print("nodeCount: \(root.pointee.raw.totalNodes), estimated: \(Self.slabSize(for: root.pointee.raw)), allocated: \(allocator.totalByteSizeAllocated)")
+    self.mutex.destroy()
+  }
+
+  /// Return the childen data of the given node.
   ///
-  /// This guarantees the life time of the `node` during the `body` is executed.
-  @inline(__always)
-  func withUnownedSyntax<T>(_ body: (UnownedSyntax) -> T) -> T {
-    return withExtendedLifetime(self) {
-      body(UnownedSyntax(Syntax($0)))
+  /// The layout buffer is created and cached when it's first accssed.
+  func layout(for parent: SyntaxDataReference) -> SyntaxDataReferenceBuffer {
+    let childCount = Int(truncatingIfNeeded: parent.pointee.childCount)
+
+    // Return empty buffer for the node with no children.
+    guard childCount != 0 else {
+      return SyntaxDataReferenceBuffer()
     }
+
+    // The storage to the pointer to the buffer is allocated next to the SyntaxData.
+    let baseAddress = parent.advanced(by: 1)
+      .unsafeRawPointer
+      .assumingMemoryBound(to: SyntaxDataReference?.self)
+    let buffer = UnsafeBufferPointer(start: baseAddress, count: childCount)
+
+    // The _last_ element is initially filled with `~0` indicating not populated.
+    @inline(__always) func isPopulated() -> Bool {
+      baseAddress
+        .advanced(by: childCount - 1)
+        .withMemoryRebound(to: UInt.self, capacity: 1) { pointer in
+          pointer.pointee != ~0
+        }
+    }
+
+    // If the buffer is already populated, return it.
+    if isPopulated() {
+      return SyntaxDataReferenceBuffer(buffer)
+    }
+
+    mutex.lock()
+    defer { mutex.unlock() }
+
+    // Recheck before populating, maybe some other thread has populated the buffer
+    // during acquiring the lock.
+    if !isPopulated() {
+      populateDataLayoutImpl(parent)
+    }
+
+    return SyntaxDataReferenceBuffer(buffer)
+  }
+
+  /// Fill the layout buffer of the node.
+  private func populateDataLayoutImpl(_ parent: SyntaxDataReference) {
+    let baseAddress = parent.advanced(by: 1)
+      .unsafeRawPointer
+      .assumingMemoryBound(to: SyntaxDataReference?.self)
+
+    var ptr = UnsafeMutablePointer(mutating: baseAddress)
+    var absoluteInfo = parent.pointee.absoluteInfo.advancedToFirstChild()
+    for raw in parent.pointee.raw.layoutView!.children {
+      let dataRef = raw.map {
+        Self.createDataImpl(allocator: self.allocator, raw: $0, parent: parent, absoluteInfo: absoluteInfo)
+      }
+      ptr.initialize(to: dataRef)
+      absoluteInfo = absoluteInfo.advancedBySibling(raw)
+      ptr += 1
+    }
+  }
+
+  /// Calculate the recommended slab size of `BumpPtrAllocator`.
+  ///
+  /// Estimate the total allocation size assuming the client visits every nodes.
+  /// Return the estimated size, or 4096 if it's larger than 4096.
+  ///
+  /// Each node consumes `SyntaxData` size at least. In addition to that, each syntax collection
+  /// element consumes `SyntaxDataReference` in the parent's layout. For non-collection layout
+  /// nodes, the layout is usually sparse, so we can't calculate the exact memory consumption
+  /// until we see the syntax kind. But 4 slots per each node looks like an enough estimation.
+  private static func slabSize(for raw: RawSyntax) -> Int {
+    let dataSize = MemoryLayout<SyntaxData>.stride
+    let slotSize = MemoryLayout<SyntaxDataReference?>.stride
+
+    let nodeCount = raw.totalNodes
+    var totalSize = dataSize
+    if nodeCount > 1 {
+      totalSize += (dataSize + slotSize * 4) * (nodeCount &- 1)
+    }
+    // Power of 2 might look nicer, but 'BumpPtrAllocator' doesn't require that.
+    return min(totalSize, 4096)
+  }
+
+  /// Allocate and initialize `SyntaxData` with the trailing uninitialized buffer for the references to the children.
+  private static func createDataImpl(
+    allocator: BumpPtrAllocator,
+    raw: RawSyntax,
+    parent: SyntaxDataReference?,
+    absoluteInfo: AbsoluteSyntaxInfo
+  ) -> SyntaxDataReference {
+    let childCount = raw.layoutView?.children.count ?? 0
+
+    // Allocate 'SyntaxData' + buffer for child data.
+    // NOTE: If you change the memory layout, revisit 'slabSize(for:)' too.
+    let totalSize = MemoryLayout<SyntaxData>.stride &+ MemoryLayout<SyntaxDataReference?>.stride * childCount
+    let alignment = MemoryLayout<SyntaxData>.alignment
+    let allocated = allocator.allocate(byteCount: totalSize, alignment: alignment).baseAddress!
+
+    // Initialize the data.
+    let dataRef = allocated.bindMemory(to: SyntaxData.self, capacity: 1)
+    dataRef.initialize(
+      to: SyntaxData(
+        raw: raw,
+        parent: parent,
+        absoluteInfo: absoluteInfo,
+        childCount: UInt32(truncatingIfNeeded: childCount)
+      )
+    )
+
+    if childCount != 0 {
+      // Fill the _last_ element with '~0' to indicate it's not populated.
+      allocated
+        .advanced(by: MemoryLayout<SyntaxData>.stride)
+        .bindMemory(to: SyntaxDataReference?.self, capacity: childCount)
+        .advanced(by: childCount - 1)
+        .withMemoryRebound(to: UInt.self, capacity: 1) {
+          $0.initialize(to: ~0)
+        }
+    }
+
+    return SyntaxDataReference(UnsafePointer(dataRef))
   }
 }
 
@@ -433,7 +510,7 @@ public struct SyntaxNode {}
 /// See `SyntaxMemoryLayout`.
 let SyntaxMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
   "Syntax": .init(Syntax.self),
-  "Syntax.Info": .init(Syntax.Info.self),
-  "Syntax.Info.Root": .init(Syntax.Info.Root.self),
-  "Syntax.Info.NonRoot": .init(Syntax.Info.NonRoot.self),
+  "SyntaxData": .init(SyntaxData.self),
+  "AbsoluteSyntaxInfo": .init(AbsoluteSyntaxInfo.self),
+  "SyntaxDataReference?": .init(SyntaxDataReference?.self),
 ]
