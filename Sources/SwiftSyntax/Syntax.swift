@@ -389,45 +389,36 @@ final class SyntaxDataArena: @unchecked Sendable {
       return SyntaxDataReferenceBuffer()
     }
 
-    // The storage to the pointer to the buffer is allocated next to the SyntaxData.
-    let baseAddress = parent.advanced(by: 1)
+    // The storage of the buffer address is allocated next to the SyntaxData.
+    let baseAddressRef = parent.advanced(by: 1)
       .unsafeRawPointer
-      .assumingMemoryBound(to: SyntaxDataReference?.self)
-    let buffer = UnsafeBufferPointer(start: baseAddress, count: childCount)
-
-    // The _last_ element is initially filled with `~0` indicating not populated.
-    @inline(__always) func isPopulated() -> Bool {
-      baseAddress
-        .advanced(by: childCount - 1)
-        .withMemoryRebound(to: UInt.self, capacity: 1) { pointer in
-          pointer.pointee != ~0
-        }
-    }
+      .assumingMemoryBound(to: UnsafePointer<SyntaxDataReference?>?.self)
 
     // If the buffer is already populated, return it.
-    if isPopulated() {
-      return SyntaxDataReferenceBuffer(buffer)
+    if let baseAddress = baseAddressRef.pointee {
+      return SyntaxDataReferenceBuffer(UnsafeBufferPointer(start: baseAddress, count: childCount))
     }
 
     mutex.lock()
     defer { mutex.unlock() }
 
-    // Recheck before populating, maybe some other thread has populated the buffer
-    // during acquiring the lock.
-    if !isPopulated() {
-      populateDataLayoutImpl(parent)
+    // Recheck, maybe some other thread has populated the buffer during acquiring the lock.
+    if let baseAddress = baseAddressRef.pointee {
+      return SyntaxDataReferenceBuffer(UnsafeBufferPointer(start: baseAddress, count: childCount))
     }
+
+    let buffer = createLayoutDataImpl(parent)
+    // Remeber the base address of the created buffer.
+    UnsafeMutablePointer(mutating: baseAddressRef).pointee = buffer.baseAddress
 
     return SyntaxDataReferenceBuffer(buffer)
   }
 
-  /// Fill the layout buffer of the node.
-  private func populateDataLayoutImpl(_ parent: SyntaxDataReference) {
-    let baseAddress = parent.advanced(by: 1)
-      .unsafeRawPointer
-      .assumingMemoryBound(to: SyntaxDataReference?.self)
+  /// Create the layout buffer of the node.
+  private func createLayoutDataImpl(_ parent: SyntaxDataReference) -> UnsafeBufferPointer<SyntaxDataReference?> {
+    let allocated = self.allocator.allocate(SyntaxDataReference?.self, count: Int(truncatingIfNeeded: parent.pointee.childCount))
 
-    var ptr = UnsafeMutablePointer(mutating: baseAddress)
+    var ptr = allocated.baseAddress!
     var absoluteInfo = parent.pointee.absoluteInfo.advancedToFirstChild()
     for raw in parent.pointee.raw.layoutView!.children {
       let dataRef = raw.map {
@@ -437,25 +428,29 @@ final class SyntaxDataArena: @unchecked Sendable {
       absoluteInfo = absoluteInfo.advancedBySibling(raw)
       ptr += 1
     }
+    return UnsafeBufferPointer(allocated)
   }
 
   /// Calculate the recommended slab size of `BumpPtrAllocator`.
   ///
-  /// Estimate the total allocation size assuming the client visits every nodes.
-  /// Return the estimated size, or 4096 if it's larger than 4096.
+  /// Estimate the total allocation size assuming the client visits every node in
+  /// the tree. Return the estimated size, or 4096 if it's larger than 4096.
   ///
-  /// Each node consumes `SyntaxData` size at least. In addition to that, each syntax collection
-  /// element consumes `SyntaxDataReference` in the parent's layout. For non-collection layout
-  /// nodes, the layout is usually sparse, so we can't calculate the exact memory consumption
-  /// until we see the syntax kind. But 4 slots per each node looks like an enough estimation.
+  /// Each node consumes `SyntaxData` size at least. Non-empty layout node tail
+  /// allocates a pointer storage for the base address of the layout buffer.
+  ///
+  /// For layout buffers, each child element consumes a `SyntaxDataReference` in
+  /// the parent's layout. But non-collection layout nodes, the layout is usually
+  /// sparse, so we can't calculate the exact memory size until we see the RawSyntax.
+  /// That being said, `SytnaxData` + 4 pointer size looks like an enough estimation.
   private static func slabSize(for raw: RawSyntax) -> Int {
     let dataSize = MemoryLayout<SyntaxData>.stride
-    let slotSize = MemoryLayout<SyntaxDataReference?>.stride
+    let pointerSize = MemoryLayout<UnsafeRawPointer>.stride
 
     let nodeCount = raw.totalNodes
     var totalSize = dataSize
-    if nodeCount > 1 {
-      totalSize += (dataSize + slotSize * 4) * (nodeCount &- 1)
+    if nodeCount != 0 {
+      totalSize += (dataSize + pointerSize * 4) * (nodeCount &- 1)
     }
     // Power of 2 might look nicer, but 'BumpPtrAllocator' doesn't require that.
     return min(totalSize, 4096)
@@ -472,7 +467,11 @@ final class SyntaxDataArena: @unchecked Sendable {
 
     // Allocate 'SyntaxData' + buffer for child data.
     // NOTE: If you change the memory layout, revisit 'slabSize(for:)' too.
-    let totalSize = MemoryLayout<SyntaxData>.stride &+ MemoryLayout<SyntaxDataReference?>.stride * childCount
+    var totalSize = MemoryLayout<SyntaxData>.stride
+    if childCount != 0 {
+      // Tail allocate the storage for the pointer to the lazily allocated layout data.
+      totalSize &+= MemoryLayout<UnsafePointer<SyntaxDataReference?>?>.size
+    }
     let alignment = MemoryLayout<SyntaxData>.alignment
     let allocated = allocator.allocate(byteCount: totalSize, alignment: alignment).baseAddress!
 
@@ -488,14 +487,11 @@ final class SyntaxDataArena: @unchecked Sendable {
     )
 
     if childCount != 0 {
-      // Fill the _last_ element with '~0' to indicate it's not populated.
+      // Initlaize the tail allocated storage with nil.
       allocated
         .advanced(by: MemoryLayout<SyntaxData>.stride)
-        .bindMemory(to: SyntaxDataReference?.self, capacity: childCount)
-        .advanced(by: childCount - 1)
-        .withMemoryRebound(to: UInt.self, capacity: 1) {
-          $0.initialize(to: ~0)
-        }
+        .bindMemory(to: UnsafePointer<SyntaxDataReference?>?.self, capacity: 1)
+        .initialize(to: nil)
     }
 
     return SyntaxDataReference(UnsafePointer(dataRef))
