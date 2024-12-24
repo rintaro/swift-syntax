@@ -13,28 +13,22 @@
 #ifndef SWIFTSYNTAX_PLATFORMMUTEX_H
 #define SWIFTSYNTAX_PLATFORMMUTEX_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "_bridging.h"
 
 typedef struct PlatformMutex {
   void *opaque;
 } PlatformMutex;
 
-__attribute__((swift_name("PlatformMutex.create()")))
+SWIFT_NAME_S("PlatformMutex.create()")
 PlatformMutex swiftsyntax_platform_mutex_create(void);
 
-__attribute__((swift_name("PlatformMutex.lock(self:)")))
+SWIFT_NAME_S("PlatformMutex.lock(self:)")
 void swiftsyntax_platform_mutex_lock(PlatformMutex m);
 
-__attribute__((swift_name("PlatformMutex.unlock(self:)")))
+SWIFT_NAME_S("PlatformMutex.unlock(self:)")
 void swiftsyntax_platform_mutex_unlock(PlatformMutex m);
 
-__attribute__((swift_name("PlatformMutex.destroy(self:)")))
+SWIFT_NAME_S("PlatformMutex.destroy(self:)")
 void swiftsyntax_platform_mutex_destroy(PlatformMutex m);
-
-#ifdef __cplusplus
-} // extern "C"
-#endif
 
 #endif // SWIFTSYNTAX_PLATFORMMUTEX_H
