@@ -1812,7 +1812,12 @@ extension Syntax {
 ///
 /// Syntax nodes conforming to this protocol have their inherited casting methods
 /// deprecated to prevent incorrect casting.
-public protocol _LeafSyntaxNodeProtocol: SyntaxProtocol {}
+public protocol _LeafSyntaxNodeProtocol: SyntaxProtocol {
+  /// The ``SyntaxKind`` of the syntax node.
+  static var syntaxKind: SyntaxKind {
+    get
+  }
+}
 
 extension _LeafSyntaxNodeProtocol {
   /// Checks if the current leaf syntax node can be cast to a different specified type.

@@ -19,7 +19,7 @@ let concreteSyntaxPropertyFile = SourceFileSyntax(leadingTrivia: copyrightHeader
   DeclSyntax(
     """
     extension ConcreteSyntaxProperty {
-      fileprivate init(index: UInt32) {
+      fileprivate init(index: Int) {
         self.index = .init(index)
       }
     }

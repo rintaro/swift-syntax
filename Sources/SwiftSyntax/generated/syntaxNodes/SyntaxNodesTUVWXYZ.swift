@@ -209,6 +209,10 @@ public struct TernaryExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafExprSy
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .ternaryExpr
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeCondition,
     \Self.condition,
@@ -345,6 +349,10 @@ public struct ThenStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStmtSynta
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .thenStmt
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeThenKeyword,
     \Self.thenKeyword,
@@ -460,6 +468,10 @@ public struct ThrowStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStmtSynt
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(ThrowStmtSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .throwStmt
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -655,6 +667,10 @@ public struct ThrowsClauseSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNod
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .throwsClause
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeThrowsSpecifier,
     \Self.throwsSpecifier,
@@ -820,6 +836,10 @@ public struct TryExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafExprSyntax
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(TryExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .tryExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -994,6 +1014,10 @@ public struct TupleExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafExprSynt
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(TupleExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .tupleExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -1188,6 +1212,10 @@ public struct TuplePatternElementSyntax: SyntaxProtocol, SyntaxHashable, _LeafSy
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .tuplePatternElement
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeLabel,
     \Self.label,
@@ -1379,6 +1407,10 @@ public struct TuplePatternSyntax: PatternSyntaxProtocol, SyntaxHashable, _LeafPa
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(TuplePatternSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .tuplePattern
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -1648,6 +1680,10 @@ public struct TupleTypeElementSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynta
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .tupleTypeElement
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeInoutKeyword,
     \Self.inoutKeyword,
@@ -1828,6 +1864,10 @@ public struct TupleTypeSyntax: TypeSyntaxProtocol, SyntaxHashable, _LeafTypeSynt
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(TupleTypeSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .tupleType
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -2135,6 +2175,10 @@ public struct TypeAliasDeclSyntax: DeclSyntaxProtocol, SyntaxHashable, _LeafDecl
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .typeAliasDecl
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -2272,6 +2316,10 @@ public struct TypeAnnotationSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxN
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .typeAnnotation
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeColon,
     \Self.colon,
@@ -2397,6 +2445,10 @@ public struct TypeEffectSpecifiersSyntax: SyntaxProtocol, SyntaxHashable, _LeafS
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .typeEffectSpecifiers
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAsyncSpecifier,
     \Self.asyncSpecifier,
@@ -2476,6 +2528,10 @@ public struct TypeExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafExprSynta
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(TypeExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .typeExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeType, \Self.type, \Self.unexpectedAfterType])
@@ -2592,6 +2648,10 @@ public struct TypeInitializerClauseSyntax: SyntaxProtocol, SyntaxHashable, _Leaf
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(TypeInitializerClauseSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .typeInitializerClause
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -2743,6 +2803,10 @@ public struct UnavailableFromAsyncAttributeArgumentsSyntax: SyntaxProtocol, Synt
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(UnavailableFromAsyncAttributeArgumentsSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .unavailableFromAsyncAttributeArguments
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -2898,6 +2962,10 @@ public struct UnderscorePrivateAttributeArgumentsSyntax: SyntaxProtocol, SyntaxH
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .underscorePrivateAttributeArguments
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeSourceFileLabel,
     \Self.sourceFileLabel,
@@ -3027,6 +3095,10 @@ public struct UnresolvedAsExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafE
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .unresolvedAsExpr
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAsKeyword,
     \Self.asKeyword,
@@ -3114,6 +3186,10 @@ public struct UnresolvedIsExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafE
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(UnresolvedIsExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .unresolvedIsExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeIsKeyword, \Self.isKeyword, \Self.unexpectedAfterIsKeyword])
@@ -3261,6 +3337,10 @@ public struct UnresolvedTernaryExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .unresolvedTernaryExpr
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeQuestionMark,
     \Self.questionMark,
@@ -3385,6 +3465,10 @@ public struct UnsafeExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafExprSyn
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .unsafeExpr
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeUnsafeKeyword,
     \Self.unsafeKeyword,
@@ -3507,6 +3591,10 @@ public struct ValueBindingPatternSyntax: PatternSyntaxProtocol, SyntaxHashable, 
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(ValueBindingPatternSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .valueBindingPattern
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -3785,6 +3873,10 @@ public struct VariableDeclSyntax: DeclSyntaxProtocol, SyntaxHashable, _LeafDeclS
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .variableDecl
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -3919,6 +4011,10 @@ public struct VersionComponentSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynta
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(VersionComponentSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .versionComponent
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -4078,6 +4174,10 @@ public struct VersionTupleSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNod
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .versionTuple
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeMajor,
     \Self.major,
@@ -4199,6 +4299,10 @@ public struct WhereClauseSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNode
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(WhereClauseSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .whereClause
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -4370,6 +4474,10 @@ public struct WhileStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStmtSynt
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .whileStmt
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeWhileKeyword,
     \Self.whileKeyword,
@@ -4467,6 +4575,10 @@ public struct WildcardPatternSyntax: PatternSyntaxProtocol, SyntaxHashable, _Lea
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(WildcardPatternSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .wildcardPattern
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeWildcard, \Self.wildcard, \Self.unexpectedAfterWildcard])
@@ -4660,6 +4772,10 @@ public struct YieldStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStmtSynt
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .yieldStmt
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeYieldKeyword,
     \Self.yieldKeyword,
@@ -4779,6 +4895,10 @@ public struct YieldedExpressionSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynt
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(YieldedExpressionSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .yieldedExpression
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -4955,6 +5075,10 @@ public struct YieldedExpressionsClauseSyntax: SyntaxProtocol, SyntaxHashable, _L
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(YieldedExpressionsClauseSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .yieldedExpressionsClause
   }
 
   public static let structure: SyntaxNodeStructure = .layout([

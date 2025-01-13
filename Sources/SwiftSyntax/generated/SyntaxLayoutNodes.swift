@@ -12,1416 +12,473 @@
 //
 //===----------------------------------------------------------------------===//
 
-extension SyntaxLayout {
-  fileprivate init(syntaxKind: SyntaxKind, count: UInt32) {
-    self.syntaxKind = syntaxKind
-    self._count = count
-  }
-}
-
-extension ABIAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .abiAttributeArguments, count: 3)
-  }
-}
-
-extension AccessorBlockSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .accessorBlock, count: 7)
-  }
-}
-
-extension AccessorDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .accessorDecl, count: 13)
-  }
-}
-
-extension AccessorEffectSpecifiersSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .accessorEffectSpecifiers, count: 5)
-  }
-}
-
-extension AccessorParametersSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .accessorParameters, count: 7)
-  }
-}
-
-extension ActorDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .actorDecl, count: 17)
-  }
-}
-
-extension ArrayElementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .arrayElement, count: 5)
-  }
-}
-
-extension ArrayExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .arrayExpr, count: 7)
-  }
-}
-
-extension ArrayTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .arrayType, count: 7)
-  }
-}
-
-extension ArrowExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .arrowExpr, count: 5)
-  }
-}
-
-extension AsExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .asExpr, count: 9)
-  }
-}
-
-extension AssignmentExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .assignmentExpr, count: 3)
-  }
-}
-
-extension AssociatedTypeDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .associatedTypeDecl, count: 15)
-  }
-}
-
-extension AttributeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .attribute, count: 11)
-  }
-}
-
-extension AttributedTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .attributedType, count: 7)
-  }
-}
-
-extension AvailabilityArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .availabilityArgument, count: 5)
-  }
-}
-
-extension AvailabilityConditionSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .availabilityCondition, count: 9)
-  }
-}
-
-extension AvailabilityLabeledArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .availabilityLabeledArgument, count: 7)
-  }
-}
-
-extension AwaitExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .awaitExpr, count: 5)
-  }
-}
-
-extension BackDeployedAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .backDeployedAttributeArguments, count: 7)
-  }
-}
-
-extension BinaryOperatorExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .binaryOperatorExpr, count: 3)
-  }
-}
-
-extension BooleanLiteralExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .booleanLiteralExpr, count: 3)
-  }
-}
-
-extension BorrowExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .borrowExpr, count: 5)
-  }
-}
-
-extension BreakStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .breakStmt, count: 5)
-  }
-}
-
-extension _CanImportExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: ._canImportExpr, count: 11)
-  }
-}
-
-extension _CanImportVersionInfoSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: ._canImportVersionInfo, count: 9)
-  }
-}
-
-extension CatchClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .catchClause, count: 7)
-  }
-}
-
-extension CatchItemSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .catchItem, count: 7)
-  }
-}
-
-extension ClassDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .classDecl, count: 17)
-  }
-}
-
-extension ClassRestrictionTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .classRestrictionType, count: 3)
-  }
-}
-
-extension ClosureCaptureClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .closureCaptureClause, count: 7)
-  }
-}
-
-extension ClosureCaptureSpecifierSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .closureCaptureSpecifier, count: 9)
-  }
-}
-
-extension ClosureCaptureSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .closureCapture, count: 9)
-  }
-}
-
-extension ClosureExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .closureExpr, count: 9)
-  }
-}
-
-extension ClosureParameterClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .closureParameterClause, count: 7)
-  }
-}
-
-extension ClosureParameterSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .closureParameter, count: 17)
-  }
-}
-
-extension ClosureShorthandParameterSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .closureShorthandParameter, count: 5)
-  }
-}
-
-extension ClosureSignatureSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .closureSignature, count: 13)
-  }
-}
-
-extension CodeBlockItemSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .codeBlockItem, count: 5)
-  }
-}
-
-extension CodeBlockSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .codeBlock, count: 7)
-  }
-}
-
-extension CompositionTypeElementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .compositionTypeElement, count: 5)
-  }
-}
-
-extension CompositionTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .compositionType, count: 3)
-  }
-}
-
-extension ConditionElementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .conditionElement, count: 5)
-  }
-}
-
-extension ConformanceRequirementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .conformanceRequirement, count: 7)
-  }
-}
-
-extension ConsumeExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .consumeExpr, count: 5)
-  }
-}
-
-extension ContinueStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .continueStmt, count: 5)
-  }
-}
-
-extension ConventionAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .conventionAttributeArguments, count: 11)
-  }
-}
-
-extension ConventionWitnessMethodAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .conventionWitnessMethodAttributeArguments, count: 7)
-  }
-}
-
-extension CopyExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .copyExpr, count: 5)
-  }
-}
-
-extension DeclModifierDetailSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .declModifierDetail, count: 7)
-  }
-}
-
-extension DeclModifierSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .declModifier, count: 5)
-  }
-}
-
-extension DeclNameArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .declNameArgument, count: 5)
-  }
-}
-
-extension DeclNameArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .declNameArguments, count: 7)
-  }
-}
-
-extension DeclReferenceExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .declReferenceExpr, count: 5)
-  }
-}
-
-extension DeferStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .deferStmt, count: 5)
-  }
-}
-
-extension DeinitializerDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .deinitializerDecl, count: 11)
-  }
-}
-
-extension DeinitializerEffectSpecifiersSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .deinitializerEffectSpecifiers, count: 3)
-  }
-}
-
-extension DerivativeAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .derivativeAttributeArguments, count: 15)
-  }
-}
-
-extension DesignatedTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .designatedType, count: 5)
-  }
-}
-
-extension DictionaryElementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .dictionaryElement, count: 9)
-  }
-}
-
-extension DictionaryExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .dictionaryExpr, count: 7)
-  }
-}
-
-extension DictionaryTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .dictionaryType, count: 11)
-  }
-}
-
-extension DifferentiabilityArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .differentiabilityArgument, count: 5)
-  }
-}
-
-extension DifferentiabilityArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .differentiabilityArguments, count: 7)
-  }
-}
-
-extension DifferentiabilityWithRespectToArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .differentiabilityWithRespectToArgument, count: 7)
-  }
-}
-
-extension DifferentiableAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .differentiableAttributeArguments, count: 11)
-  }
-}
-
-extension DiscardAssignmentExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .discardAssignmentExpr, count: 3)
-  }
-}
-
-extension DiscardStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .discardStmt, count: 5)
-  }
-}
-
-extension DoExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .doExpr, count: 7)
-  }
-}
-
-extension DoStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .doStmt, count: 9)
-  }
-}
-
-extension DocumentationAttributeArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .documentationAttributeArgument, count: 9)
-  }
-}
-
-extension DynamicReplacementAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .dynamicReplacementAttributeArguments, count: 7)
-  }
-}
-
-extension EditorPlaceholderDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .editorPlaceholderDecl, count: 7)
-  }
-}
-
-extension EditorPlaceholderExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .editorPlaceholderExpr, count: 3)
-  }
-}
-
-extension EnumCaseDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .enumCaseDecl, count: 9)
-  }
-}
-
-extension EnumCaseElementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .enumCaseElement, count: 9)
-  }
-}
-
-extension EnumCaseParameterClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .enumCaseParameterClause, count: 7)
-  }
-}
-
-extension EnumCaseParameterSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .enumCaseParameter, count: 15)
-  }
-}
-
-extension EnumDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .enumDecl, count: 17)
-  }
-}
-
-extension ExposeAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .exposeAttributeArguments, count: 7)
-  }
-}
-
-extension ExpressionPatternSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .expressionPattern, count: 3)
-  }
-}
-
-extension ExpressionSegmentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .expressionSegment, count: 11)
-  }
-}
-
-extension ExpressionStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .expressionStmt, count: 3)
-  }
-}
-
-extension ExtensionDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .extensionDecl, count: 15)
-  }
-}
-
-extension FallThroughStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .fallThroughStmt, count: 3)
-  }
-}
-
-extension FloatLiteralExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .floatLiteralExpr, count: 3)
-  }
-}
-
-extension ForStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .forStmt, count: 21)
-  }
-}
-
-extension ForceUnwrapExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .forceUnwrapExpr, count: 5)
-  }
-}
-
-extension FunctionCallExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .functionCallExpr, count: 13)
-  }
-}
-
-extension FunctionDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .functionDecl, count: 17)
-  }
-}
-
-extension FunctionEffectSpecifiersSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .functionEffectSpecifiers, count: 5)
-  }
-}
-
-extension FunctionParameterClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .functionParameterClause, count: 7)
-  }
-}
-
-extension FunctionParameterSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .functionParameter, count: 19)
-  }
-}
-
-extension FunctionSignatureSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .functionSignature, count: 7)
-  }
-}
-
-extension FunctionTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .functionType, count: 11)
-  }
-}
-
-extension GenericArgumentClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .genericArgumentClause, count: 7)
-  }
-}
-
-extension GenericArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .genericArgument, count: 5)
-  }
-}
-
-extension GenericParameterClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .genericParameterClause, count: 9)
-  }
-}
-
-extension GenericParameterSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .genericParameter, count: 13)
-  }
-}
-
-extension GenericRequirementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .genericRequirement, count: 5)
-  }
-}
-
-extension GenericSpecializationExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .genericSpecializationExpr, count: 5)
-  }
-}
-
-extension GenericWhereClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .genericWhereClause, count: 5)
-  }
-}
-
-extension GuardStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .guardStmt, count: 9)
-  }
-}
-
-extension IdentifierPatternSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .identifierPattern, count: 3)
-  }
-}
-
-extension IdentifierTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .identifierType, count: 5)
-  }
-}
-
-extension IfConfigClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .ifConfigClause, count: 7)
-  }
-}
-
-extension IfConfigDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .ifConfigDecl, count: 5)
-  }
-}
-
-extension IfExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .ifExpr, count: 11)
-  }
-}
-
-extension ImplementsAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .implementsAttributeArguments, count: 7)
-  }
-}
-
-extension ImplicitlyUnwrappedOptionalTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .implicitlyUnwrappedOptionalType, count: 5)
-  }
-}
-
-extension ImportDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .importDecl, count: 11)
-  }
-}
-
-extension ImportPathComponentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .importPathComponent, count: 5)
-  }
-}
-
-extension InOutExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .inOutExpr, count: 5)
-  }
-}
-
-extension InfixOperatorExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .infixOperatorExpr, count: 7)
-  }
-}
-
-extension InheritanceClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .inheritanceClause, count: 5)
-  }
-}
-
-extension InheritedTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .inheritedType, count: 5)
-  }
-}
-
-extension InitializerClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .initializerClause, count: 5)
-  }
-}
-
-extension InitializerDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .initializerDecl, count: 17)
-  }
-}
-
-extension IntegerLiteralExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .integerLiteralExpr, count: 3)
-  }
-}
-
-extension IsExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .isExpr, count: 7)
-  }
-}
-
-extension IsTypePatternSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .isTypePattern, count: 5)
-  }
-}
-
-extension KeyPathComponentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .keyPathComponent, count: 5)
-  }
-}
-
-extension KeyPathExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .keyPathExpr, count: 7)
-  }
-}
-
-extension KeyPathOptionalComponentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .keyPathOptionalComponent, count: 3)
-  }
-}
-
-extension KeyPathPropertyComponentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .keyPathPropertyComponent, count: 5)
-  }
-}
-
-extension KeyPathSubscriptComponentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .keyPathSubscriptComponent, count: 7)
-  }
-}
-
-extension LabeledExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .labeledExpr, count: 9)
-  }
-}
-
-extension LabeledSpecializeArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .labeledSpecializeArgument, count: 9)
-  }
-}
-
-extension LabeledStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .labeledStmt, count: 7)
-  }
-}
-
-extension LayoutRequirementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .layoutRequirement, count: 17)
-  }
-}
-
-extension LifetimeSpecifierArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .lifetimeSpecifierArgument, count: 5)
-  }
-}
-
-extension LifetimeTypeSpecifierSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .lifetimeTypeSpecifier, count: 11)
-  }
-}
-
-extension MacroDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .macroDecl, count: 17)
-  }
-}
-
-extension MacroExpansionDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .macroExpansionDecl, count: 21)
-  }
-}
-
-extension MacroExpansionExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .macroExpansionExpr, count: 17)
-  }
-}
-
-extension MatchingPatternConditionSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .matchingPatternCondition, count: 9)
-  }
-}
-
-extension MemberAccessExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .memberAccessExpr, count: 7)
-  }
-}
-
-extension MemberBlockItemSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .memberBlockItem, count: 5)
-  }
-}
-
-extension MemberBlockSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .memberBlock, count: 7)
-  }
-}
-
-extension MemberTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .memberType, count: 9)
-  }
-}
-
-extension MetatypeTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .metatypeType, count: 7)
-  }
-}
-
-extension MissingDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .missingDecl, count: 7)
-  }
-}
-
-extension MissingExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .missingExpr, count: 3)
-  }
-}
-
-extension MissingPatternSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .missingPattern, count: 3)
-  }
-}
-
-extension MissingStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .missingStmt, count: 3)
-  }
-}
-
-extension MissingSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .missing, count: 3)
-  }
-}
-
-extension MissingTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .missingType, count: 3)
-  }
-}
-
-extension MultipleTrailingClosureElementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .multipleTrailingClosureElement, count: 7)
-  }
-}
-
-extension NamedOpaqueReturnTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .namedOpaqueReturnType, count: 5)
-  }
-}
-
-extension NilLiteralExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .nilLiteralExpr, count: 3)
-  }
-}
-
-extension ObjCSelectorPieceSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .objCSelectorPiece, count: 5)
-  }
-}
-
-extension OpaqueReturnTypeOfAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .opaqueReturnTypeOfAttributeArguments, count: 7)
-  }
-}
-
-extension OperatorDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .operatorDecl, count: 9)
-  }
-}
-
-extension OperatorPrecedenceAndTypesSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .operatorPrecedenceAndTypes, count: 7)
-  }
-}
-
-extension OptionalBindingConditionSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .optionalBindingCondition, count: 9)
-  }
-}
-
-extension OptionalChainingExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .optionalChainingExpr, count: 5)
-  }
-}
-
-extension OptionalTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .optionalType, count: 5)
-  }
-}
-
-extension OriginallyDefinedInAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .originallyDefinedInAttributeArguments, count: 11)
-  }
-}
-
-extension PackElementExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .packElementExpr, count: 5)
-  }
-}
-
-extension PackElementTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .packElementType, count: 5)
-  }
-}
-
-extension PackExpansionExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .packExpansionExpr, count: 5)
-  }
-}
-
-extension PackExpansionTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .packExpansionType, count: 5)
-  }
-}
-
-extension PatternBindingSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .patternBinding, count: 11)
-  }
-}
-
-extension PatternExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .patternExpr, count: 3)
-  }
-}
-
-extension PlatformVersionItemSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .platformVersionItem, count: 5)
-  }
-}
-
-extension PlatformVersionSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .platformVersion, count: 5)
-  }
-}
-
-extension PostfixIfConfigExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .postfixIfConfigExpr, count: 5)
-  }
-}
-
-extension PostfixOperatorExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .postfixOperatorExpr, count: 5)
-  }
-}
-
-extension PoundSourceLocationArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .poundSourceLocationArguments, count: 15)
-  }
-}
-
-extension PoundSourceLocationSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .poundSourceLocation, count: 9)
-  }
-}
-
-extension PrecedenceGroupAssignmentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .precedenceGroupAssignment, count: 7)
-  }
-}
-
-extension PrecedenceGroupAssociativitySyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .precedenceGroupAssociativity, count: 7)
-  }
-}
-
-extension PrecedenceGroupDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .precedenceGroupDecl, count: 15)
-  }
-}
-
-extension PrecedenceGroupNameSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .precedenceGroupName, count: 5)
-  }
-}
-
-extension PrecedenceGroupRelationSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .precedenceGroupRelation, count: 7)
-  }
-}
-
-extension PrefixOperatorExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .prefixOperatorExpr, count: 5)
-  }
-}
-
-extension PrimaryAssociatedTypeClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .primaryAssociatedTypeClause, count: 7)
-  }
-}
-
-extension PrimaryAssociatedTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .primaryAssociatedType, count: 5)
-  }
-}
-
-extension ProtocolDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .protocolDecl, count: 17)
-  }
-}
-
-extension RegexLiteralExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .regexLiteralExpr, count: 11)
-  }
-}
-
-extension RepeatStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .repeatStmt, count: 9)
-  }
-}
-
-extension ReturnClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .returnClause, count: 5)
-  }
-}
-
-extension ReturnStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .returnStmt, count: 5)
-  }
-}
-
-extension SameTypeRequirementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .sameTypeRequirement, count: 7)
-  }
-}
-
-extension SequenceExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .sequenceExpr, count: 3)
-  }
-}
-
-extension SimpleStringLiteralExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .simpleStringLiteralExpr, count: 7)
-  }
-}
-
-extension SimpleTypeSpecifierSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .simpleTypeSpecifier, count: 3)
-  }
-}
-
-extension SomeOrAnyTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .someOrAnyType, count: 5)
-  }
-}
-
-extension SourceFileSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .sourceFile, count: 7)
-  }
-}
-
-extension SpecializeAvailabilityArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .specializeAvailabilityArgument, count: 9)
-  }
-}
-
-extension SpecializeTargetFunctionArgumentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .specializeTargetFunctionArgument, count: 9)
-  }
-}
-
-extension StringLiteralExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .stringLiteralExpr, count: 11)
-  }
-}
-
-extension StringSegmentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .stringSegment, count: 3)
-  }
-}
-
-extension StructDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .structDecl, count: 17)
-  }
-}
-
-extension SubscriptCallExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .subscriptCallExpr, count: 13)
-  }
-}
-
-extension SubscriptDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .subscriptDecl, count: 17)
-  }
-}
-
-extension SuperExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .superExpr, count: 3)
-  }
-}
-
-extension SuppressedTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .suppressedType, count: 5)
-  }
-}
-
-extension SwitchCaseItemSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .switchCaseItem, count: 7)
-  }
-}
-
-extension SwitchCaseLabelSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .switchCaseLabel, count: 7)
-  }
-}
-
-extension SwitchCaseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .switchCase, count: 7)
-  }
-}
-
-extension SwitchDefaultLabelSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .switchDefaultLabel, count: 5)
-  }
-}
-
-extension SwitchExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .switchExpr, count: 11)
-  }
-}
-
-extension TernaryExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .ternaryExpr, count: 11)
-  }
-}
-
-extension ThenStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .thenStmt, count: 5)
-  }
-}
-
-extension ThrowStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .throwStmt, count: 5)
-  }
-}
-
-extension ThrowsClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .throwsClause, count: 9)
-  }
-}
-
-extension TryExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .tryExpr, count: 7)
-  }
-}
-
-extension TupleExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .tupleExpr, count: 7)
-  }
-}
-
-extension TuplePatternElementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .tuplePatternElement, count: 9)
-  }
-}
-
-extension TuplePatternSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .tuplePattern, count: 7)
-  }
-}
-
-extension TupleTypeElementSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .tupleTypeElement, count: 15)
-  }
-}
-
-extension TupleTypeSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .tupleType, count: 7)
-  }
-}
-
-extension TypeAliasDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .typeAliasDecl, count: 15)
-  }
-}
-
-extension TypeAnnotationSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .typeAnnotation, count: 5)
-  }
-}
-
-extension TypeEffectSpecifiersSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .typeEffectSpecifiers, count: 5)
-  }
-}
-
-extension TypeExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .typeExpr, count: 3)
-  }
-}
-
-extension TypeInitializerClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .typeInitializerClause, count: 5)
-  }
-}
-
-extension UnavailableFromAsyncAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .unavailableFromAsyncAttributeArguments, count: 7)
-  }
-}
-
-extension UnderscorePrivateAttributeArgumentsSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .underscorePrivateAttributeArguments, count: 7)
-  }
-}
-
-extension UnresolvedAsExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .unresolvedAsExpr, count: 5)
-  }
-}
-
-extension UnresolvedIsExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .unresolvedIsExpr, count: 3)
-  }
-}
-
-extension UnresolvedTernaryExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .unresolvedTernaryExpr, count: 7)
-  }
-}
-
-extension UnsafeExprSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .unsafeExpr, count: 5)
-  }
-}
-
-extension ValueBindingPatternSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .valueBindingPattern, count: 5)
-  }
-}
-
-extension VariableDeclSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .variableDecl, count: 9)
-  }
-}
-
-extension VersionComponentSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .versionComponent, count: 5)
-  }
-}
-
-extension VersionTupleSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .versionTuple, count: 5)
-  }
-}
-
-extension WhereClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .whereClause, count: 5)
-  }
-}
-
-extension WhileStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .whileStmt, count: 7)
-  }
-}
-
-extension WildcardPatternSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .wildcardPattern, count: 3)
-  }
-}
-
-extension YieldStmtSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .yieldStmt, count: 5)
-  }
-}
-
-extension YieldedExpressionSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .yieldedExpression, count: 5)
-  }
-}
-
-extension YieldedExpressionsClauseSyntax: _LayoutSyntaxProtocol {
-  public static var layout: SyntaxLayout<Self> {
-    SyntaxLayout<Self>(syntaxKind: .yieldedExpressionsClause, count: 7)
-  }
-}
+extension ABIAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension AccessorBlockSyntax: _LayoutSyntaxProtocol {}
+
+extension AccessorDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension AccessorEffectSpecifiersSyntax: _LayoutSyntaxProtocol {}
+
+extension AccessorParametersSyntax: _LayoutSyntaxProtocol {}
+
+extension ActorDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension ArrayElementSyntax: _LayoutSyntaxProtocol {}
+
+extension ArrayExprSyntax: _LayoutSyntaxProtocol {}
+
+extension ArrayTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension ArrowExprSyntax: _LayoutSyntaxProtocol {}
+
+extension AsExprSyntax: _LayoutSyntaxProtocol {}
+
+extension AssignmentExprSyntax: _LayoutSyntaxProtocol {}
+
+extension AssociatedTypeDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension AttributeSyntax: _LayoutSyntaxProtocol {}
+
+extension AttributedTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension AvailabilityArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension AvailabilityConditionSyntax: _LayoutSyntaxProtocol {}
+
+extension AvailabilityLabeledArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension AwaitExprSyntax: _LayoutSyntaxProtocol {}
+
+extension BackDeployedAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension BinaryOperatorExprSyntax: _LayoutSyntaxProtocol {}
+
+extension BooleanLiteralExprSyntax: _LayoutSyntaxProtocol {}
+
+extension BorrowExprSyntax: _LayoutSyntaxProtocol {}
+
+extension BreakStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension _CanImportExprSyntax: _LayoutSyntaxProtocol {}
+
+extension _CanImportVersionInfoSyntax: _LayoutSyntaxProtocol {}
+
+extension CatchClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension CatchItemSyntax: _LayoutSyntaxProtocol {}
+
+extension ClassDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension ClassRestrictionTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension ClosureCaptureClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension ClosureCaptureSpecifierSyntax: _LayoutSyntaxProtocol {}
+
+extension ClosureCaptureSyntax: _LayoutSyntaxProtocol {}
+
+extension ClosureExprSyntax: _LayoutSyntaxProtocol {}
+
+extension ClosureParameterClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension ClosureParameterSyntax: _LayoutSyntaxProtocol {}
+
+extension ClosureShorthandParameterSyntax: _LayoutSyntaxProtocol {}
+
+extension ClosureSignatureSyntax: _LayoutSyntaxProtocol {}
+
+extension CodeBlockItemSyntax: _LayoutSyntaxProtocol {}
+
+extension CodeBlockSyntax: _LayoutSyntaxProtocol {}
+
+extension CompositionTypeElementSyntax: _LayoutSyntaxProtocol {}
+
+extension CompositionTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension ConditionElementSyntax: _LayoutSyntaxProtocol {}
+
+extension ConformanceRequirementSyntax: _LayoutSyntaxProtocol {}
+
+extension ConsumeExprSyntax: _LayoutSyntaxProtocol {}
+
+extension ContinueStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension ConventionAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension ConventionWitnessMethodAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension CopyExprSyntax: _LayoutSyntaxProtocol {}
+
+extension DeclModifierDetailSyntax: _LayoutSyntaxProtocol {}
+
+extension DeclModifierSyntax: _LayoutSyntaxProtocol {}
+
+extension DeclNameArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension DeclNameArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension DeclReferenceExprSyntax: _LayoutSyntaxProtocol {}
+
+extension DeferStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension DeinitializerDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension DeinitializerEffectSpecifiersSyntax: _LayoutSyntaxProtocol {}
+
+extension DerivativeAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension DesignatedTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension DictionaryElementSyntax: _LayoutSyntaxProtocol {}
+
+extension DictionaryExprSyntax: _LayoutSyntaxProtocol {}
+
+extension DictionaryTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension DifferentiabilityArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension DifferentiabilityArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension DifferentiabilityWithRespectToArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension DifferentiableAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension DiscardAssignmentExprSyntax: _LayoutSyntaxProtocol {}
+
+extension DiscardStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension DoExprSyntax: _LayoutSyntaxProtocol {}
+
+extension DoStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension DocumentationAttributeArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension DynamicReplacementAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension EditorPlaceholderDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension EditorPlaceholderExprSyntax: _LayoutSyntaxProtocol {}
+
+extension EnumCaseDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension EnumCaseElementSyntax: _LayoutSyntaxProtocol {}
+
+extension EnumCaseParameterClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension EnumCaseParameterSyntax: _LayoutSyntaxProtocol {}
+
+extension EnumDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension ExposeAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension ExpressionPatternSyntax: _LayoutSyntaxProtocol {}
+
+extension ExpressionSegmentSyntax: _LayoutSyntaxProtocol {}
+
+extension ExpressionStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension ExtensionDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension FallThroughStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension FloatLiteralExprSyntax: _LayoutSyntaxProtocol {}
+
+extension ForStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension ForceUnwrapExprSyntax: _LayoutSyntaxProtocol {}
+
+extension FunctionCallExprSyntax: _LayoutSyntaxProtocol {}
+
+extension FunctionDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension FunctionEffectSpecifiersSyntax: _LayoutSyntaxProtocol {}
+
+extension FunctionParameterClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension FunctionParameterSyntax: _LayoutSyntaxProtocol {}
+
+extension FunctionSignatureSyntax: _LayoutSyntaxProtocol {}
+
+extension FunctionTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension GenericArgumentClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension GenericArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension GenericParameterClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension GenericParameterSyntax: _LayoutSyntaxProtocol {}
+
+extension GenericRequirementSyntax: _LayoutSyntaxProtocol {}
+
+extension GenericSpecializationExprSyntax: _LayoutSyntaxProtocol {}
+
+extension GenericWhereClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension GuardStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension IdentifierPatternSyntax: _LayoutSyntaxProtocol {}
+
+extension IdentifierTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension IfConfigClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension IfConfigDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension IfExprSyntax: _LayoutSyntaxProtocol {}
+
+extension ImplementsAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension ImplicitlyUnwrappedOptionalTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension ImportDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension ImportPathComponentSyntax: _LayoutSyntaxProtocol {}
+
+extension InOutExprSyntax: _LayoutSyntaxProtocol {}
+
+extension InfixOperatorExprSyntax: _LayoutSyntaxProtocol {}
+
+extension InheritanceClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension InheritedTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension InitializerClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension InitializerDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension IntegerLiteralExprSyntax: _LayoutSyntaxProtocol {}
+
+extension IsExprSyntax: _LayoutSyntaxProtocol {}
+
+extension IsTypePatternSyntax: _LayoutSyntaxProtocol {}
+
+extension KeyPathComponentSyntax: _LayoutSyntaxProtocol {}
+
+extension KeyPathExprSyntax: _LayoutSyntaxProtocol {}
+
+extension KeyPathOptionalComponentSyntax: _LayoutSyntaxProtocol {}
+
+extension KeyPathPropertyComponentSyntax: _LayoutSyntaxProtocol {}
+
+extension KeyPathSubscriptComponentSyntax: _LayoutSyntaxProtocol {}
+
+extension LabeledExprSyntax: _LayoutSyntaxProtocol {}
+
+extension LabeledSpecializeArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension LabeledStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension LayoutRequirementSyntax: _LayoutSyntaxProtocol {}
+
+extension LifetimeSpecifierArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension LifetimeTypeSpecifierSyntax: _LayoutSyntaxProtocol {}
+
+extension MacroDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension MacroExpansionDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension MacroExpansionExprSyntax: _LayoutSyntaxProtocol {}
+
+extension MatchingPatternConditionSyntax: _LayoutSyntaxProtocol {}
+
+extension MemberAccessExprSyntax: _LayoutSyntaxProtocol {}
+
+extension MemberBlockItemSyntax: _LayoutSyntaxProtocol {}
+
+extension MemberBlockSyntax: _LayoutSyntaxProtocol {}
+
+extension MemberTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension MetatypeTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension MissingDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension MissingExprSyntax: _LayoutSyntaxProtocol {}
+
+extension MissingPatternSyntax: _LayoutSyntaxProtocol {}
+
+extension MissingStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension MissingSyntax: _LayoutSyntaxProtocol {}
+
+extension MissingTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension MultipleTrailingClosureElementSyntax: _LayoutSyntaxProtocol {}
+
+extension NamedOpaqueReturnTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension NilLiteralExprSyntax: _LayoutSyntaxProtocol {}
+
+extension ObjCSelectorPieceSyntax: _LayoutSyntaxProtocol {}
+
+extension OpaqueReturnTypeOfAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension OperatorDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension OperatorPrecedenceAndTypesSyntax: _LayoutSyntaxProtocol {}
+
+extension OptionalBindingConditionSyntax: _LayoutSyntaxProtocol {}
+
+extension OptionalChainingExprSyntax: _LayoutSyntaxProtocol {}
+
+extension OptionalTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension OriginallyDefinedInAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension PackElementExprSyntax: _LayoutSyntaxProtocol {}
+
+extension PackElementTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension PackExpansionExprSyntax: _LayoutSyntaxProtocol {}
+
+extension PackExpansionTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension PatternBindingSyntax: _LayoutSyntaxProtocol {}
+
+extension PatternExprSyntax: _LayoutSyntaxProtocol {}
+
+extension PlatformVersionItemSyntax: _LayoutSyntaxProtocol {}
+
+extension PlatformVersionSyntax: _LayoutSyntaxProtocol {}
+
+extension PostfixIfConfigExprSyntax: _LayoutSyntaxProtocol {}
+
+extension PostfixOperatorExprSyntax: _LayoutSyntaxProtocol {}
+
+extension PoundSourceLocationArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension PoundSourceLocationSyntax: _LayoutSyntaxProtocol {}
+
+extension PrecedenceGroupAssignmentSyntax: _LayoutSyntaxProtocol {}
+
+extension PrecedenceGroupAssociativitySyntax: _LayoutSyntaxProtocol {}
+
+extension PrecedenceGroupDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension PrecedenceGroupNameSyntax: _LayoutSyntaxProtocol {}
+
+extension PrecedenceGroupRelationSyntax: _LayoutSyntaxProtocol {}
+
+extension PrefixOperatorExprSyntax: _LayoutSyntaxProtocol {}
+
+extension PrimaryAssociatedTypeClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension PrimaryAssociatedTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension ProtocolDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension RegexLiteralExprSyntax: _LayoutSyntaxProtocol {}
+
+extension RepeatStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension ReturnClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension ReturnStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension SameTypeRequirementSyntax: _LayoutSyntaxProtocol {}
+
+extension SequenceExprSyntax: _LayoutSyntaxProtocol {}
+
+extension SimpleStringLiteralExprSyntax: _LayoutSyntaxProtocol {}
+
+extension SimpleTypeSpecifierSyntax: _LayoutSyntaxProtocol {}
+
+extension SomeOrAnyTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension SourceFileSyntax: _LayoutSyntaxProtocol {}
+
+extension SpecializeAvailabilityArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension SpecializeTargetFunctionArgumentSyntax: _LayoutSyntaxProtocol {}
+
+extension StringLiteralExprSyntax: _LayoutSyntaxProtocol {}
+
+extension StringSegmentSyntax: _LayoutSyntaxProtocol {}
+
+extension StructDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension SubscriptCallExprSyntax: _LayoutSyntaxProtocol {}
+
+extension SubscriptDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension SuperExprSyntax: _LayoutSyntaxProtocol {}
+
+extension SuppressedTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension SwitchCaseItemSyntax: _LayoutSyntaxProtocol {}
+
+extension SwitchCaseLabelSyntax: _LayoutSyntaxProtocol {}
+
+extension SwitchCaseSyntax: _LayoutSyntaxProtocol {}
+
+extension SwitchDefaultLabelSyntax: _LayoutSyntaxProtocol {}
+
+extension SwitchExprSyntax: _LayoutSyntaxProtocol {}
+
+extension TernaryExprSyntax: _LayoutSyntaxProtocol {}
+
+extension ThenStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension ThrowStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension ThrowsClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension TryExprSyntax: _LayoutSyntaxProtocol {}
+
+extension TupleExprSyntax: _LayoutSyntaxProtocol {}
+
+extension TuplePatternElementSyntax: _LayoutSyntaxProtocol {}
+
+extension TuplePatternSyntax: _LayoutSyntaxProtocol {}
+
+extension TupleTypeElementSyntax: _LayoutSyntaxProtocol {}
+
+extension TupleTypeSyntax: _LayoutSyntaxProtocol {}
+
+extension TypeAliasDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension TypeAnnotationSyntax: _LayoutSyntaxProtocol {}
+
+extension TypeEffectSpecifiersSyntax: _LayoutSyntaxProtocol {}
+
+extension TypeExprSyntax: _LayoutSyntaxProtocol {}
+
+extension TypeInitializerClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension UnavailableFromAsyncAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension UnderscorePrivateAttributeArgumentsSyntax: _LayoutSyntaxProtocol {}
+
+extension UnresolvedAsExprSyntax: _LayoutSyntaxProtocol {}
+
+extension UnresolvedIsExprSyntax: _LayoutSyntaxProtocol {}
+
+extension UnresolvedTernaryExprSyntax: _LayoutSyntaxProtocol {}
+
+extension UnsafeExprSyntax: _LayoutSyntaxProtocol {}
+
+extension ValueBindingPatternSyntax: _LayoutSyntaxProtocol {}
+
+extension VariableDeclSyntax: _LayoutSyntaxProtocol {}
+
+extension VersionComponentSyntax: _LayoutSyntaxProtocol {}
+
+extension VersionTupleSyntax: _LayoutSyntaxProtocol {}
+
+extension WhereClauseSyntax: _LayoutSyntaxProtocol {}
+
+extension WhileStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension WildcardPatternSyntax: _LayoutSyntaxProtocol {}
+
+extension YieldStmtSyntax: _LayoutSyntaxProtocol {}
+
+extension YieldedExpressionSyntax: _LayoutSyntaxProtocol {}
+
+extension YieldedExpressionsClauseSyntax: _LayoutSyntaxProtocol {}
 
 extension SyntaxLayoutProperty {
   /// Property name if this is a valid property.

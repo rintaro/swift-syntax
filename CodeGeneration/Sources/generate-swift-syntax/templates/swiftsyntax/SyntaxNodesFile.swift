@@ -208,6 +208,12 @@ func syntaxNode(nodesStartingWith: [Character]) -> SourceFileSyntax {
           }
         }
 
+        // ========
+        // Metadata
+        // ========
+
+        DeclSyntax("public static var syntaxKind: SyntaxKind { .\(node.enumCaseCallName) }")
+
         let layout = ArrayExprSyntax {
           for child in node.children {
             ArrayElementSyntax(

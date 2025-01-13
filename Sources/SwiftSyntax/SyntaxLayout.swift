@@ -12,10 +12,10 @@
 
 /// Represent an index in a layout.
 public struct SyntaxLayoutIndex: Equatable, Comparable {
-  let value: UInt32
+  let value: Int
 
   @_spi(RawSyntax)
-  public init(_ value: UInt32) {
+  public init(_ value: Int) {
     self.value = value
   }
 
@@ -47,16 +47,17 @@ public struct SyntaxLayoutProperty: Equatable {
 }
 
 /// Protocol for concrete layout syntax nodes.
-public protocol _LayoutSyntaxProtocol: SyntaxProtocol {
-  static var layout: SyntaxLayout<Self> { get }
+public protocol _LayoutSyntaxProtocol: _LeafSyntaxNodeProtocol {}
+
+extension _LayoutSyntaxProtocol {
+  public static var layout: SyntaxLayout<Self>.Type {
+    SyntaxLayout<Self>.self
+  }
 }
 
 /// Describes the layout of a `_LayoutSyntaxProtocol` syntax node.
 public struct SyntaxLayout<Base: _LayoutSyntaxProtocol> {
-  let syntaxKind: SyntaxKind
-  let _count: UInt32
-
-  // SyntaxLayout can only be constructed by `_LayoutSyntaxProtocol.layout`
+  // 'SyntaxLayout' is a metadata only type (at this point)
   private init() { fatalError() }
 }
 
@@ -79,44 +80,29 @@ public struct ConcreteSyntaxProperty<Base: _LayoutSyntaxProtocol, Value> {
 }
 
 extension SyntaxLayout {
-  /// Get `AnySyntaxLayoutProperty` from `ConcreteSyntaxProperty` of the `Base` type.
-  /// This is convenient for comparing '.propertyInParent'. E.g.
+  /// Get ``SyntaxLayoutProperty`` from ``ConcreteSyntaxProperty`` of the `Base` type.
+  /// This is convenient for comparing with '.propertyInParent'. E.g.
   ///
+  ///   // Check if 'node' is a 'FunctionDeclSyntax.name'.
   ///   if node.propertyInParent == FunctionDeclSyntax.layout[.name] { ... }
   ///
-  public subscript<T>(property: ConcreteSyntaxProperty<Base, T>) -> SyntaxLayoutProperty {
-    return SyntaxLayoutProperty(syntaxKind: syntaxKind, index: property.index)
+  public static subscript<T>(property: ConcreteSyntaxProperty<Base, T>) -> SyntaxLayoutProperty {
+    return SyntaxLayoutProperty(syntaxKind: Base.syntaxKind, index: property.index)
   }
 }
-
-#if false  // Not needed at this point.
-extension SyntaxLayout: Collection {
-  public typealias Index = SyntaxLayoutIndex
-  public typealias Element = SyntaxLayoutProperty
-
-  public var count: Int { Int(_count) }
-  public var startIndex: Index { Index(0) }
-  public var endIndex: Index { Index(_count) }
-  public func index(after i: Index) -> Index { Index(i.value + 1) }
-
-  public subscript(position: SyntaxLayoutIndex) -> SyntaxLayoutProperty {
-    return SyntaxLayoutProperty(syntaxKind: syntaxKind, index: position)
-  }
-}
-#endif
 
 extension Syntax {
   /// Implementation of `SyntaxProtocol.propertyInParent`
   var propertyInParent: SyntaxLayoutProperty? {
-    guard let parentKind = data.parent?.pointee.raw.kind,
-          parentKind != .token,
-          !parentKind.isSyntaxCollection
+    guard
+      let parentKind = data.parent?.pointee.raw.kind,
+      parentKind.isLayout
     else {
       return nil
     }
     return SyntaxLayoutProperty(
       syntaxKind: parentKind,
-      index: SyntaxLayoutIndex(absoluteInfo.layoutIndexInParent)
+      index: SyntaxLayoutIndex(Int(absoluteInfo.layoutIndexInParent))
     )
   }
 }
@@ -124,43 +110,48 @@ extension Syntax {
 extension SyntaxProtocol {
   /// Return 'SyntaxLayoutProperty' in the parent node, if this node is a child
   /// of a layout node. 'nil' otherwise.
+  @inline(__always)
   public var propertyInParent: SyntaxLayoutProperty? {
     self._syntaxNode.propertyInParent
   }
-}
 
-extension SyntaxProtocol {
   /// Get a property value.
   /// The property must be retrieved from the correct 'SyntaxLayout'
   public subscript(property: SyntaxLayoutProperty) -> Syntax? {
     precondition(property.syntaxKind == self.kind)
     return self._syntaxNode.child(at: Int(property.index.value))
   }
+}
 
-  /// Get a property value.
+extension _LayoutSyntaxProtocol {
+  /// A property value.
   public subscript<T: SyntaxProtocol>(property: ConcreteSyntaxProperty<Self, T>) -> T {
     get {
       self._syntaxNode.child(at: Int(property.index.value))!.cast(T.self)
     }
     set {
-      self = self._syntaxNode.replacingChild(at: Int(property.index.value), with: newValue._syntaxNode, arena: SyntaxArena()).cast(Self.self)
+      self = self.with(property, newValue)
     }
   }
+
+  /// A property value.
   public subscript<T: SyntaxProtocol>(property: ConcreteSyntaxProperty<Self, T?>) -> T? {
     get {
       self._syntaxNode.child(at: Int(property.index.value))?.cast(T.self)
     }
     set {
-      self = self._syntaxNode.replacingChild(at: Int(property.index.value), with: newValue?._syntaxNode._syntaxNode, arena: SyntaxArena()).cast(Self.self)
+      self = self.with(property, newValue)
     }
   }
 
-  /// Returns a new syntax node that has the child at `property` replaced by `value`.
+  /// Returns a new syntax node that has the `property` replaced by `value`.
   public func with<T: SyntaxProtocol>(_ property: ConcreteSyntaxProperty<Self, T>, _ value: T) -> Self {
     self._syntaxNode
       .replacingChild(at: Int(property.index.value), with: Syntax(value), arena: SyntaxArena())
       .cast(Self.self)
   }
+
+  /// Returns a new syntax node that has the `property` replaced by `value`.
   public func with<T: SyntaxProtocol>(_ property: ConcreteSyntaxProperty<Self, T?>, _ value: T?) -> Self {
     self._syntaxNode
       .replacingChild(at: Int(property.index.value), with: Syntax(value), arena: SyntaxArena())

@@ -16,29 +16,11 @@ import SyntaxSupport
 import Utils
 
 let syntaxLayoutNodesFile = try! SourceFileSyntax(leadingTrivia: copyrightHeader) {
-  DeclSyntax(
-    """
-    extension SyntaxLayout {
-      fileprivate init(syntaxKind: SyntaxKind, count: UInt32) {
-        self.syntaxKind = syntaxKind
-        self._count = count
-      }
-    }
-    """
-  )
-
   for node in NON_BASE_SYNTAX_NODES {
     if let layoutNode = node.layoutNode {
       try! ExtensionDeclSyntax(
         "extension \(node.kind.syntaxType): _LayoutSyntaxProtocol"
       ) {
-        DeclSyntax(
-          """
-          public static var layout: SyntaxLayout<Self> {
-            SyntaxLayout<Self>(syntaxKind: .\(node.enumCaseCallName), count: \(literal: layoutNode.children.count))
-          }
-          """
-        )
       }
     }
   }

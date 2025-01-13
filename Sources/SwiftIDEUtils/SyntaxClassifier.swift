@@ -202,7 +202,7 @@ private struct ClassificationVisitor {
     for case (let index, let child?) in children.enumerated() {
 
       let classification: (classification: SyntaxClassification, force: Bool)?
-      let property = SyntaxLayoutProperty(syntaxKind: descriptor.node.kind, index: .init(UInt32(index)))
+      let property = SyntaxLayoutProperty(syntaxKind: descriptor.node.kind, index: .init(index))
       classification = SyntaxClassification.classify(property)
 
       if let classification, classification.force {

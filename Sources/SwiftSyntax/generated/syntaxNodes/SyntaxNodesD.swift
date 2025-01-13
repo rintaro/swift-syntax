@@ -155,6 +155,10 @@ public struct DeclModifierDetailSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyn
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .declModifierDetail
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeLeftParen,
     \Self.leftParen,
@@ -315,6 +319,10 @@ public struct DeclModifierSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNod
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .declModifier
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeName,
     \Self.name,
@@ -434,6 +442,10 @@ public struct DeclNameArgumentSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynta
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(DeclNameArgumentSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .declNameArgument
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -612,6 +624,10 @@ public struct DeclNameArgumentsSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynt
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .declNameArguments
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeLeftParen,
     \Self.leftParen,
@@ -748,6 +764,10 @@ public struct DeclReferenceExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _Leaf
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .declReferenceExpr
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeBaseName,
     \Self.baseName,
@@ -863,6 +883,10 @@ public struct DeferStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStmtSynt
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(DeferStmtSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .deferStmt
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -1129,6 +1153,10 @@ public struct DeinitializerDeclSyntax: DeclSyntaxProtocol, SyntaxHashable, _Leaf
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .deinitializerDecl
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -1224,6 +1252,10 @@ public struct DeinitializerEffectSpecifiersSyntax: SyntaxProtocol, SyntaxHashabl
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(DeinitializerEffectSpecifiersSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .deinitializerEffectSpecifiers
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeAsyncSpecifier, \Self.asyncSpecifier, \Self.unexpectedAfterAsyncSpecifier])
@@ -1497,6 +1529,10 @@ public struct DerivativeAttributeArgumentsSyntax: SyntaxProtocol, SyntaxHashable
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .derivativeAttributeArguments
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeOfLabel,
     \Self.ofLabel,
@@ -1626,6 +1662,10 @@ public struct DesignatedTypeSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxN
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(DesignatedTypeSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .designatedType
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -1802,6 +1842,10 @@ public struct DictionaryElementSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynt
     set(value) {
       self = Syntax(self).replacingChild(at: 8, with: Syntax(value), arena: SyntaxArena()).cast(DictionaryElementSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .dictionaryElement
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -2038,6 +2082,10 @@ public struct DictionaryExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafExp
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .dictionaryExpr
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeLeftSquare,
     \Self.leftSquare,
@@ -2238,6 +2286,10 @@ public struct DictionaryTypeSyntax: TypeSyntaxProtocol, SyntaxHashable, _LeafTyp
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .dictionaryType
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeLeftSquare,
     \Self.leftSquare,
@@ -2372,6 +2424,10 @@ public struct DifferentiabilityArgumentSyntax: SyntaxProtocol, SyntaxHashable, _
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(DifferentiabilityArgumentSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .differentiabilityArgument
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -2552,6 +2608,10 @@ public struct DifferentiabilityArgumentsSyntax: SyntaxProtocol, SyntaxHashable, 
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(DifferentiabilityArgumentsSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .differentiabilityArguments
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -2794,6 +2854,10 @@ public struct DifferentiabilityWithRespectToArgumentSyntax: SyntaxProtocol, Synt
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .differentiabilityWithRespectToArgument
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeWrtLabel,
     \Self.wrtLabel,
@@ -3016,6 +3080,10 @@ public struct DifferentiableAttributeArgumentsSyntax: SyntaxProtocol, SyntaxHash
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .differentiableAttributeArguments
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeKindSpecifier,
     \Self.kindSpecifier,
@@ -3117,6 +3185,10 @@ public struct DiscardAssignmentExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(DiscardAssignmentExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .discardAssignmentExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeWildcard, \Self.wildcard, \Self.unexpectedAfterWildcard])
@@ -3228,6 +3300,10 @@ public struct DiscardStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStmtSy
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(DiscardStmtSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .discardStmt
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -3426,6 +3502,10 @@ public struct DoExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafExprSyntaxN
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .doExpr
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeDoKeyword,
     \Self.doKeyword,
@@ -3622,6 +3702,10 @@ public struct DoStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStmtSyntaxN
     set(value) {
       self = Syntax(self).replacingChild(at: 8, with: Syntax(value), arena: SyntaxArena()).cast(DoStmtSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .doStmt
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -3899,6 +3983,10 @@ public struct DocumentationAttributeArgumentSyntax: SyntaxProtocol, SyntaxHashab
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .documentationAttributeArgument
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeLabel,
     \Self.label,
@@ -4052,6 +4140,10 @@ public struct DynamicReplacementAttributeArgumentsSyntax: SyntaxProtocol, Syntax
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(DynamicReplacementAttributeArgumentsSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .dynamicReplacementAttributeArguments
   }
 
   public static let structure: SyntaxNodeStructure = .layout([

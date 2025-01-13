@@ -210,6 +210,10 @@ public struct EditorPlaceholderDeclSyntax: DeclSyntaxProtocol, SyntaxHashable, _
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .editorPlaceholderDecl
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -296,6 +300,10 @@ public struct EditorPlaceholderExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(EditorPlaceholderExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .editorPlaceholderExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforePlaceholder, \Self.placeholder, \Self.unexpectedAfterPlaceholder])
@@ -551,6 +559,10 @@ public struct EnumCaseDeclSyntax: DeclSyntaxProtocol, SyntaxHashable, _LeafDeclS
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .enumCaseDecl
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -741,6 +753,10 @@ public struct EnumCaseElementSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntax
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .enumCaseElement
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeName,
     \Self.name,
@@ -927,6 +943,10 @@ public struct EnumCaseParameterClauseSyntax: SyntaxProtocol, SyntaxHashable, _Le
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(EnumCaseParameterClauseSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .enumCaseParameterClause
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -1225,6 +1245,10 @@ public struct EnumCaseParameterSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynt
     set(value) {
       self = Syntax(self).replacingChild(at: 14, with: Syntax(value), arena: SyntaxArena()).cast(EnumCaseParameterSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .enumCaseParameter
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -1581,6 +1605,10 @@ public struct EnumDeclSyntax: DeclSyntaxProtocol, SyntaxHashable, _LeafDeclSynta
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .enumDecl
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -1741,6 +1769,10 @@ public struct ExposeAttributeArgumentsSyntax: SyntaxProtocol, SyntaxHashable, _L
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .exposeAttributeArguments
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeLanguage,
     \Self.language,
@@ -1836,6 +1868,10 @@ public struct ExpressionPatternSyntax: PatternSyntaxProtocol, SyntaxHashable, _L
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(ExpressionPatternSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .expressionPattern
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeExpression, \Self.expression, \Self.unexpectedAfterExpression])
@@ -2068,6 +2104,10 @@ public struct ExpressionSegmentSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynt
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .expressionSegment
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeBackslash,
     \Self.backslash,
@@ -2153,6 +2193,10 @@ public struct ExpressionStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStm
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(ExpressionStmtSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .expressionStmt
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeExpression, \Self.expression, \Self.unexpectedAfterExpression])
@@ -2480,6 +2524,10 @@ public struct ExtensionDeclSyntax: DeclSyntaxProtocol, SyntaxHashable, _LeafDecl
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .extensionDecl
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -2574,6 +2622,10 @@ public struct FallThroughStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafSt
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .fallThroughStmt
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeFallthroughKeyword, \Self.fallthroughKeyword, \Self.unexpectedAfterFallthroughKeyword])
 }
 
@@ -2650,6 +2702,10 @@ public struct FloatLiteralExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafE
     set(value) {
       self = Syntax(self).replacingChild(at: 2, with: Syntax(value), arena: SyntaxArena()).cast(FloatLiteralExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .floatLiteralExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([\Self.unexpectedBeforeLiteral, \Self.literal, \Self.unexpectedAfterLiteral])
@@ -2975,6 +3031,10 @@ public struct ForStmtSyntax: StmtSyntaxProtocol, SyntaxHashable, _LeafStmtSyntax
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .forStmt
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeForKeyword,
     \Self.forKeyword,
@@ -3106,6 +3166,10 @@ public struct ForceUnwrapExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafEx
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(ForceUnwrapExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .forceUnwrapExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -3380,6 +3444,10 @@ public struct FunctionCallExprSyntax: ExprSyntaxProtocol, SyntaxHashable, _LeafE
     set(value) {
       self = Syntax(self).replacingChild(at: 12, with: Syntax(value), arena: SyntaxArena()).cast(FunctionCallExprSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .functionCallExpr
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -3756,6 +3824,10 @@ public struct FunctionDeclSyntax: DeclSyntaxProtocol, SyntaxHashable, _LeafDeclS
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .functionDecl
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -3894,6 +3966,10 @@ public struct FunctionEffectSpecifiersSyntax: SyntaxProtocol, SyntaxHashable, _L
     set(value) {
       self = Syntax(self).replacingChild(at: 4, with: Syntax(value), arena: SyntaxArena()).cast(FunctionEffectSpecifiersSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .functionEffectSpecifiers
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -4071,6 +4147,10 @@ public struct FunctionParameterClauseSyntax: SyntaxProtocol, SyntaxHashable, _Le
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(FunctionParameterClauseSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .functionParameterClause
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -4466,6 +4546,10 @@ public struct FunctionParameterSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynt
     }
   }
 
+  public static var syntaxKind: SyntaxKind {
+    .functionParameter
+  }
+
   public static let structure: SyntaxNodeStructure = .layout([
     \Self.unexpectedBeforeAttributes,
     \Self.attributes,
@@ -4631,6 +4715,10 @@ public struct FunctionSignatureSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynt
     set(value) {
       self = Syntax(self).replacingChild(at: 6, with: Syntax(value), arena: SyntaxArena()).cast(FunctionSignatureSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .functionSignature
   }
 
   public static let structure: SyntaxNodeStructure = .layout([
@@ -4855,6 +4943,10 @@ public struct FunctionTypeSyntax: TypeSyntaxProtocol, SyntaxHashable, _LeafTypeS
     set(value) {
       self = Syntax(self).replacingChild(at: 10, with: Syntax(value), arena: SyntaxArena()).cast(FunctionTypeSyntax.self)
     }
+  }
+
+  public static var syntaxKind: SyntaxKind {
+    .functionType
   }
 
   public static let structure: SyntaxNodeStructure = .layout([

@@ -317,20 +317,34 @@ let syntaxBaseNodesFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
     }
   }
 
-  leafProtocolDecl(type: "_LeafSyntaxNodeProtocol", inheritedType: "SyntaxProtocol")
+  leafProtocolDecl(type: "_LeafSyntaxNodeProtocol", inheritedType: "SyntaxProtocol") {
+    DeclSyntax(
+      """
+      /// The ``SyntaxKind`` of the syntax node.
+      static var syntaxKind: SyntaxKind { get }
+      """
+    )
+  }
   leafProtocolExtension(type: "_LeafSyntaxNodeProtocol", inheritedType: "SyntaxProtocol")
 }
 
-private func leafProtocolDecl(type: TypeSyntax, inheritedType: TypeSyntax) -> DeclSyntax {
+private func leafProtocolDecl(
+  type: TypeSyntax,
+  inheritedType: TypeSyntax,
+  @MemberBlockItemListBuilder membersBuilder: () throws -> MemberBlockItemListSyntax = { [] }
+) -> DeclSyntax {
   DeclSyntax(
-    """
-    /// Protocol that syntax nodes conform to if they don't have any semantic subtypes.
-    /// These are syntax nodes that are not considered base nodes for other syntax types.
-    ///
-    /// Syntax nodes conforming to this protocol have their inherited casting methods
-    /// deprecated to prevent incorrect casting.
-    public protocol \(type): \(inheritedType) {}
-    """
+    try! ProtocolDeclSyntax(
+      """
+      /// Protocol that syntax nodes conform to if they don't have any semantic subtypes.
+      /// These are syntax nodes that are not considered base nodes for other syntax types.
+      ///
+      /// Syntax nodes conforming to this protocol have their inherited casting methods
+      /// deprecated to prevent incorrect casting.
+      public protocol \(type): \(inheritedType)
+      """,
+      membersBuilder: membersBuilder
+    )
   )
 }
 
