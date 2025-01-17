@@ -207,34 +207,42 @@ let tokenKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
   }
 
   try! ExtensionDeclSyntax("extension TokenKind") {
+    DeclSyntax(
+      """
+      /// If the `rawKind` has a `defaultText`, `text` can be empty.
+      @_spi(RawSyntax)
+      public static func fromRaw(kind rawKind: RawTokenKind, text: String) -> TokenKind {
+        var text = text
+        return text.withSyntaxText { fromRaw(kind: rawKind, text: $0) }
+      }
+      """
+    )
+
     try! FunctionDeclSyntax(
       """
       /// If the `rawKind` has a `defaultText`, `text` can be empty.
       @_spi(RawSyntax)
-      public static func fromRaw(kind rawKind: RawTokenKind, text: String) -> TokenKind
+      public static func fromRaw(kind rawKind: RawTokenKind, text: SyntaxText) -> TokenKind
       """
     ) {
       try! SwitchExprSyntax("switch rawKind") {
         for tokenSpec in Token.allCases.map(\.spec) {
           if tokenSpec.kind == .keyword {
             SwitchCaseSyntax("case .\(tokenSpec.enumCaseCallName):") {
-              DeclSyntax("var text = text")
               StmtSyntax(
                 """
-                return text.withSyntaxText { text in
-                  return .keyword(Keyword(text)!)
-                }
+                return .keyword(Keyword(text)!)
                 """
               )
             }
           } else if tokenSpec.text != nil {
             SwitchCaseSyntax("case .\(tokenSpec.enumCaseCallName):") {
-              ExprSyntax("precondition(text.isEmpty || rawKind.defaultText.map(String.init) == text)")
+              ExprSyntax("precondition(text.isEmpty || rawKind.defaultText == text)")
               StmtSyntax("return .\(tokenSpec.memberCallName)")
             }
           } else {
             SwitchCaseSyntax("case .\(tokenSpec.enumCaseCallName):") {
-              StmtSyntax("return .\(tokenSpec.memberCallName)(text)")
+              StmtSyntax("return .\(tokenSpec.memberCallName)(String(syntaxText: text))")
             }
           }
         }

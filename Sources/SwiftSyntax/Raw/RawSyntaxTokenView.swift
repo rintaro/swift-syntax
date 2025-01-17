@@ -248,9 +248,9 @@ public struct RawSyntaxTokenView: Sendable {
   public func formKind() -> TokenKind {
     switch raw.rawData.payload {
     case .parsedToken(let dat):
-      return TokenKind.fromRaw(kind: dat.tokenKind, text: String(syntaxText: dat.tokenText))
+      return TokenKind.fromRaw(kind: dat.tokenKind, text: dat.tokenText)
     case .materializedToken(let dat):
-      return TokenKind.fromRaw(kind: dat.tokenKind, text: String(syntaxText: dat.tokenText))
+      return TokenKind.fromRaw(kind: dat.tokenKind, text: dat.tokenText)
     case .layout(_):
       preconditionFailure("'formKind' is not available for non-token node")
     }
