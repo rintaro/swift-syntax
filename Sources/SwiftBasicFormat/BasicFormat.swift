@@ -259,8 +259,8 @@ open class BasicFormat: SyntaxRewriter {
     // after open quote and before close quote.
     if let first,
       isInsideStringInterpolation(first),
-      first.tokenKind != .multilineStringQuote,
-      second?.tokenKind != .multilineStringQuote
+      first.rawTokenKind != .multilineStringQuote,
+      second?.rawTokenKind != .multilineStringQuote
     {
       return false
     } else if isLeftBraceOfClosureInStmtConditionExpr(first) {
@@ -284,7 +284,7 @@ open class BasicFormat: SyntaxRewriter {
       }
     }
 
-    switch (first?.tokenKind, second?.tokenKind) {
+    switch (first?.rawTokenKind, second?.rawTokenKind) {
     case (.multilineStringQuote, .backslash),  // string interpolation segment inside a multi-line string literal
       (.multilineStringQuote, .multilineStringQuote),  // empty multi-line string literal
       (.multilineStringQuote, .stringSegment),  // segment starting a multi-line string literal
@@ -304,7 +304,8 @@ open class BasicFormat: SyntaxRewriter {
   }
 
   open func requiresWhitespace(between first: TokenSyntax?, and second: TokenSyntax?) -> Bool {
-    switch (first?.tokenKind, second?.tokenKind) {
+    // FIXME: Avoid '.tokenKind'. Encode keywords to 'rawTokenKind'. e.g. .AnyKeyword, .selfKeyword, etc.
+    switch (first?.tokenKind, second?.rawTokenKind) {
     case (.atSign, _),
       (.backslash, _),
       (.backtick, _),
@@ -370,10 +371,10 @@ open class BasicFormat: SyntaxRewriter {
       default:
         return false
       }
-    case (.leftAngle, _) where second?.tokenKind != .rightAngle:
+    case (.leftAngle, _) where second?.rawTokenKind != .rightAngle:
       // `<` and `>` need to be separated by a space because otherwise they become an operator
       return false
-    case (_, .rightAngle) where first?.tokenKind != .leftAngle:
+    case (_, .rightAngle) where first?.rawTokenKind != .leftAngle:
       // `<` and `>` need to be separated by a space because otherwise they become an operator
       return false
     case (_, .leftParen):
@@ -648,7 +649,7 @@ open class BasicFormat: SyntaxRewriter {
       result = result.with(\.trailingTrivia, trailingTrivia)
     }
     if let transformedTokenText {
-      let newKind = TokenKind.fromRaw(kind: token.tokenKind.decomposeToRaw().rawKind, text: transformedTokenText)
+      let newKind = TokenKind.fromRaw(kind: token.rawTokenKind, text: transformedTokenText)
       result = result.with(\.tokenKind, newKind).with(\.presence, .present)
     }
     if let transformedTokenPresence {
@@ -660,7 +661,7 @@ open class BasicFormat: SyntaxRewriter {
 
 fileprivate extension TokenSyntax {
   var isStringSegment: Bool {
-    if case .stringSegment = self.tokenKind {
+    if self.rawTokenKind == .stringSegment {
       return true
     } else {
       return false
@@ -668,9 +669,14 @@ fileprivate extension TokenSyntax {
   }
 
   var isStringSegmentWithLastCharacterBeingNewline: Bool {
-    switch self.tokenKind {
-    case .stringSegment(let segment):
-      return segment.last?.isNewline ?? false
+    switch self.rawTokenKind {
+    case .stringSegment:
+      switch self.rawText.last {
+      case UInt8(ascii: "\n"), UInt8(ascii: "\r"):
+        return true
+      default:
+        return false
+      }
     default:
       return false
     }
