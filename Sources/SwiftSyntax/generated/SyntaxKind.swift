@@ -20,12 +20,10 @@ public enum SyntaxKind: Sendable {
   #endif
   case abiAttributeArguments
   case accessorBlock
-  case accessorDeclList
   case accessorDecl
   case accessorEffectSpecifiers
   case accessorParameters
   case actorDecl
-  case arrayElementList
   case arrayElement
   case arrayExpr
   case arrayType
@@ -33,10 +31,8 @@ public enum SyntaxKind: Sendable {
   case asExpr
   case assignmentExpr
   case associatedTypeDecl
-  case attributeList
   case attribute
   case attributedType
-  case availabilityArgumentList
   case availabilityArgument
   case availabilityCondition
   case availabilityLabeledArgument
@@ -48,30 +44,22 @@ public enum SyntaxKind: Sendable {
   case breakStmt
   case _canImportExpr
   case _canImportVersionInfo
-  case catchClauseList
   case catchClause
-  case catchItemList
   case catchItem
   case classDecl
   case classRestrictionType
   case closureCaptureClause
-  case closureCaptureList
   case closureCaptureSpecifier
   case closureCapture
   case closureExpr
   case closureParameterClause
-  case closureParameterList
   case closureParameter
-  case closureShorthandParameterList
   case closureShorthandParameter
   case closureSignature
-  case codeBlockItemList
   case codeBlockItem
   case codeBlock
-  case compositionTypeElementList
   case compositionTypeElement
   case compositionType
-  case conditionElementList
   case conditionElement
   case conformanceRequirement
   case consumeExpr
@@ -80,9 +68,7 @@ public enum SyntaxKind: Sendable {
   case conventionWitnessMethodAttributeArguments
   case copyExpr
   case declModifierDetail
-  case declModifierList
   case declModifier
-  case declNameArgumentList
   case declNameArgument
   case declNameArguments
   case declReferenceExpr
@@ -90,13 +76,10 @@ public enum SyntaxKind: Sendable {
   case deinitializerDecl
   case deinitializerEffectSpecifiers
   case derivativeAttributeArguments
-  case designatedTypeList
   case designatedType
-  case dictionaryElementList
   case dictionaryElement
   case dictionaryExpr
   case dictionaryType
-  case differentiabilityArgumentList
   case differentiabilityArgument
   case differentiabilityArguments
   case differentiabilityWithRespectToArgument
@@ -108,21 +91,16 @@ public enum SyntaxKind: Sendable {
   #endif
   case doExpr
   case doStmt
-  case documentationAttributeArgumentList
   case documentationAttributeArgument
   case dynamicReplacementAttributeArguments
   case editorPlaceholderDecl
   case editorPlaceholderExpr
-  case effectsAttributeArgumentList
   case enumCaseDecl
-  case enumCaseElementList
   case enumCaseElement
   case enumCaseParameterClause
-  case enumCaseParameterList
   case enumCaseParameter
   case enumDecl
   case exposeAttributeArguments
-  case exprList
   case expressionPattern
   case expressionSegment
   case expressionStmt
@@ -135,57 +113,44 @@ public enum SyntaxKind: Sendable {
   case functionDecl
   case functionEffectSpecifiers
   case functionParameterClause
-  case functionParameterList
   case functionParameter
   case functionSignature
   case functionType
   case genericArgumentClause
-  case genericArgumentList
   case genericArgument
   case genericParameterClause
-  case genericParameterList
   case genericParameter
-  case genericRequirementList
   case genericRequirement
   case genericSpecializationExpr
   case genericWhereClause
   case guardStmt
   case identifierPattern
   case identifierType
-  case ifConfigClauseList
   case ifConfigClause
   case ifConfigDecl
   case ifExpr
   case implementsAttributeArguments
   case implicitlyUnwrappedOptionalType
   case importDecl
-  case importPathComponentList
   case importPathComponent
   case inOutExpr
   case infixOperatorExpr
   case inheritanceClause
-  case inheritedTypeList
   case inheritedType
   case initializerClause
   case initializerDecl
   case integerLiteralExpr
   case isExpr
   case isTypePattern
-  case keyPathComponentList
   case keyPathComponent
   case keyPathExpr
   case keyPathOptionalComponent
   case keyPathPropertyComponent
   case keyPathSubscriptComponent
-  case labeledExprList
   case labeledExpr
   case labeledSpecializeArgument
   case labeledStmt
   case layoutRequirement
-  #if compiler(>=5.8)
-  @_spi(ExperimentalLanguageFeatures)
-  #endif
-  case lifetimeSpecifierArgumentList
   #if compiler(>=5.8)
   @_spi(ExperimentalLanguageFeatures)
   #endif
@@ -199,7 +164,6 @@ public enum SyntaxKind: Sendable {
   case macroExpansionExpr
   case matchingPatternCondition
   case memberAccessExpr
-  case memberBlockItemList
   case memberBlockItem
   case memberBlock
   case memberType
@@ -210,11 +174,9 @@ public enum SyntaxKind: Sendable {
   case missingStmt
   case missing
   case missingType
-  case multipleTrailingClosureElementList
   case multipleTrailingClosureElement
   case namedOpaqueReturnType
   case nilLiteralExpr
-  case objCSelectorPieceList
   case objCSelectorPiece
   case opaqueReturnTypeOfAttributeArguments
   case operatorDecl
@@ -227,10 +189,8 @@ public enum SyntaxKind: Sendable {
   case packElementType
   case packExpansionExpr
   case packExpansionType
-  case patternBindingList
   case patternBinding
   case patternExpr
-  case platformVersionItemList
   case platformVersionItem
   case platformVersion
   case postfixIfConfigExpr
@@ -239,14 +199,11 @@ public enum SyntaxKind: Sendable {
   case poundSourceLocation
   case precedenceGroupAssignment
   case precedenceGroupAssociativity
-  case precedenceGroupAttributeList
   case precedenceGroupDecl
-  case precedenceGroupNameList
   case precedenceGroupName
   case precedenceGroupRelation
   case prefixOperatorExpr
   case primaryAssociatedTypeClause
-  case primaryAssociatedTypeList
   case primaryAssociatedType
   case protocolDecl
   case regexLiteralExpr
@@ -256,25 +213,20 @@ public enum SyntaxKind: Sendable {
   case sameTypeRequirement
   case sequenceExpr
   case simpleStringLiteralExpr
-  case simpleStringLiteralSegmentList
   case simpleTypeSpecifier
   case someOrAnyType
   case sourceFile
-  case specializeAttributeArgumentList
   case specializeAvailabilityArgument
   case specializeTargetFunctionArgument
   case stringLiteralExpr
-  case stringLiteralSegmentList
   case stringSegment
   case structDecl
   case subscriptCallExpr
   case subscriptDecl
   case superExpr
   case suppressedType
-  case switchCaseItemList
   case switchCaseItem
   case switchCaseLabel
-  case switchCaseList
   case switchCase
   case switchDefaultLabel
   case switchExpr
@@ -287,10 +239,8 @@ public enum SyntaxKind: Sendable {
   case throwsClause
   case tryExpr
   case tupleExpr
-  case tuplePatternElementList
   case tuplePatternElement
   case tuplePattern
-  case tupleTypeElementList
   case tupleTypeElement
   case tupleType
   case typeAliasDecl
@@ -298,10 +248,8 @@ public enum SyntaxKind: Sendable {
   case typeEffectSpecifiers
   case typeExpr
   case typeInitializerClause
-  case typeSpecifierList
   case unavailableFromAsyncAttributeArguments
   case underscorePrivateAttributeArguments
-  case unexpectedNodes
   case unresolvedAsExpr
   case unresolvedIsExpr
   case unresolvedTernaryExpr
@@ -311,16 +259,68 @@ public enum SyntaxKind: Sendable {
   case unsafeExpr
   case valueBindingPattern
   case variableDecl
-  case versionComponentList
   case versionComponent
   case versionTuple
   case whereClause
   case whileStmt
   case wildcardPattern
   case yieldStmt
-  case yieldedExpressionList
   case yieldedExpression
   case yieldedExpressionsClause
+  case accessorDeclList
+  case arrayElementList
+  case attributeList
+  case availabilityArgumentList
+  case catchClauseList
+  case catchItemList
+  case closureCaptureList
+  case closureParameterList
+  case closureShorthandParameterList
+  case codeBlockItemList
+  case compositionTypeElementList
+  case conditionElementList
+  case declModifierList
+  case declNameArgumentList
+  case designatedTypeList
+  case dictionaryElementList
+  case differentiabilityArgumentList
+  case documentationAttributeArgumentList
+  case effectsAttributeArgumentList
+  case enumCaseElementList
+  case enumCaseParameterList
+  case exprList
+  case functionParameterList
+  case genericArgumentList
+  case genericParameterList
+  case genericRequirementList
+  case ifConfigClauseList
+  case importPathComponentList
+  case inheritedTypeList
+  case keyPathComponentList
+  case labeledExprList
+  #if compiler(>=5.8)
+  @_spi(ExperimentalLanguageFeatures)
+  #endif
+  case lifetimeSpecifierArgumentList
+  case memberBlockItemList
+  case multipleTrailingClosureElementList
+  case objCSelectorPieceList
+  case patternBindingList
+  case platformVersionItemList
+  case precedenceGroupAttributeList
+  case precedenceGroupNameList
+  case primaryAssociatedTypeList
+  case simpleStringLiteralSegmentList
+  case specializeAttributeArgumentList
+  case stringLiteralSegmentList
+  case switchCaseItemList
+  case switchCaseList
+  case tuplePatternElementList
+  case tupleTypeElementList
+  case typeSpecifierList
+  case unexpectedNodes
+  case versionComponentList
+  case yieldedExpressionList
 
   public var isSyntaxCollection: Bool {
     switch self {

@@ -23,7 +23,13 @@ let syntaxKindFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
     """
   ) {
     DeclSyntax("case token")
-    for node in NON_BASE_SYNTAX_NODES {
+    let sortedNodes = NON_BASE_SYNTAX_NODES.sorted { lhs, rhs in
+      // Group by layout or collection node.
+      // This helps generate efficient code for 'SyntaxKind.isSyntaxCollection'.
+      lhs.collectionNode == nil && rhs.collectionNode != nil
+    }
+
+    for node in sortedNodes {
       DeclSyntax(
         """
         \(node.apiAttributes())\

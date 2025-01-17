@@ -24,6 +24,7 @@ private let unsortedSyntaxNodes: [Node] =
 public let SYNTAX_NODES: [Node] =
   unsortedSyntaxNodes
   .sorted { (lhs: Node, rhs: Node) -> Bool in
+    // Sort lexicographically.
     let lhsSortKey = lhs.kind.syntaxType.description.droppingLeadingUnderscores
     let rhsSortKey = rhs.kind.syntaxType.description.droppingLeadingUnderscores
     return lhsSortKey < rhsSortKey
