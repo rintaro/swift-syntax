@@ -870,7 +870,7 @@ extension BackDeployedAttributeArgumentsSyntax {
   }
 
   @available(*, deprecated, renamed: "addPlatform")
-  public func addAvailability(_ element: PlatformVersionItemSyntax) -> Self {
+  public func addAvailability(_ element: PlatformVersionItemListSyntax.Element) -> Self {
     return addPlatform(element)
   }
 
@@ -3271,7 +3271,7 @@ extension FunctionTypeSyntax {
   }
 
   @available(*, deprecated, renamed: "addParameter")
-  public func addArgument(_ element: TupleTypeElementSyntax) -> Self {
+  public func addArgument(_ element: TupleTypeElementListSyntax.Element) -> Self {
     return addParameter(element)
   }
 
@@ -3534,7 +3534,7 @@ extension GenericParameterClauseSyntax {
   }
 
   @available(*, deprecated, renamed: "addParameter")
-  public func addGenericParameter(_ element: GenericParameterSyntax) -> Self {
+  public func addGenericParameter(_ element: GenericParameterListSyntax.Element) -> Self {
     return addParameter(element)
   }
 
@@ -6865,7 +6865,7 @@ extension SpecializeAvailabilityArgumentSyntax {
   }
 
   @available(*, deprecated, renamed: "addAvailabilityArgument")
-  public func addAvailability(_ element: AvailabilityArgumentSyntax) -> Self {
+  public func addAvailability(_ element: AvailabilityArgumentListSyntax.Element) -> Self {
     return addAvailabilityArgument(element)
   }
 

@@ -79,8 +79,7 @@ func makeCompatibilityVar(for child: Child) -> DeclSyntax {
 }
 
 func makeCompatibilityAddMethod(for child: Child) -> DeclSyntax? {
-  if let childNode = SYNTAX_NODE_MAP[child.syntaxNodeKind]?.collectionNode,
-    !child.isUnexpectedNodes,
+  if !child.isUnexpectedNodes,
     case .collection(
       kind: _,
       collectionElementName: let collectionElementName,
@@ -89,12 +88,10 @@ func makeCompatibilityAddMethod(for child: Child) -> DeclSyntax? {
     ) = child.kind,
     let deprecatedCollectionElementName
   {
-    let childEltType = childNode.collectionElementType.syntaxBaseName
-
     return DeclSyntax(
       """
       @available(*, deprecated, renamed: "add\(raw: collectionElementName)")
-      public func add\(raw: deprecatedCollectionElementName)(_ element: \(childEltType)) -> Self {
+      public func add\(raw: deprecatedCollectionElementName)(_ element: \(child.syntaxNodeKind.syntaxType).Element) -> Self {
         return add\(raw: collectionElementName)(element)
       }
       """
