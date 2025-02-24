@@ -22,9 +22,6 @@ let renamedChildrenCompatibilityFile = try! SourceFileSyntax(leadingTrivia: copy
     try ExtensionDeclSyntax("extension \(layoutNode.type.syntaxBaseName)") {
       for child in deprecatedMembers.vars {
         makeCompatibilityVar(for: child)
-        if let addMethod = makeCompatibilityAddMethod(for: child) {
-          addMethod
-        }
       }
 
       let renamedName = InitSignature(layoutNode).compoundName
@@ -40,9 +37,6 @@ let renamedChildrenCompatibilityFile = try! SourceFileSyntax(leadingTrivia: copy
     try ExtensionDeclSyntax("extension \(trait.protocolName)") {
       for child in deprecatedMembers.vars {
         makeCompatibilityVar(for: child)
-        if let addMethod = makeCompatibilityAddMethod(for: child) {
-          addMethod
-        }
       }
 
       // Not currently generating compatibility inits for traits.
