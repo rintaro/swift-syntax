@@ -105,12 +105,12 @@ extension Node {
 }
 
 extension ChildNodeChoices.Choice {
-  var enumCaseDecl: EnumCaseDeclSyntax {
+  func enumCaseDecl(internal isIntenral: Bool = false) -> EnumCaseDeclSyntax {
     try! EnumCaseDeclSyntax(
       """
-      \(self.documentation)\
-      \(self.experimentalDocNote)\
-      \(self.apiAttributes)\
+      \(isIntenral ? "" : self.documentation)\
+      \(isIntenral ? "" : self.experimentalDocNote)\
+      \(isIntenral ? "" : self.apiAttributes)\
       case \(self.enumCaseDeclName)(\(self.syntaxType))
       """
     )

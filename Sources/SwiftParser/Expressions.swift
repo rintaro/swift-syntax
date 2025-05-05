@@ -1380,7 +1380,7 @@ extension Parser {
         .extraneousTrailingWhitespaceError,
         byteOffset: pound.leadingTriviaByteLength + pound.tokenText.count
       )
-      pound = pound.tokenView.withTokenDiagnostic(tokenDiagnostic: diagnostic, arena: self.arena)
+      pound = pound.tokenView.withTokenDiagnostic(tokenDiagnostic: diagnostic, arena: self.arena).cast(RawTokenSyntax.self)
     }
     let unexpectedBeforeMacroName: RawUnexpectedNodesSyntax?
     let macroName: RawTokenSyntax

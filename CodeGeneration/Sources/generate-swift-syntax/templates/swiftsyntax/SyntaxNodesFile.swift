@@ -225,7 +225,7 @@ extension ChildNodeChoices {
   var enumDecl: EnumDeclSyntax {
     try! EnumDeclSyntax("public enum \(self.name): SyntaxChildChoices, SyntaxHashable") {
       for choice in self.choices {
-        choice.enumCaseDecl
+        choice.enumCaseDecl()
       }
 
       self.syntaxGetter(propertyName: "_syntaxNode", propertyType: "Syntax")

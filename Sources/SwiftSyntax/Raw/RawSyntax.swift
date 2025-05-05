@@ -569,7 +569,7 @@ extension RawSyntax {
   ///   - textRange: Range of the token text in `wholeText`.
   ///   - presence: Whether the token appeared in the source code or if it was synthesized.
   ///   - arena: RawSyntaxArena to the result node data resides.
-  internal static func parsedToken(
+  public static func parsedToken(
     kind: RawTokenKind,
     wholeText: SyntaxText,
     textRange: Range<SyntaxText.Index>,
@@ -685,7 +685,7 @@ extension RawSyntax {
   ///   - text: Token text.
   ///   - leadingTrivia: Leading trivia.
   ///   - trailingTrivia: Trailing trivia.
-  static func makeMaterializedToken(
+  public static func makeMaterializedToken(
     kind: TokenKind,
     leadingTrivia: Trivia,
     trailingTrivia: Trivia,
@@ -946,12 +946,18 @@ enum RawSyntaxView {
 
 extension RawSyntax {
   var view: RawSyntaxView {
-    switch raw.payload {
+    switch payload {
     case .parsedToken, .materializedToken:
       return .token(tokenView!)
     case .layout:
       return .layout(layoutView!)
     }
+  }
+}
+
+extension RawSyntax {
+  public var hasError: Bool {
+    return recursiveFlags.contains(.hasError)
   }
 }
 

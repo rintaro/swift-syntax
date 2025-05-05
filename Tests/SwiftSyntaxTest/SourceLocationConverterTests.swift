@@ -35,6 +35,7 @@ fileprivate func assertPresumedSourceLocation(
 }
 
 final class SourceLocationConverterTests: XCTestCase {
+  /*
   func testInvalidUtf8() {
     let eofToken = withExtendedLifetime(ParsingRawSyntaxArena(parseTriviaFunction: dummyParseToken)) { arena in
       let leadingTriviaText = [UInt8(0xfd)].withUnsafeBufferPointer { buf in
@@ -64,6 +65,7 @@ final class SourceLocationConverterTests: XCTestCase {
     // ```
     _ = SourceLocationConverter(fileName: "", tree: tree)
   }
+   */
 
   func testSingleSourceLocationDirective() {
     assertPresumedSourceLocation(

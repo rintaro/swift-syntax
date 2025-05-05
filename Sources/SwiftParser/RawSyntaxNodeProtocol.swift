@@ -10,10 +10,11 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_spi(RawSyntax) public import SwiftSyntax
+
 /// All typed raw syntax nodes conform to this protocol.
 /// `RawXXXSyntax` is a typed wrappeer of ``RawSyntax``.
-@_spi(RawSyntax)
-public protocol RawSyntaxNodeProtocol: CustomStringConvertible, TextOutputStreamable, Sendable {
+protocol RawSyntaxNodeProtocol: CustomStringConvertible, TextOutputStreamable, Sendable {
   /// Returns `true` if `raw` can be cast to this concrete raw syntax type.
   static func isKindOf(_ raw: RawSyntax) -> Bool
 
@@ -26,16 +27,16 @@ public protocol RawSyntaxNodeProtocol: CustomStringConvertible, TextOutputStream
 
 extension RawSyntaxNodeProtocol {
   /// Cast to the specified raw syntax type if possible.
-  public func `as`<Node: RawSyntaxNodeProtocol>(_: Node.Type) -> Node? {
+  func `as`<Node: RawSyntaxNodeProtocol>(_: Node.Type) -> Node? {
     Node(self)
   }
 
   /// Check if this instance can be cast to the specified syntax type.
-  public func `is`<Node: RawSyntaxNodeProtocol>(_: Node.Type) -> Bool {
+  func `is`<Node: RawSyntaxNodeProtocol>(_: Node.Type) -> Bool {
     Node.isKindOf(self.raw)
   }
 
-  public func cast<S: RawSyntaxNodeProtocol>(_ syntaxType: S.Type) -> S {
+  func cast<S: RawSyntaxNodeProtocol>(_ syntaxType: S.Type) -> S {
     return self.as(S.self)!
   }
 
@@ -47,7 +48,7 @@ extension RawSyntaxNodeProtocol {
     raw.write(to: &target)
   }
 
-  public var isEmpty: Bool {
+  var isEmpty: Bool {
     return raw.byteLength == 0
   }
 
@@ -55,27 +56,24 @@ extension RawSyntaxNodeProtocol {
   ///  - missing nodes or
   ///  - unexpected nodes or
   ///  - tokens with a ``TokenDiagnostic`` of severity `error`
-  public var hasError: Bool {
-    return raw.recursiveFlags.contains(.hasError)
+  var hasError: Bool {
+    return raw.hasError
   }
 }
 
 /// ``RawSyntax`` itself conforms to `RawSyntaxNodeProtocol`.
 extension RawSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  static func isKindOf(_ raw: RawSyntax) -> Bool {
     return true
   }
 
-  @_spi(RawSyntax)
-  public var raw: RawSyntax { self }
+  var raw: RawSyntax { self }
 
   init(raw: RawSyntax) {
     self = raw
   }
 
-  @_spi(RawSyntax)
-  public init(_ other: some RawSyntaxNodeProtocol) {
+  init(_ other: some RawSyntaxNodeProtocol) {
     self.init(raw: other.raw)
   }
 }
@@ -83,9 +81,8 @@ extension RawSyntax: RawSyntaxNodeProtocol {
 #if swift(<5.8)
 // Cherry-pick this function from SE-0370
 extension Slice {
-  @_spi(RawSyntax)
   @inlinable
-  public func initialize<S>(
+  func initialize<S>(
     from source: S
   ) -> (unwritten: S.Iterator, index: Index)
   where S: Sequence, Base == UnsafeMutableBufferPointer<S.Element> {
@@ -99,20 +96,16 @@ extension Slice {
 
 @_spi(RawSyntax)
 public struct RawTokenSyntax: RawSyntaxNodeProtocol {
-  @_spi(RawSyntax)
-  public typealias SyntaxType = TokenSyntax
+  typealias SyntaxType = TokenSyntax
 
-  @_spi(RawSyntax)
-  public var tokenView: RawSyntaxTokenView {
+  var tokenView: RawSyntaxTokenView {
     return raw.tokenView!
   }
 
-  @_spi(RawSyntax)
-  public static func isKindOf(_ raw: RawSyntax) -> Bool {
+  static func isKindOf(_ raw: RawSyntax) -> Bool {
     return raw.kind == .token
   }
 
-  @_spi(RawSyntax)
   public var raw: RawSyntax
 
   init(raw: RawSyntax) {
@@ -124,54 +117,44 @@ public struct RawTokenSyntax: RawSyntaxNodeProtocol {
     self.raw = raw
   }
 
-  @_spi(RawSyntax)
-  public init?(_ other: some RawSyntaxNodeProtocol) {
+  init?(_ other: some RawSyntaxNodeProtocol) {
     guard Self.isKindOf(other.raw) else { return nil }
     self.init(unchecked: other.raw)
   }
 
-  @_spi(RawSyntax)
-  public var tokenKind: RawTokenKind {
+  var tokenKind: RawTokenKind {
     return tokenView.rawKind
   }
 
-  @_spi(RawSyntax)
-  public var tokenText: SyntaxText {
+  var tokenText: SyntaxText {
     return tokenView.rawText
   }
 
-  @_spi(RawSyntax)
-  public var byteLength: Int {
+  var byteLength: Int {
     return raw.byteLength
   }
 
-  @_spi(RawSyntax)
-  public var presence: SourcePresence {
+  var presence: SourcePresence {
     tokenView.presence
   }
 
-  @_spi(RawSyntax)
-  public var isMissing: Bool {
+  var isMissing: Bool {
     presence == .missing
   }
 
-  @_spi(RawSyntax)
-  public var leadingTriviaByteLength: Int {
+  var leadingTriviaByteLength: Int {
     return tokenView.leadingTriviaByteLength
   }
 
-  @_spi(RawSyntax)
-  public var leadingTriviaPieces: [RawTriviaPiece] {
+  var leadingTriviaPieces: [RawTriviaPiece] {
     tokenView.leadingRawTriviaPieces
   }
 
-  @_spi(RawSyntax)
-  public var trailingTriviaByteLength: Int {
+  var trailingTriviaByteLength: Int {
     return tokenView.trailingTriviaByteLength
   }
 
-  @_spi(RawSyntax)
-  public var trailingTriviaPieces: [RawTriviaPiece] {
+  var trailingTriviaPieces: [RawTriviaPiece] {
     tokenView.trailingRawTriviaPieces
   }
 
@@ -198,7 +181,7 @@ public struct RawTokenSyntax: RawSyntaxNodeProtocol {
 
   /// Creates a ``RawTokenSyntax``. `text` and trivia must be managed by the same
   /// `arena`.
-  public init(
+  init(
     kind: RawTokenKind,
     text: SyntaxText,
     leadingTriviaPieces: [RawTriviaPiece] = [],
@@ -263,7 +246,7 @@ public struct RawTokenSyntax: RawSyntaxNodeProtocol {
   /// If `text` is passed, it will be used to represent the missing token's text.
   /// If `text` is `nil`, the `kind`'s default text will be used.
   /// If that is also `nil`, the token will have empty text.
-  public init(
+  init(
     missing kind: RawTokenKind,
     text: SyntaxText? = nil,
     leadingTriviaPieces: [RawTriviaPiece] = [],
@@ -279,5 +262,29 @@ public struct RawTokenSyntax: RawSyntaxNodeProtocol {
       tokenDiagnostic: nil,
       arena: arena
     )
+  }
+}
+
+
+extension RawUnexpectedNodesSyntax {
+  /// Construct a ``RawUnexpectedNodesSyntax``with the given `elements`.
+  ///
+  /// If `isMaximumNestingLevelOverflow` is `true`, the node has the
+  /// `isMaximumNestingLevelOverflow` error bit set, indicating that the parser
+  /// overflowed its maximum nesting level and thus aborted parsing.
+  public init(elements: [RawSyntax], isMaximumNestingLevelOverflow: Bool, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .unexpectedNodes,
+      uninitializedCount: elements.count,
+      isMaximumNestingLevelOverflow: isMaximumNestingLevelOverflow,
+      arena: arena
+    ) { layout in
+      guard var ptr = layout.baseAddress else { return }
+      for elem in elements {
+        ptr.initialize(to: elem.raw)
+        ptr += 1
+      }
+    }
+    self.init(raw: raw)
   }
 }
