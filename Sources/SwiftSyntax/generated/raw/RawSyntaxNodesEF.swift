@@ -386,13 +386,15 @@ public struct RawEnumCaseElementSyntax: RawSyntaxNodeProtocol {
     parameterClause: RawEnumCaseParameterClauseSyntax?,
     _ unexpectedBetweenParameterClauseAndRawValue: RawUnexpectedNodesSyntax? = nil,
     rawValue: RawInitializerClauseSyntax?,
-    _ unexpectedBetweenRawValueAndTrailingComma: RawUnexpectedNodesSyntax? = nil,
+    _ unexpectedBetweenRawValueAndAccessorBlock: RawUnexpectedNodesSyntax? = nil,
+    accessorBlock: RawAccessorBlockSyntax?,
+    _ unexpectedBetweenAccessorBlockAndTrailingComma: RawUnexpectedNodesSyntax? = nil,
     trailingComma: RawTokenSyntax?,
     _ unexpectedAfterTrailingComma: RawUnexpectedNodesSyntax? = nil,
     arena: __shared RawSyntaxArena
   ) {
     let raw = RawSyntax.makeLayout(
-      kind: .enumCaseElement, uninitializedCount: 9, arena: arena) { layout in
+      kind: .enumCaseElement, uninitializedCount: 11, arena: arena) { layout in
       layout.initialize(repeating: nil)
       layout[0] = unexpectedBeforeName?.raw
       layout[1] = name.raw
@@ -400,9 +402,11 @@ public struct RawEnumCaseElementSyntax: RawSyntaxNodeProtocol {
       layout[3] = parameterClause?.raw
       layout[4] = unexpectedBetweenParameterClauseAndRawValue?.raw
       layout[5] = rawValue?.raw
-      layout[6] = unexpectedBetweenRawValueAndTrailingComma?.raw
-      layout[7] = trailingComma?.raw
-      layout[8] = unexpectedAfterTrailingComma?.raw
+      layout[6] = unexpectedBetweenRawValueAndAccessorBlock?.raw
+      layout[7] = accessorBlock?.raw
+      layout[8] = unexpectedBetweenAccessorBlockAndTrailingComma?.raw
+      layout[9] = trailingComma?.raw
+      layout[10] = unexpectedAfterTrailingComma?.raw
     }
     self.init(unchecked: raw)
   }
@@ -431,16 +435,24 @@ public struct RawEnumCaseElementSyntax: RawSyntaxNodeProtocol {
     layoutView.children[5].map(RawInitializerClauseSyntax.init(raw:))
   }
 
-  public var unexpectedBetweenRawValueAndTrailingComma: RawUnexpectedNodesSyntax? {
+  public var unexpectedBetweenRawValueAndAccessorBlock: RawUnexpectedNodesSyntax? {
     layoutView.children[6].map(RawUnexpectedNodesSyntax.init(raw:))
   }
 
+  public var accessorBlock: RawAccessorBlockSyntax? {
+    layoutView.children[7].map(RawAccessorBlockSyntax.init(raw:))
+  }
+
+  public var unexpectedBetweenAccessorBlockAndTrailingComma: RawUnexpectedNodesSyntax? {
+    layoutView.children[8].map(RawUnexpectedNodesSyntax.init(raw:))
+  }
+
   public var trailingComma: RawTokenSyntax? {
-    layoutView.children[7].map(RawTokenSyntax.init(raw:))
+    layoutView.children[9].map(RawTokenSyntax.init(raw:))
   }
 
   public var unexpectedAfterTrailingComma: RawUnexpectedNodesSyntax? {
-    layoutView.children[8].map(RawUnexpectedNodesSyntax.init(raw:))
+    layoutView.children[10].map(RawUnexpectedNodesSyntax.init(raw:))
   }
 }
 

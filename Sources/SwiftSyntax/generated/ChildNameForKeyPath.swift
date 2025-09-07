@@ -1160,8 +1160,12 @@ public func childName(_ keyPath: AnyKeyPath) -> String? {
     return "unexpectedBetweenParameterClauseAndRawValue"
   case \EnumCaseElementSyntax.rawValue:
     return "rawValue"
-  case \EnumCaseElementSyntax.unexpectedBetweenRawValueAndTrailingComma:
-    return "unexpectedBetweenRawValueAndTrailingComma"
+  case \EnumCaseElementSyntax.unexpectedBetweenRawValueAndAccessorBlock:
+    return "unexpectedBetweenRawValueAndAccessorBlock"
+  case \EnumCaseElementSyntax.accessorBlock:
+    return "accessorBlock"
+  case \EnumCaseElementSyntax.unexpectedBetweenAccessorBlockAndTrailingComma:
+    return "unexpectedBetweenAccessorBlockAndTrailingComma"
   case \EnumCaseElementSyntax.trailingComma:
     return "trailingComma"
   case \EnumCaseElementSyntax.unexpectedAfterTrailingComma:

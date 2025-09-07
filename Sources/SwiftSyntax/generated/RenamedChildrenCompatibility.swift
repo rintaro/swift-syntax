@@ -2444,7 +2444,7 @@ extension EnumCaseElementSyntax {
     }
   }
 
-  @available(*, deprecated, renamed: "init(leadingTrivia:_:name:_:parameterClause:_:rawValue:_:trailingComma:_:trailingTrivia:)")
+  @available(*, deprecated, renamed: "init(leadingTrivia:_:name:_:parameterClause:_:rawValue:_:accessorBlock:_:trailingComma:_:trailingTrivia:)")
   @_disfavoredOverload
   public init(
     leadingTrivia: Trivia? = nil,
@@ -2454,7 +2454,9 @@ extension EnumCaseElementSyntax {
     associatedValue: EnumCaseParameterClauseSyntax? = nil,
     _ unexpectedBetweenAssociatedValueAndRawValue: UnexpectedNodesSyntax? = nil,
     rawValue: InitializerClauseSyntax? = nil,
-    _ unexpectedBetweenRawValueAndTrailingComma: UnexpectedNodesSyntax? = nil,
+    _ unexpectedBetweenRawValueAndAccessorBlock: UnexpectedNodesSyntax? = nil,
+    accessorBlock: AccessorBlockSyntax? = nil,
+    _ unexpectedBetweenAccessorBlockAndTrailingComma: UnexpectedNodesSyntax? = nil,
     trailingComma: TokenSyntax? = nil,
     _ unexpectedAfterTrailingComma: UnexpectedNodesSyntax? = nil,
     trailingTrivia: Trivia? = nil
@@ -2467,7 +2469,9 @@ extension EnumCaseElementSyntax {
       parameterClause: associatedValue,
       unexpectedBetweenAssociatedValueAndRawValue,
       rawValue: rawValue,
-      unexpectedBetweenRawValueAndTrailingComma,
+      unexpectedBetweenRawValueAndAccessorBlock,
+      accessorBlock: accessorBlock,
+      unexpectedBetweenAccessorBlockAndTrailingComma,
       trailingComma: trailingComma,
       unexpectedAfterTrailingComma,
       trailingTrivia: trailingTrivia

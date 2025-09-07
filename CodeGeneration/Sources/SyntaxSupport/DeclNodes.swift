@@ -786,6 +786,12 @@ public let DECL_NODES: [Node] = [
         isOptional: true
       ),
       Child(
+        name: "accessorBlock",
+        kind: .node(kind: .accessorBlock),
+        documentation: "accessors",
+        isOptional: true
+      ),
+      Child(
         name: "trailingComma",
         kind: .token(choices: [.token(.comma)]),
         documentation: "The trailing comma of this element, if the case has multiple elements.",

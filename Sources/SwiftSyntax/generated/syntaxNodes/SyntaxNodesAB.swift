@@ -591,6 +591,7 @@ public struct AccessorBlockFileSyntax: SyntaxProtocol, SyntaxHashable, _LeafSynt
 ///
 /// ### Contained in
 /// 
+///  - ``EnumCaseElementSyntax``.``EnumCaseElementSyntax/accessorBlock``
 ///  - ``PatternBindingSyntax``.``PatternBindingSyntax/accessorBlock``
 ///  - ``SubscriptDeclSyntax``.``SubscriptDeclSyntax/accessorBlock``
 public struct AccessorBlockSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNodeProtocol {

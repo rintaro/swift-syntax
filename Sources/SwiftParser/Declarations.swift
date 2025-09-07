@@ -1099,6 +1099,13 @@ extension Parser {
           rawValue = nil
         }
 
+        let accessors: RawAccessorBlockSyntax?
+        if self.at(.leftBrace) {
+          accessors = self.parseAccessorBlock()
+        } else {
+          accessors = nil
+        }
+
         // Continue through the comma-separated list.
         keepGoing = self.consume(if: .comma)
         elements.append(
@@ -1108,6 +1115,7 @@ extension Parser {
             unexpectedGenericParameters,
             parameterClause: parameterClause,
             rawValue: rawValue,
+            accessorBlock: accessors,
             trailingComma: keepGoing,
             arena: self.arena
           )
