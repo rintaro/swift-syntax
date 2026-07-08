@@ -13,13 +13,13 @@
 import SwiftSyntax
 
 @_spi(Experimental)
-public protocol NominalTypeDeclSyntax: LookInMembersScopeSyntax, DeclGroupSyntax, NamedDeclSyntax,
+public protocol NonProtocolNominalTypeDeclSyntax: LookInMembersScopeSyntax, DeclGroupSyntax, NamedDeclSyntax,
   WithGenericParametersScopeSyntax
 {
   var genericParameterClause: GenericParameterClauseSyntax? { get }
 }
 
-extension NominalTypeDeclSyntax {
+extension NonProtocolNominalTypeDeclSyntax {
   @_spi(Experimental) public var lookupMembersPosition: AbsolutePosition {
     name.positionAfterSkippingLeadingTrivia
   }
