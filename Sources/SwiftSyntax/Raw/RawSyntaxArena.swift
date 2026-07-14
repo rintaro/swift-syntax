@@ -202,9 +202,60 @@ public class ParsingRawSyntaxArena: RawSyntaxArena {
   /// - Important: Must never be changed to a mutable value. See `RawSyntaxArenaRef.parseTrivia`.
   private let parseTriviaFunction: ParseTriviaFunction
 
+  /// Size of the contiguous source chunk `internParsedTokenText` copies on a
+  /// miss. Larger values copy fewer, bigger chunks (cheaper full parses) at the
+  /// cost of over-copying up to this many bytes past a reused span.
+  private static let sourceMirrorChunkSize = 4096
+
+  /// Bounds of the source buffer parsed tokens are lexed from.
+  private struct SourceBounds {
+    let start: UnsafePointer<UInt8>
+    let end: UnsafePointer<UInt8>
+  }
+
+  /// A contiguous source sub-range `[start, end)` copied to `dest` in this arena.
+  private struct Mirror {
+    let start: UnsafePointer<UInt8>
+    let end: UnsafePointer<UInt8>
+    let dest: UnsafePointer<UInt8>
+  }
+
+  /// The source buffer that parsed tokens are lexed from, set via
+  /// `setSourceBuffer`. `nil` disables coalescing (each token is copied
+  /// individually).
+  private var sourceBounds: SourceBounds?
+
+  /// The most recent contiguous chunk of the source buffer copied into this
+  /// arena. `internParsedTokenText`'s fast path serves tokens falling within it
+  /// as slices of the copy. `nil` until the first chunk is mirrored.
+  private var mirror: Mirror?
+
   public init(parseTriviaFunction: @escaping ParseTriviaFunction) {
     self.parseTriviaFunction = parseTriviaFunction
     super.init(slabSize: 4096)
+  }
+
+  /// Record the source buffer that subsequent parsed tokens are lexed from so
+  /// `internParsedTokenText` can coalesce copies of adjacent tokens. Resets any
+  /// previously mirrored chunk.
+  @_spi(RawSyntax) public func setSourceBuffer(_ buffer: UnsafeBufferPointer<UInt8>) {
+    if let start = buffer.baseAddress {
+      self.sourceBounds = SourceBounds(start: start, end: start + buffer.count)
+    } else {
+      self.sourceBounds = nil
+    }
+    self.mirror = nil
+  }
+
+  /// Forget the source buffer registered by `setSourceBuffer` and disable
+  /// coalescing.
+  ///
+  /// - Important: Must be called once the source buffer is no longer valid
+  ///   (i.e. when the parse completes). The arena can outlive the source buffer,
+  ///   so the recorded bounds would otherwise dangle.
+  @_spi(RawSyntax) public func clearSourceBuffer() {
+    self.sourceBounds = nil
+    self.mirror = nil
   }
 
   /// Intern a parsed token's whole text into the arena's node allocator so the
@@ -212,10 +263,53 @@ public class ParsingRawSyntaxArena: RawSyntaxArena {
   ///
   /// Unlike `intern(_:)`, this skips the `contains` check: lexer-produced text
   /// is never already managed by the arena, so a copy is always needed.
+  ///
+  /// When the text lies within the source buffer registered by
+  /// `setSourceBuffer`, copies are coalesced: on a miss a whole contiguous
+  /// chunk of the source is mirrored, and subsequent adjacent tokens are served
+  /// as offsets into that copy without copying again. Because parsed tokens are
+  /// produced in source order with contiguous `wholeText`, a full parse copies
+  /// the source in a handful of chunks rather than once per token, and an
+  /// incremental reparse mirrors only the re-lexed spans.
   func internParsedTokenText(_ text: SyntaxText) -> SyntaxText {
-    if text.isEmpty {
+    // Empty text needs no copy; the pointer checks below also assume a non-nil
+    // base.
+    guard let base = text.baseAddress, !text.isEmpty else {
       return text
     }
+
+    // Fast path: the token already lies within the mirrored chunk. This is the
+    // common case for adjacent in-order tokens and needs only the mirror.
+    if let mirror, base >= mirror.start, base + text.count <= mirror.end {
+      return SyntaxText(baseAddress: mirror.dest + mirror.start.distance(to: base), count: text.count)
+    }
+
+    // Text outside the source buffer (e.g. synthesized tokens), or no source
+    // buffer registered: copy it directly.
+    guard let sourceBounds, base >= sourceBounds.start, base + text.count <= sourceBounds.end else {
+      return copyParsedTokenText(text)
+    }
+
+    // A token that starts before the current mirror means the parser moved
+    // backward (e.g. backtracking); that is temporary, so copy it individually
+    // and leave the forward mirror in place for when parsing resumes.
+    if let mirror, base < mirror.start {
+      return copyParsedTokenText(text)
+    }
+
+    // Mirror a fresh chunk starting at this token, reading ahead so the
+    // following contiguous tokens hit the fast path without copying.
+    let available = base.distance(to: sourceBounds.end)
+    let chunk = min(available, max(text.count, Self.sourceMirrorChunkSize))
+    let allocated = allocateTextBuffer(count: chunk)
+    _ = allocated.initialize(from: UnsafeBufferPointer(start: base, count: chunk))
+    self.mirror = Mirror(start: base, end: base + chunk, dest: UnsafePointer(allocated.baseAddress!))
+    return SyntaxText(baseAddress: allocated.baseAddress, count: text.count)
+  }
+
+  /// Copies `text` into this arena's node allocator directly, without
+  /// coalescing.
+  private func copyParsedTokenText(_ text: SyntaxText) -> SyntaxText {
     let allocated = allocateTextBuffer(count: text.count)
     _ = allocated.initialize(from: text)
     return SyntaxText(baseAddress: allocated.baseAddress, count: allocated.count)

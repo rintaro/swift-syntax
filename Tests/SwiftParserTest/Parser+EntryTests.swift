@@ -66,6 +66,31 @@ class EntryTests: ParserTestCase {
     assertRoundTrips(Array("a".utf8) + [0x00] + Array("b".utf8))  // embedded NUL
   }
 
+  /// Parsed-token text is interned by mirroring contiguous chunks of the source
+  /// buffer (see `ParsingRawSyntaxArena`), so the resulting tree owns its text
+  /// and does not reference the source. These inputs exercise that coalescing:
+  /// single tokens longer than one mirror chunk, and a source whose tokens span
+  /// several chunks. `assertParse` verifies each round-trips.
+  func testParsedTokenTextInterning() throws {
+    let longIdentifier = String(repeating: "a", count: 5000)
+    let longStringContents = String(repeating: "x", count: 5000)
+
+    // Single tokens whose text exceeds the mirror chunk size (an identifier and
+    // a string-literal segment), exercising the oversized-chunk path.
+    assertParse("let \(longIdentifier) = 0")
+    assertParse("let s = \"\(longStringContents)\"")
+
+    // Several oversized tokens with ordinary tokens in between, so the mirror
+    // rolls over to a fresh chunk after each oversized token.
+    assertParse(
+      """
+      let \(longIdentifier) = 0
+      let s = "\(longStringContents)"
+      func f() { let \(longIdentifier) = 1 }
+      """
+    )
+  }
+
   func testSyntaxParse() throws {
     assertParse(
       "func test() {}",

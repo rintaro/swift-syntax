@@ -245,7 +245,7 @@ public struct Parser {
       // `Parser` is destroyed (i.e. when the parse call returns); each token's
       // text is interned into the arena at node-creation time, so the resulting
       // tree does not reference this buffer.
-      let owner = ParserSourceBufferOwner(copying: input)
+      let owner = ParserSourceBufferOwner(copying: input, arena: self.arena)
       self.sourceBufferOwner = owner
       input = owner.buffer
     } else {
@@ -255,6 +255,10 @@ public struct Parser {
       // and does not reference the buffer after parsing.
       self.sourceBufferOwner = nil
     }
+
+    // Let the arena coalesce copies of adjacent tokens that point into this
+    // buffer (see `ParsingRawSyntaxArena.internParsedTokenText`).
+    self.arena.setSourceBuffer(input)
 
     self.maximumNestingLevel = maximumNestingLevel ?? Self.defaultMaximumNestingLevel
     self.swiftVersion = swiftVersion ?? Self.defaultSwiftVersion
@@ -456,6 +460,9 @@ public struct Parser {
       swiftVersion: swiftVersion,
       experimentalFeatures: experimentalFeatures
     )
+    // `input` (the caller's buffer) may be freed once `body` returns, so stop
+    // the arena from coalescing against it before then.
+    defer { parser.arena.clearSourceBuffer() }
     return body(&parser)
   }
 
@@ -1066,13 +1073,21 @@ private final class LookaheadTrackerOwner {
 private final class ParserSourceBufferOwner {
   let buffer: UnsafeBufferPointer<UInt8>
 
-  init(copying input: UnsafeBufferPointer<UInt8>) {
+  /// The arena that was told about `buffer` via `setSourceBuffer`. Its
+  /// coalescing bounds point into `buffer`, and the arena can outlive this
+  /// owner (the parsed tree retains it), so those bounds must be cleared before
+  /// `buffer` is freed.
+  private let arena: ParsingRawSyntaxArena
+
+  init(copying input: UnsafeBufferPointer<UInt8>, arena: ParsingRawSyntaxArena) {
     let allocated = UnsafeMutableBufferPointer<UInt8>.allocate(capacity: input.count)
     _ = allocated.initialize(from: input)
     self.buffer = UnsafeBufferPointer(start: allocated.baseAddress, count: input.count)
+    self.arena = arena
   }
 
   deinit {
+    self.arena.clearSourceBuffer()
     self.buffer.deallocate()
   }
 }
