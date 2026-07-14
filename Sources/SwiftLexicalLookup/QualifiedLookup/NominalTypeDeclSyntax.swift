@@ -12,8 +12,12 @@
 
 import SwiftSyntax
 
+/// Protocol for `NominalTypeDeclSyntax`. Only `[Struct/Enum/Class/Actor/Protocol]DeclSyntax`
+/// should conform.
+@_spi(_QualifiedLookup) public protocol NominalTypeDeclSyntaxProtocol: DeclGroupSyntax, NamedDeclSyntax {}
+
 /// A nominal type declaration (struct, enum, class, actor, protocol).
-@_spi(_QualifiedLookup) public struct NominalTypeDeclSyntax: SyntaxProtocol, Hashable {
+@_spi(_QualifiedLookup) public struct NominalTypeDeclSyntax: NominalTypeDeclSyntaxProtocol, SyntaxHashable {
   public private(set) var _syntaxNode: Syntax
 
   public init?(_ node: __shared some SyntaxProtocol) {
@@ -37,7 +41,7 @@ import SwiftSyntax
 }
 
 extension NominalTypeDeclSyntax: DeclGroupSyntax {
-  private func _getGroupProp<T>(_ prop: KeyPath<any DeclGroupSyntax & NamedDeclSyntax, T>) -> T {
+  private func _getGroupProp<T>(_ prop: KeyPath<any NominalTypeDeclSyntaxProtocol, T>) -> T {
     switch _syntaxNode.as(SyntaxEnum.self) {
     case .structDecl(let declGroup):
       return declGroup[keyPath: prop]
@@ -55,33 +59,37 @@ extension NominalTypeDeclSyntax: DeclGroupSyntax {
   }
 
   private mutating func _setGroupProp<T>(
-    _ keyPath: WritableKeyPath<any DeclGroupSyntax & NamedDeclSyntax, T>,
+    _ keyPath: WritableKeyPath<any NominalTypeDeclSyntaxProtocol, T>,
     newValue: T
   ) {
     switch _syntaxNode.as(SyntaxEnum.self) {
     case .structDecl(let declGroup):
-      var box: any DeclGroupSyntax & NamedDeclSyntax = declGroup
+      var box: any NominalTypeDeclSyntaxProtocol = declGroup
       box[keyPath: keyPath] = newValue
       _syntaxNode = box._syntaxNode
     case .enumDecl(let declGroup):
-      var box: any DeclGroupSyntax & NamedDeclSyntax = declGroup
+      var box: any NominalTypeDeclSyntaxProtocol = declGroup
       box[keyPath: keyPath] = newValue
       _syntaxNode = box._syntaxNode
     case .classDecl(let declGroup):
-      var box: any DeclGroupSyntax & NamedDeclSyntax = declGroup
+      var box: any NominalTypeDeclSyntaxProtocol = declGroup
       box[keyPath: keyPath] = newValue
       _syntaxNode = box._syntaxNode
     case .actorDecl(let declGroup):
-      var box: any DeclGroupSyntax & NamedDeclSyntax = declGroup
+      var box: any NominalTypeDeclSyntaxProtocol = declGroup
       box[keyPath: keyPath] = newValue
       _syntaxNode = box._syntaxNode
     case .protocolDecl(let declGroup):
-      var box: any DeclGroupSyntax & NamedDeclSyntax = declGroup
+      var box: any NominalTypeDeclSyntaxProtocol = declGroup
       box[keyPath: keyPath] = newValue
       _syntaxNode = box._syntaxNode
     default:
       fatalError("[Internal Error] Invalid syntax kind for DeclGroupSyntaxType: \(_syntaxNode.kind)")
     }
+  }
+
+  public init(_ syntax: __shared some NominalTypeDeclSyntaxProtocol) {
+    self = Syntax(syntax).cast(Self.self)
   }
 
   public var name: TokenSyntax {

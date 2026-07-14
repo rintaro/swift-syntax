@@ -85,8 +85,8 @@ import SwiftSyntax
     }
   }
 
-  public init(exactly node: some DeclGroupSyntax) {
-    self.init(node)!
+  public init(_ syntax: __shared some DeclGroupSyntax) {
+    self = Syntax(syntax).cast(Self.self)
   }
 
   public var attributes: AttributeListSyntax {

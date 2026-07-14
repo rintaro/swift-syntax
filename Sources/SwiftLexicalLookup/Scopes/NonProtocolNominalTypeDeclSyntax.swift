@@ -12,23 +12,19 @@
 
 import SwiftSyntax
 
+/// Helper scope for nominal types (structs, enums, classes, actors, protocols).
 @_spi(Experimental)
-public protocol NonProtocolNominalTypeDeclSyntax: LookInMembersScopeSyntax, DeclGroupSyntax, NamedDeclSyntax,
-  WithGenericParametersScopeSyntax
-{
-  var genericParameterClause: GenericParameterClauseSyntax? { get }
-}
+public protocol NominalTypeDeclScopeSyntax: NominalTypeDeclSyntaxProtocol, ScopeSyntax, LookInMembersScopeSyntax {}
 
-extension NonProtocolNominalTypeDeclSyntax {
+extension NominalTypeDeclScopeSyntax /*: LookInMembersScopeSyntax */ {
   @_spi(Experimental) public var lookupMembersPosition: AbsolutePosition {
     name.positionAfterSkippingLeadingTrivia
   }
+}
 
-  /// Nominal type doesn't introduce any names by itself.
-  @_spi(Experimental) public var defaultIntroducedNames: [LookupName] {
-    []
-  }
-
+// Default implementations for structs/enums/classes/actors, which have
+// generic parameters instead of primary-associated types.
+extension NominalTypeDeclScopeSyntax where Self: WithGenericParametersScopeSyntax, Self: WithGenericParametersSyntax {
   /// Function used by generic parameter clause
   /// scope on return from it's lookup.
   @_spi(Experimental) public func returningLookupFromGenericParameterScope(
@@ -36,14 +32,19 @@ extension NonProtocolNominalTypeDeclSyntax {
     at lookUpPosition: AbsolutePosition,
     with config: LookupConfig
   ) -> [LookupResult] {
-    if let inheritanceClause, inheritanceClause.range.contains(lookUpPosition) {
-      return lookupInParent(identifier, at: lookUpPosition, with: config)
-    } else if let genericParameterClause, genericParameterClause.range.contains(lookUpPosition) {
-      return lookupInParent(identifier, at: lookUpPosition, with: config)
-    } else if name.range.contains(lookUpPosition) || genericWhereClause?.range.contains(lookUpPosition) ?? false {
-      return lookupInParent(identifier, at: lookUpPosition, with: config)
+    // Don't look for members if we're in the name, generic-parameter clause,
+    // inheritance clause, or generic-where clause.
+    let lookInMembers: [LookupResult]
+    if name.range.contains(lookUpPosition)
+      || genericParameterClause?.range.contains(lookUpPosition) == true
+      || inheritanceClause?.range.contains(lookUpPosition) == true
+      || genericWhereClause?.range.contains(lookUpPosition) == true
+    {
+      lookInMembers = []
     } else {
-      return [.lookForMembers(in: Syntax(self))] + lookupInParent(identifier, at: lookUpPosition, with: config)
+      lookInMembers = [LookupResult.lookForMembers(in: Syntax(self))]
     }
+
+    return lookInMembers + lookupInParent(identifier, at: lookUpPosition, with: config)
   }
 }
