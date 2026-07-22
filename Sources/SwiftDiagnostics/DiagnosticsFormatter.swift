@@ -282,7 +282,7 @@ public struct DiagnosticsFormatter {
       // add indentation
       annotatedSource.append(indentString)
 
-      // print the source line
+      // print the source line (verbatim, with tabs!)
       annotatedSource.append(linePrefix)
       annotatedSource.append(
         colorizeSourceLine(
@@ -316,10 +316,17 @@ public struct DiagnosticsFormatter {
         // compute the string that is shown before each message
         var preMessage =
           indentString + String(repeating: " ", count: maxNumberOfDigits) + " "
-          + diagnosticDecorator.decorateBufferOutline("|")
-        for c in 0..<column {
+          + diagnosticDecorator.decorateBufferOutline("|") + " "
+        var sourceCharacters = annotatedLine.sourceString.makeIterator()
+        for c in 1..<column {
+          let sourceCharacter = sourceCharacters.next()
+
           if columnsWithDiagnostics.contains(c) {
             preMessage.append("|")
+          } else if sourceCharacter == "\t" {
+            // Use tabs in the same columns where source had them, to render
+            // with the same width.
+            preMessage.append("\t")
           } else {
             preMessage.append(" ")
           }

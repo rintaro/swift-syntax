@@ -50,6 +50,52 @@ final class ParserDiagnosticsFormatterIntegrationTests: XCTestCase {
     assertStringsEqualWithDiff(annotate(source: source), expectedOutput)
   }
 
+  func testTabIndentedSingleDiagnostic() {
+    let source = "\tfoo.[]"
+    let expectedOutput = """
+      1 | \tfoo.[]
+        | \t    `- error: expected name in member access
+
+      """
+    assertStringsEqualWithDiff(annotate(source: source), expectedOutput)
+  }
+
+  func testTabIndentedMultipleDiagnostics() {
+    let source = "\tfoo.[].[].[]"
+    let expectedOutput = """
+      1 | \tfoo.[].[].[]
+        | \t    |  |  `- error: expected name in member access
+        | \t    |  `- error: expected name in member access
+        | \t    `- error: expected name in member access
+
+      """
+    assertStringsEqualWithDiff(annotate(source: source), expectedOutput)
+  }
+
+  func testMultipleTabIndentedMultipleDiagnostics() {
+    let source = "\tfoo\t.[]\t.[]\t.[]"
+    let expectedOutput = """
+      1 | \tfoo\t.[]\t.[]\t.[]
+        | \t   \t | \t | \t `- error: expected name in member access
+        | \t   \t | \t `- error: expected name in member access
+        | \t   \t `- error: expected name in member access
+
+      """
+    assertStringsEqualWithDiff(annotate(source: source), expectedOutput)
+  }
+
+  func testInteriorTab() {
+    // `testRightParenLocation` with the space after `:` replaced by tab
+    let source = "let _ :\tFloat  -> Int"
+    let expectedOutput = """
+      1 | let _ :\tFloat  -> Int
+        |        \t|    `- error: expected ')' in function type
+        |        \t`- error: expected '(' to start function type
+
+      """
+    assertStringsEqualWithDiff(annotate(source: source), expectedOutput)
+  }
+
   func testLineSkipping() {
     let source = """
       var i = 1
@@ -136,7 +182,7 @@ final class ParserDiagnosticsFormatterIntegrationTests: XCTestCase {
     assertStringsEqualWithDiff(annotate(source: source, colorize: true), expectedOutput)
   }
 
-  func testRighParenLocation() {
+  func testRightParenLocation() {
     let source = """
       let _ : Float  -> Int
       """
