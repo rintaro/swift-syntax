@@ -96,6 +96,18 @@ final class ParserDiagnosticsFormatterIntegrationTests: XCTestCase {
     assertStringsEqualWithDiff(annotate(source: source), expectedOutput)
   }
 
+  func testDiagnosticAnchoredOnTab() {
+    // If we don't prioritize a tab over '|' we would fall out of alignment...
+    let source = "a\tb\tc"
+    let expectedOutput = """
+      1 | a\tb\tc
+        |  \t `- error: consecutive statements on a line must be separated by newline or ';'
+        |  `- error: consecutive statements on a line must be separated by newline or ';'
+
+      """
+    assertStringsEqualWithDiff(annotate(source: source), expectedOutput)
+  }
+
   func testLineSkipping() {
     let source = """
       var i = 1

@@ -319,14 +319,12 @@ public struct DiagnosticsFormatter {
           + diagnosticDecorator.decorateBufferOutline("|") + " "
         var sourceCharacters = annotatedLine.sourceString.makeIterator()
         for c in 1..<column {
-          let sourceCharacter = sourceCharacters.next()
-
-          if columnsWithDiagnostics.contains(c) {
-            preMessage.append("|")
-          } else if sourceCharacter == "\t" {
-            // Use tabs in the same columns where source had them, to render
-            // with the same width.
+          if sourceCharacters.next() == "\t" {
+            // Reproduce the tab even when a diagnostic is anchored on it, so its
+            // width still matches the source line (the column loses its arm).
             preMessage.append("\t")
+          } else if columnsWithDiagnostics.contains(c) {
+            preMessage.append("|")
           } else {
             preMessage.append(" ")
           }
