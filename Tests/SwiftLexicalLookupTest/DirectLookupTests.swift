@@ -16,9 +16,11 @@ import SwiftParser
 import SwiftSyntax
 import XCTest
 
-// TODO: Document `assertDirectLookup`; adapt all previous tests.
+/// Tests ``DeclGroupSyntax/findDirectMembers``
+///
+/// For more information on how these assertions work, see `assertDirectLookup`.
 final class TestDirectLookup: XCTestCase {
-  func testCodeBlockSimpleCase() {
+  func testStruct() {
     assertDirectLookup(
       """
       \(members: [
@@ -43,16 +45,8 @@ final class TestDirectLookup: XCTestCase {
         TestLookup(.identifier(identifier: "callAsFunction")): ["5️⃣"],
         TestLookup(.unnamedCall(arguments: [])): ["5️⃣"],
 
-        // Enum cases
-        TestLookup(.identifier(identifier: "case1"), kind: .includeStatic): ["6️⃣"],
-        TestLookup(.identifier(identifier: "case1")): [], // instance-level yields no results
-        TestLookup(.identifier(identifier: "case2", arguments: ["a"]), kind: .includeStatic): ["7️⃣"],
-
-        // Static call as function
-        TestLookup(.identifier(identifier: "callAsFunction", arguments: []), kind: .includeStatic): ["8️⃣"],
-
         // deinit
-        TestLookup(.deinit): ["9️⃣"]
+        TestLookup(.deinit): ["6️⃣"]
       ])
       struct MyStruct {
         // Test variables with no args plus args (MyStruct could be callable)
@@ -69,17 +63,36 @@ final class TestDirectLookup: XCTestCase {
         \("5️⃣")
         func callAsFunction() {}
 
-        // We assume the user meant static functions (diagnosed elsewhere)
-        case \("6️⃣")case1,
-             \("7️⃣")case2(a: Int)
-
-        // When `callAsFunction` is static, it exhibits no special behavior
-        static \("8️⃣")func callAsFunction () {}
-
-        \("9️⃣")
+        \("6️⃣")
         deinit {}
       }
       """
     )
+  }
+
+  func testExtension() {
+    assertDirectLookup(
+      """
+      \(members: [
+        // Enum cases
+        TestLookup(.identifier(identifier: "case1"), kind: .includeStatic): ["1️⃣"],
+        TestLookup(.identifier(identifier: "case1")): [], // instance-level yields no results
+        TestLookup(.identifier(identifier: "case2", arguments: ["a"]), kind: .includeStatic): ["2️⃣"],
+
+        // Static call as function
+        TestLookup(.identifier(identifier: "callAsFunction", arguments: []), kind: .includeStatic): ["3️⃣"],
+      ])
+      extension MyType {
+        // We treat case elements as static functions (if `MyType` isn't an
+        // enum, we diagnose elsewhere)
+        case \("1️⃣")case1,
+             \("2️⃣")case2(a: Int)
+
+        // When `callAsFunction` is static, it exhibits no special behavior
+        static \("3️⃣")func callAsFunction () {}
+      }
+      """
+    )
+
   }
 }

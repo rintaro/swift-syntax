@@ -65,7 +65,7 @@ protocol LexicalMatcher {
 ///
 /// All annotations should be placed before the target token.
 ///
-/// Look for examples in `assertTypeResolution` and related assertion methods.
+/// Look for examples in `assertDirectLookup` and related assertion methods.
 struct LexicalLookupSource<Matcher: LexicalMatcher>: ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
   enum Annotation {
     case definition(definition: Matcher.Definition)
@@ -210,7 +210,7 @@ enum LexicalMatcherExpectationFailure<Definition: LexicalAnnotation & Identifiab
 /// to verify lookup results.
 ///
 /// You should wrap this method using a custom `Matcher`
-/// for each use-case. See `assertTypeResolution` as an example.
+/// for each use-case. See `assertDirectLookup` as an example.
 ///
 /// Note: We don't diagnose unused definition annotations.
 func _assertLexicalLookup<Matcher: LexicalMatcher>(
