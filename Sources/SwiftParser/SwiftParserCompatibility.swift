@@ -60,6 +60,19 @@ extension Parser {
     )
   }
 
+  @available(*, deprecated, message: "This is only here to preserve the ABI")
+  @_disfavoredOverload @usableFromInline
+  static func parse(
+    source: String
+  ) -> SourceFileSyntax {
+    return parse(
+      source: source,
+      maximumNestingLevel: nil,
+      swiftVersion: nil,
+      languageFeatures: []
+    )
+  }
+
   @_spi(ExperimentalLanguageFeatures)
   @available(*, deprecated, renamed: "parse(source:maximumNestingLevel:swiftVersion:languageFeatures:)")
   public static func parse(
