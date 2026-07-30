@@ -256,6 +256,7 @@ public enum SyntaxKind: Sendable {
   case returnClause
   case returnStmt
   case sameTypeRequirement
+  case sectionAttributeArgument
   case sequenceExpr
   case simpleStringLiteralExpr
   case simpleStringLiteralSegmentList
@@ -913,6 +914,8 @@ public enum SyntaxKind: Sendable {
       return ReturnStmtSyntax.self
     case .sameTypeRequirement:
       return SameTypeRequirementSyntax.self
+    case .sectionAttributeArgument:
+      return SectionAttributeArgumentSyntax.self
     case .sequenceExpr:
       return SequenceExprSyntax.self
     case .simpleStringLiteralExpr:

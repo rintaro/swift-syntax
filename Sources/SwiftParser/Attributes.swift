@@ -75,6 +75,7 @@ extension Parser {
     case _effects
     case _implements
     case _originallyDefinedIn
+    case section
     case specialized
     case _specialize
     case _spi_available
@@ -98,6 +99,7 @@ extension Parser {
       case TokenSpec(._effects): self = ._effects
       case TokenSpec(._implements): self = ._implements
       case TokenSpec(._originallyDefinedIn): self = ._originallyDefinedIn
+      case TokenSpec(.section): self = .section
       case TokenSpec(.specialized): self = .specialized
       case TokenSpec(._specialize): self = ._specialize
       case TokenSpec(._spi_available): self = ._spi_available
@@ -125,6 +127,7 @@ extension Parser {
       case ._effects: return .keyword(._effects)
       case ._implements: return .keyword(._implements)
       case ._originallyDefinedIn: return .keyword(._originallyDefinedIn)
+      case .section: return .keyword(.section)
       case .specialized: return .keyword(.specialized)
       case ._specialize: return .keyword(._specialize)
       case ._spi_available: return .keyword(._spi_available)
@@ -289,6 +292,10 @@ extension Parser {
     case .specialized:
       return parseAttribute(argumentMode: .required) { parser in
         return (nil, .specializedArguments(parser.parseSpecializedAttributeArgument()))
+      }
+    case .section:
+      return parseAttribute(argumentMode: .required) { parser in
+        return (nil, .sectionArguments(parser.parseSectionAttributeArgument()))
       }
     case ._specialize:
       return parseAttribute(argumentMode: .required) { parser in
@@ -833,6 +840,20 @@ extension Parser {
       declName: declName,
       arena: self.arena
     )
+  }
+}
+
+extension Parser {
+  /// Parse the argument of a `@section` attribute, which is either the
+  /// `default` keyword or an expression describing the name of the section.
+  mutating func parseSectionAttributeArgument() -> RawSectionAttributeArgumentSyntax {
+    let section: RawSectionAttributeArgumentSyntax.Section
+    if let defaultKeyword = self.consume(if: .keyword(.default)) {
+      section = .defaultKeyword(defaultKeyword)
+    } else {
+      section = .expression(self.parseExpression(flavor: .attributeArguments, pattern: .none))
+    }
+    return RawSectionAttributeArgumentSyntax(section: section, arena: self.arena)
   }
 }
 

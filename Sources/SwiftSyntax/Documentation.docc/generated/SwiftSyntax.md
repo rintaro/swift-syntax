@@ -326,6 +326,7 @@ allows Swift tools to parse, inspect, generate, and transform Swift source code.
 - <doc:SwiftSyntax/OriginallyDefinedInAttributeArgumentsSyntax>
 - <doc:SwiftSyntax/PlatformVersionItemListSyntax>
 - <doc:SwiftSyntax/PlatformVersionItemSyntax>
+- <doc:SwiftSyntax/SectionAttributeArgumentSyntax>
 - <doc:SwiftSyntax/SpecializeAttributeArgumentListSyntax>
 - <doc:SwiftSyntax/SpecializeAvailabilityArgumentSyntax>
 - <doc:SwiftSyntax/SpecializeTargetFunctionArgumentSyntax>

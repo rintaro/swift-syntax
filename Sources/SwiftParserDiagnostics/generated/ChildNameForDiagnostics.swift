@@ -315,6 +315,8 @@ private func childNameForDiagnostics(_ keyPath: AnyKeyPath) -> String? {
     return "left-hand type"
   case \SameTypeRequirementSyntax.rightType:
     return "right-hand type"
+  case \SectionAttributeArgumentSyntax.section:
+    return "section"
   case \SpecializeAvailabilityArgumentSyntax.availabilityLabel:
     return "label"
   case \SpecializeTargetFunctionArgumentSyntax.targetLabel:

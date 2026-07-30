@@ -241,6 +241,7 @@ public enum Keyword: CaseIterable {
   case right
   case safe
   case scoped
+  case section
   case `self`
   case sending
   case `Self`
@@ -621,6 +622,8 @@ public enum Keyword: CaseIterable {
       return KeywordSpec("safe")
     case .scoped:
       return KeywordSpec("scoped", experimentalFeature: .nonescapableTypes)
+    case .section:
+      return KeywordSpec("section")
     case .self:
       return KeywordSpec("self", isLexerClassified: true)
     case .Self:

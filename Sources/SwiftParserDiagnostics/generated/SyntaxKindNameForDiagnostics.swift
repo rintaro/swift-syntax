@@ -350,6 +350,8 @@ extension SyntaxKind {
       return "'return' statement"
     case .sameTypeRequirement:
       return "same type requirement"
+    case .sectionAttributeArgument:
+      return "'@section' argument"
     case .simpleStringLiteralExpr:
       return "simple string literal"
     case .simpleTypeSpecifier:

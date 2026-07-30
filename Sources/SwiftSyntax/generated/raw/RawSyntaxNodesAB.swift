@@ -1616,9 +1616,10 @@ public struct RawAttributeSyntax: RawSyntaxNodeProtocol {
     case effectsArguments(RawEffectsAttributeArgumentListSyntax)
     case documentationArguments(RawDocumentationAttributeArgumentListSyntax)
     case abiArguments(RawABIAttributeArgumentsSyntax)
+    case sectionArguments(RawSectionAttributeArgumentSyntax)
 
     public static func isKindOf(_ raw: RawSyntax) -> Bool {
-      RawLabeledExprListSyntax.isKindOf(raw) || RawAvailabilityArgumentListSyntax.isKindOf(raw) || RawSpecializeAttributeArgumentListSyntax.isKindOf(raw) || RawSpecializedAttributeArgumentSyntax.isKindOf(raw) || RawObjCSelectorPieceListSyntax.isKindOf(raw) || RawImplementsAttributeArgumentsSyntax.isKindOf(raw) || RawDifferentiableAttributeArgumentsSyntax.isKindOf(raw) || RawDerivativeAttributeArgumentsSyntax.isKindOf(raw) || RawBackDeployedAttributeArgumentsSyntax.isKindOf(raw) || RawOriginallyDefinedInAttributeArgumentsSyntax.isKindOf(raw) || RawDynamicReplacementAttributeArgumentsSyntax.isKindOf(raw) || RawEffectsAttributeArgumentListSyntax.isKindOf(raw) || RawDocumentationAttributeArgumentListSyntax.isKindOf(raw) || RawABIAttributeArgumentsSyntax.isKindOf(raw)
+      RawLabeledExprListSyntax.isKindOf(raw) || RawAvailabilityArgumentListSyntax.isKindOf(raw) || RawSpecializeAttributeArgumentListSyntax.isKindOf(raw) || RawSpecializedAttributeArgumentSyntax.isKindOf(raw) || RawObjCSelectorPieceListSyntax.isKindOf(raw) || RawImplementsAttributeArgumentsSyntax.isKindOf(raw) || RawDifferentiableAttributeArgumentsSyntax.isKindOf(raw) || RawDerivativeAttributeArgumentsSyntax.isKindOf(raw) || RawBackDeployedAttributeArgumentsSyntax.isKindOf(raw) || RawOriginallyDefinedInAttributeArgumentsSyntax.isKindOf(raw) || RawDynamicReplacementAttributeArgumentsSyntax.isKindOf(raw) || RawEffectsAttributeArgumentListSyntax.isKindOf(raw) || RawDocumentationAttributeArgumentListSyntax.isKindOf(raw) || RawABIAttributeArgumentsSyntax.isKindOf(raw) || RawSectionAttributeArgumentSyntax.isKindOf(raw)
     }
 
     public var raw: RawSyntax {
@@ -1650,6 +1651,8 @@ public struct RawAttributeSyntax: RawSyntaxNodeProtocol {
       case .documentationArguments(let node):
         return node.raw
       case .abiArguments(let node):
+        return node.raw
+      case .sectionArguments(let node):
         return node.raw
       }
     }
@@ -1683,6 +1686,8 @@ public struct RawAttributeSyntax: RawSyntaxNodeProtocol {
         self = .documentationArguments(node)
       } else if let node = node.as(RawABIAttributeArgumentsSyntax.self) {
         self = .abiArguments(node)
+      } else if let node = node.as(RawSectionAttributeArgumentSyntax.self) {
+        self = .sectionArguments(node)
       } else {
         return nil
       }

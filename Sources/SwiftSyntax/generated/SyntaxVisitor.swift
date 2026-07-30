@@ -2815,6 +2815,18 @@ open class SyntaxVisitor {
   open func visitPost(_ node: SameTypeRequirementSyntax) {
   }
 
+  /// Visiting ``SectionAttributeArgumentSyntax`` specifically.
+  ///   - Parameter node: the node we are visiting.
+  ///   - Returns: how should we continue visiting.
+  open func visit(_ node: SectionAttributeArgumentSyntax) -> SyntaxVisitorContinueKind {
+    return .visitChildren
+  }
+
+  /// The function called after visiting ``SectionAttributeArgumentSyntax`` and its descendants.
+  ///   - node: the node we just finished visiting.
+  open func visitPost(_ node: SectionAttributeArgumentSyntax) {
+  }
+
   /// Visiting ``SequenceExprSyntax`` specifically.
   ///   - Parameter node: the node we are visiting.
   ///   - Returns: how should we continue visiting.
@@ -5423,6 +5435,14 @@ open class SyntaxVisitor {
   }
 
   @inline(never)
+  private func visitSectionAttributeArgumentSyntaxImpl(_ node: Syntax) {
+    if visit(SectionAttributeArgumentSyntax(unsafeCasting: node)) == .visitChildren {
+      visitChildren(node)
+    }
+    visitPost(SectionAttributeArgumentSyntax(unsafeCasting: node))
+  }
+
+  @inline(never)
   private func visitSequenceExprSyntaxImpl(_ node: Syntax) {
     if visit(SequenceExprSyntax(unsafeCasting: node)) == .visitChildren {
       visitChildren(node)
@@ -6406,6 +6426,8 @@ open class SyntaxVisitor {
       return self.visitReturnStmtSyntaxImpl(_:)
     case .sameTypeRequirement:
       return self.visitSameTypeRequirementSyntaxImpl(_:)
+    case .sectionAttributeArgument:
+      return self.visitSectionAttributeArgumentSyntaxImpl(_:)
     case .sequenceExpr:
       return self.visitSequenceExprSyntaxImpl(_:)
     case .simpleStringLiteralExpr:
@@ -7000,6 +7022,8 @@ open class SyntaxVisitor {
       self.visitReturnStmtSyntaxImpl(node)
     case .sameTypeRequirement:
       self.visitSameTypeRequirementSyntaxImpl(node)
+    case .sectionAttributeArgument:
+      self.visitSectionAttributeArgumentSyntaxImpl(node)
     case .sequenceExpr:
       self.visitSequenceExprSyntaxImpl(node)
     case .simpleStringLiteralExpr:

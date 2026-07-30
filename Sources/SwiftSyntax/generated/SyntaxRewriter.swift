@@ -1719,6 +1719,13 @@ open class SyntaxRewriter {
     return SameTypeRequirementSyntax(unsafeCasting: visitChildren(node._syntaxNode))
   }
 
+  /// Visit a ``SectionAttributeArgumentSyntax``.
+  ///   - Parameter node: the node that is being visited
+  ///   - Returns: the rewritten node
+  open func visit(_ node: SectionAttributeArgumentSyntax) -> SectionAttributeArgumentSyntax {
+    return SectionAttributeArgumentSyntax(unsafeCasting: visitChildren(node._syntaxNode))
+  }
+
   /// Visit a ``SequenceExprSyntax``.
   ///   - Parameter node: the node that is being visited
   ///   - Returns: the rewritten node
@@ -3346,6 +3353,11 @@ open class SyntaxRewriter {
   }
 
   @inline(never)
+  private func visitSectionAttributeArgumentSyntaxImpl(_ node: Syntax) -> Syntax {
+    Syntax(visit(SectionAttributeArgumentSyntax(unsafeCasting: node)))
+  }
+
+  @inline(never)
   private func visitSequenceExprSyntaxImpl(_ node: Syntax) -> Syntax {
     Syntax(visit(SequenceExprSyntax(unsafeCasting: node)))
   }
@@ -4143,6 +4155,8 @@ open class SyntaxRewriter {
       return self.visitReturnStmtSyntaxImpl(_:)
     case .sameTypeRequirement:
       return self.visitSameTypeRequirementSyntaxImpl(_:)
+    case .sectionAttributeArgument:
+      return self.visitSectionAttributeArgumentSyntaxImpl(_:)
     case .sequenceExpr:
       return self.visitSequenceExprSyntaxImpl(_:)
     case .simpleStringLiteralExpr:
@@ -4737,6 +4751,8 @@ open class SyntaxRewriter {
       return visitReturnStmtSyntaxImpl(node)
     case .sameTypeRequirement:
       return visitSameTypeRequirementSyntaxImpl(node)
+    case .sectionAttributeArgument:
+      return visitSectionAttributeArgumentSyntaxImpl(node)
     case .sequenceExpr:
       return visitSequenceExprSyntaxImpl(node)
     case .simpleStringLiteralExpr:
