@@ -20,7 +20,7 @@ import SwiftSyntax
 
 /// Either ``TypeSyntax`` or a nominal type. Helps us track which syntax is
 /// responsible for a given type-resolution request.
-@_spi(_QualifiedLookup) public struct TypeLikeSyntax: Sendable, Hashable, TypeLikeSyntaxProtocol {
+@_spi(_QualifiedLookup) public struct TypeLikeSyntax: Sendable, SyntaxHashable, TypeLikeSyntaxProtocol {
   public private(set) var _syntaxNode: Syntax
 
   public init?(_ node: __shared some SyntaxProtocol) {
