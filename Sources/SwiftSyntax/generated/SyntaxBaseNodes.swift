@@ -1745,6 +1745,7 @@ extension Syntax {
       .node(ReturnClauseSyntax.self),
       .node(ReturnStmtSyntax.self),
       .node(SameTypeRequirementSyntax.self),
+      .node(SectionAttributeArgumentSyntax.self),
       .node(SequenceExprSyntax.self),
       .node(SimpleStringLiteralExprSyntax.self),
       .node(SimpleStringLiteralSegmentListSyntax.self),

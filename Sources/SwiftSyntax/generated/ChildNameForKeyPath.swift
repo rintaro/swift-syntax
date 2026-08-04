@@ -2910,6 +2910,12 @@ public func childName(_ keyPath: AnyKeyPath) -> String? {
     return "rightType"
   case \SameTypeRequirementSyntax.unexpectedAfterRightType:
     return "unexpectedAfterRightType"
+  case \SectionAttributeArgumentSyntax.unexpectedBeforeSection:
+    return "unexpectedBeforeSection"
+  case \SectionAttributeArgumentSyntax.section:
+    return "section"
+  case \SectionAttributeArgumentSyntax.unexpectedAfterSection:
+    return "unexpectedAfterSection"
   case \SequenceExprSyntax.unexpectedBeforeElements:
     return "unexpectedBeforeElements"
   case \SequenceExprSyntax.elements:

@@ -1307,6 +1307,159 @@ final class AttributeTests: ParserTestCase {
     )
   }
 
+  func testSectionAttribute() {
+    func sectionAttr(_ section: SectionAttributeArgumentSyntax.Section) -> AttributeListSyntax.Element {
+      return .attribute(
+        AttributeSyntax(
+          attributeName: TypeSyntax("section"),
+          leftParen: .leftParenToken(),
+          arguments: .sectionArguments(
+            SectionAttributeArgumentSyntax(section: section)
+          ),
+          rightParen: .rightParenToken()
+        )
+      )
+    }
+
+    assertParse(
+      """
+      @section(default)
+      let x = 42
+      """,
+      substructure: sectionAttr(.defaultKeyword(.keyword(.default)))
+    )
+
+    assertParse(
+      """
+      @section("__DATA,__mysection")
+      let x = 42
+      """,
+      substructure: sectionAttr(
+        .expression(ExprSyntax(StringLiteralExprSyntax(content: "__DATA,__mysection")))
+      )
+    )
+
+    assertParse(
+      """
+      @section(sectionName)
+      let x = 42
+      """,
+      substructure: sectionAttr(.expression(ExprSyntax(DeclReferenceExprSyntax(baseName: "sectionName"))))
+    )
+
+    // An arbitrary expression is accepted in the syntax tree; whether it is a
+    // valid section is diagnosed in the compiler.
+    assertParse(
+      """
+      @section(1 + 2)
+      let x = 42
+      """
+    )
+
+    assertParse(
+      """
+      @section(default)
+      func f() {}
+      """
+    )
+
+    assertParse(
+      """
+      struct S {
+        @section(default)
+        var x = 42
+      }
+      """
+    )
+
+    assertParse(
+      """
+      func f(@section(default) x: Int) {}
+      """
+    )
+
+    // 'default' is only recognized as the keyword if it is the entire argument.
+    assertParse(
+      """
+      @section(defaultSection)
+      let x = 42
+      """,
+      substructure: sectionAttr(.expression(ExprSyntax(DeclReferenceExprSyntax(baseName: "defaultSection"))))
+    )
+
+    // A module selector makes this a custom attribute, not the builtin one.
+    assertParse(
+      """
+      @MyModule::section("__DATA,__mysection")
+      let x = 42
+      """,
+      substructure: AttributeSyntax(
+        attributeName: TypeSyntax(
+          IdentifierTypeSyntax(
+            moduleSelector: ModuleSelectorSyntax(moduleName: "MyModule"),
+            name: "section"
+          )
+        ),
+        leftParen: .leftParenToken(),
+        arguments: .argumentList([
+          LabeledExprSyntax(expression: StringLiteralExprSyntax(content: "__DATA,__mysection"))
+        ]),
+        rightParen: .rightParenToken()
+      )
+    )
+  }
+
+  func testSectionAttributeRecovery() {
+    assertParse(
+      """
+      @section1️⃣
+      let x = 42
+      """,
+      diagnostics: [
+        DiagnosticSpec(
+          message: "expected '(', '@section' argument, and ')' in attribute",
+          fixIts: ["insert '(', '@section' argument, and ')'"]
+        )
+      ],
+      fixedSource: """
+        @section(<#expression#>)
+        let x = 42
+        """
+    )
+
+    assertParse(
+      """
+      @section(1️⃣)
+      let x = 42
+      """,
+      diagnostics: [
+        DiagnosticSpec(message: "expected argument for '@section' attribute", fixIts: ["insert attribute argument"])
+      ],
+      fixedSource: """
+        @section(<#expression#>)
+        let x = 42
+        """
+    )
+
+    assertParse(
+      """
+      @sectionℹ️(default1️⃣
+      let x = 42
+      """,
+      diagnostics: [
+        DiagnosticSpec(
+          message: "expected ')' to end attribute",
+          notes: [NoteSpec(message: "to match this opening '('")],
+          fixIts: ["insert ')'"]
+        )
+      ],
+      fixedSource: """
+        @section(default)
+        let x = 42
+        """
+    )
+  }
+
   func testSpaceBetweenAtAndAttribute() {
     assertParse(
       "@1️⃣ custom func foo() {}",

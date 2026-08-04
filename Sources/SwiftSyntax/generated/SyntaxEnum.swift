@@ -256,6 +256,7 @@ public enum SyntaxEnum: Sendable {
   case returnClause(ReturnClauseSyntax)
   case returnStmt(ReturnStmtSyntax)
   case sameTypeRequirement(SameTypeRequirementSyntax)
+  case sectionAttributeArgument(SectionAttributeArgumentSyntax)
   case sequenceExpr(SequenceExprSyntax)
   case simpleStringLiteralExpr(SimpleStringLiteralExprSyntax)
   case simpleStringLiteralSegmentList(SimpleStringLiteralSegmentListSyntax)
@@ -788,6 +789,8 @@ extension Syntax {
       return .returnStmt(ReturnStmtSyntax(self)!)
     case .sameTypeRequirement:
       return .sameTypeRequirement(SameTypeRequirementSyntax(self)!)
+    case .sectionAttributeArgument:
+      return .sectionAttributeArgument(SectionAttributeArgumentSyntax(self)!)
     case .sequenceExpr:
       return .sequenceExpr(SequenceExprSyntax(self)!)
     case .simpleStringLiteralExpr:

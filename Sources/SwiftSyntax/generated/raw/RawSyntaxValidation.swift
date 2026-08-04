@@ -2573,6 +2573,13 @@ func validateLayout(layout: RawSyntaxBuffer, as kind: SyntaxKind) {
       verify(layout[5], as: RawSyntax.self)])
     assertNoError(kind, 6, verify(layout[6], as: RawUnexpectedNodesSyntax?.self))
   }
+  func validateSectionAttributeArgumentSyntax(kind: SyntaxKind, layout: RawSyntaxBuffer) {
+    assert(layout.count == 3)
+    assertNoError(kind, 0, verify(layout[0], as: RawUnexpectedNodesSyntax?.self))
+    assertAnyHasNoError(kind, 1, [
+      verify(layout[1], as: RawSyntax.self)])
+    assertNoError(kind, 2, verify(layout[2], as: RawUnexpectedNodesSyntax?.self))
+  }
   func validateSequenceExprSyntax(kind: SyntaxKind, layout: RawSyntaxBuffer) {
     assert(layout.count == 3)
     assertNoError(kind, 0, verify(layout[0], as: RawUnexpectedNodesSyntax?.self))
@@ -3633,6 +3640,8 @@ func validateLayout(layout: RawSyntaxBuffer, as kind: SyntaxKind) {
     validateReturnStmtSyntax(kind: kind, layout: layout)
   case .sameTypeRequirement:
     validateSameTypeRequirementSyntax(kind: kind, layout: layout)
+  case .sectionAttributeArgument:
+    validateSectionAttributeArgumentSyntax(kind: kind, layout: layout)
   case .sequenceExpr:
     validateSequenceExprSyntax(kind: kind, layout: layout)
   case .simpleStringLiteralExpr:

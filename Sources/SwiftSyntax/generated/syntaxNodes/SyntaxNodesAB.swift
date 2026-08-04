@@ -3129,7 +3129,7 @@ public struct AttributeClauseFileSyntax: SyntaxProtocol, SyntaxHashable, _LeafSy
 ///  - `atSign`: `@`
 ///  - `attributeName`: ``TypeSyntax``
 ///  - `leftParen`: `(`?
-///  - `arguments`: (``LabeledExprListSyntax`` | ``AvailabilityArgumentListSyntax`` | ``SpecializeAttributeArgumentListSyntax`` | ``SpecializedAttributeArgumentSyntax`` | ``ObjCSelectorPieceListSyntax`` | ``ImplementsAttributeArgumentsSyntax`` | ``DifferentiableAttributeArgumentsSyntax`` | ``DerivativeAttributeArgumentsSyntax`` | ``BackDeployedAttributeArgumentsSyntax`` | ``OriginallyDefinedInAttributeArgumentsSyntax`` | ``DynamicReplacementAttributeArgumentsSyntax`` | ``EffectsAttributeArgumentListSyntax`` | ``DocumentationAttributeArgumentListSyntax`` | ``ABIAttributeArgumentsSyntax``)?
+///  - `arguments`: (``LabeledExprListSyntax`` | ``AvailabilityArgumentListSyntax`` | ``SpecializeAttributeArgumentListSyntax`` | ``SpecializedAttributeArgumentSyntax`` | ``ObjCSelectorPieceListSyntax`` | ``ImplementsAttributeArgumentsSyntax`` | ``DifferentiableAttributeArgumentsSyntax`` | ``DerivativeAttributeArgumentsSyntax`` | ``BackDeployedAttributeArgumentsSyntax`` | ``OriginallyDefinedInAttributeArgumentsSyntax`` | ``DynamicReplacementAttributeArgumentsSyntax`` | ``EffectsAttributeArgumentListSyntax`` | ``DocumentationAttributeArgumentListSyntax`` | ``ABIAttributeArgumentsSyntax`` | ``SectionAttributeArgumentSyntax``)?
 ///  - `rightParen`: `)`?
 ///
 /// ### Contained in
@@ -3152,6 +3152,7 @@ public struct AttributeSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNodePr
     case effectsArguments(EffectsAttributeArgumentListSyntax)
     case documentationArguments(DocumentationAttributeArgumentListSyntax)
     case abiArguments(ABIAttributeArgumentsSyntax)
+    case sectionArguments(SectionAttributeArgumentSyntax)
 
     public var _syntaxNode: Syntax {
       switch self {
@@ -3182,6 +3183,8 @@ public struct AttributeSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNodePr
       case .documentationArguments(let node):
         return node._syntaxNode
       case .abiArguments(let node):
+        return node._syntaxNode
+      case .sectionArguments(let node):
         return node._syntaxNode
       }
     }
@@ -3242,6 +3245,10 @@ public struct AttributeSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNodePr
       self = .abiArguments(node)
     }
 
+    public init(_ node: SectionAttributeArgumentSyntax) {
+      self = .sectionArguments(node)
+    }
+
     public init?(_ node: __shared some SyntaxProtocol) {
       if let node = node.as(LabeledExprListSyntax.self) {
         self = .argumentList(node)
@@ -3271,6 +3278,8 @@ public struct AttributeSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNodePr
         self = .documentationArguments(node)
       } else if let node = node.as(ABIAttributeArgumentsSyntax.self) {
         self = .abiArguments(node)
+      } else if let node = node.as(SectionAttributeArgumentSyntax.self) {
+        self = .sectionArguments(node)
       } else {
         return nil
       }
@@ -3291,7 +3300,8 @@ public struct AttributeSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNodePr
         .node(DynamicReplacementAttributeArgumentsSyntax.self),
         .node(EffectsAttributeArgumentListSyntax.self),
         .node(DocumentationAttributeArgumentListSyntax.self),
-        .node(ABIAttributeArgumentsSyntax.self)
+        .node(ABIAttributeArgumentsSyntax.self),
+        .node(SectionAttributeArgumentSyntax.self)
       ])
     }
 
@@ -3601,6 +3611,28 @@ public struct AttributeSyntax: SyntaxProtocol, SyntaxHashable, _LeafSyntaxNodePr
     /// - Warning: This function will crash if the cast is not possible. Use `as` to safely attempt a cast.
     public func cast(_ syntaxType: ABIAttributeArgumentsSyntax.Type) -> ABIAttributeArgumentsSyntax {
       return self.as(ABIAttributeArgumentsSyntax.self)!
+    }
+
+    /// Checks if the current syntax node can be cast to ``SectionAttributeArgumentSyntax``.
+    ///
+    /// - Returns: `true` if the node can be cast, `false` otherwise.
+    public func `is`(_ syntaxType: SectionAttributeArgumentSyntax.Type) -> Bool {
+      return self.as(syntaxType) != nil
+    }
+
+    /// Attempts to cast the current syntax node to ``SectionAttributeArgumentSyntax``.
+    ///
+    /// - Returns: An instance of ``SectionAttributeArgumentSyntax``, or `nil` if the cast fails.
+    public func `as`(_ syntaxType: SectionAttributeArgumentSyntax.Type) -> SectionAttributeArgumentSyntax? {
+      return SectionAttributeArgumentSyntax.init(self)
+    }
+
+    /// Force-casts the current syntax node to ``SectionAttributeArgumentSyntax``.
+    ///
+    /// - Returns: An instance of ``SectionAttributeArgumentSyntax``.
+    /// - Warning: This function will crash if the cast is not possible. Use `as` to safely attempt a cast.
+    public func cast(_ syntaxType: SectionAttributeArgumentSyntax.Type) -> SectionAttributeArgumentSyntax {
+      return self.as(SectionAttributeArgumentSyntax.self)!
     }
   }
 
