@@ -13,13 +13,25 @@
 import SwiftSyntax
 
 /// A protocol for ``TypeLikeSyntax`` nodes.
-@_spi(_QualifiedLookup) public protocol TypeLikeSyntaxProtocol: SyntaxProtocol {}
+@_spi(_QualifiedLookup) public protocol TypeLikeSyntaxProtocol: SyntaxProtocol, SyntaxHashable {}
 
 @_spi(_QualifiedLookup) extension TypeSyntax: TypeLikeSyntaxProtocol {}
 @_spi(_QualifiedLookup) extension NominalTypeDeclSyntax: TypeLikeSyntaxProtocol {}
 
 /// Either ``TypeSyntax`` or a nominal type. Helps us track which syntax is
 /// responsible for a given type-resolution request.
+///
+/// E.g. In `let a: Int.MyType`, `MyType` is a source-derived reference. However,
+/// we can also have:
+///   struct A {
+///     struct B {
+///       struct C {
+///         func f(_: C) // <- Look up here
+///       }
+///     }
+///   }
+/// In this case, we look inside "A.B" to find `C`, so we implicitly generate the
+/// components `A` and `B`.
 @_spi(_QualifiedLookup) public struct TypeLikeSyntax: Sendable, SyntaxHashable, TypeLikeSyntaxProtocol {
   public private(set) var _syntaxNode: Syntax
 
@@ -28,7 +40,7 @@ import SwiftSyntax
     _syntaxNode = Syntax(node)
   }
 
-  public init(_ typeLikeSyntax: TypeLikeSyntaxProtocol) {
+  public init(_ typeLikeSyntax: some TypeLikeSyntaxProtocol) {
     self._syntaxNode = typeLikeSyntax._syntaxNode
   }
 
@@ -37,4 +49,12 @@ import SwiftSyntax
     SyntaxNodeStructure.SyntaxChoice.node(TypeSyntax.self),
     SyntaxNodeStructure.SyntaxChoice.node(NominalTypeDeclSyntax.self),
   ])
+}
+
+extension Attached where Node == TypeLikeSyntax {
+  internal init<S: TypeLikeSyntaxProtocol>(_ concrete: Attached<S>) {
+    // Cast should succeed because we can initialize `TypeLikeSyntax` with
+    // a `TypeLikeSyntaxProtocol`-conforming type.
+    self = concrete.as(TypeLikeSyntax.self)!
+  }
 }

@@ -1,0 +1,315 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2026 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+import SwiftIfConfig
+@_spi(_QualifiedLookup) @_spi(_QualifiedLookupTests) import SwiftLexicalLookup
+@_spi(ExperimentalLanguageFeatures) import SwiftParser
+import SwiftSyntax
+import XCTest
+
+// Convenience `String` initializer for `TypeDeclSyntax`; will
+// crash at runtime if given a non `TypeDeclSyntax`.
+extension TypeDeclSyntax: ExpressibleByStringLiteral {
+  public init(stringLiteral value: StringLiteralType) {
+    self = Syntax(DeclSyntax(stringLiteral: value)).cast(TypeDeclSyntax.self)
+  }
+}
+
+extension Attached where Node == TypeSyntax {
+  /// Parses the given type syntax in a file with `typeSyntaxPrefix`.
+  /// By default, the `let _: ` prefix parses type syntax as a variable type.
+  public static func typeSyntax(
+    typeSyntaxPrefix: String = "let _: ",
+    _ syntaxString: StringLiteralType,
+    file: StaticString = #file,
+    line: UInt = #line
+  ) -> Attached<TypeSyntax> {
+    var parser = Parser("\(typeSyntaxPrefix)\(syntaxString)")
+    let fileSyntax = SourceFileSyntax.parse(from: &parser)
+    guard let typeSyntax = fileSyntax.children(ofType: TypeSyntax.self).first else {
+      fatalError("`\(syntaxString)` didn't parse as type syntax.", file: file, line: line)
+    }
+    return Attached<TypeSyntax>(typeSyntax)!
+  }
+}
+
+extension TypeReference {
+  /// Convenience initializer since we ignore `introducingSyntax` in tests.
+  init(module: Identifier? = nil, name: Identifier) {
+    self.init(module: module, name: name, introducingSyntax: .typeSyntax(""))
+  }
+}
+
+/// Asserts the given type syntax (when parsed prefixed with `typeSyntaxPrefix`),
+/// produces the expected result.
+func assertPartialResolutionResult(
+  typeSyntaxPrefix: String = "let _: ",
+  typeSyntax: String,
+  result: Result<PartiallyResolvedType, PartialTypeResolutionFailure>,
+  file: StaticString = #file,
+  line: UInt = #line
+) {
+  // Compute
+  let syntax = Attached.typeSyntax(typeSyntaxPrefix: typeSyntaxPrefix, typeSyntax, file: file, line: line)
+  let actualResult = syntax.partiallyResolve()
+  // Convert to strings to compare syntax
+  let expectedDescription = result._debugDescription
+  let actualDescription = actualResult._debugDescription
+  // Keep syntax alive until we generate the descriptions
+  _ = syntax
+  XCTAssert(
+    expectedDescription == actualDescription,
+    "Wrong partial-resolution result for `\(typeSyntax)`:\nExpected: \(expectedDescription)\nGot     : \(actualDescription)",
+    file: file,
+    line: line
+  )
+}
+
+final class PartialTypeResolutionTests: XCTestCase {
+  /// Tests leaf non-nominal types (fully resolved)
+  func testNonNominalLeaves() {
+    // `Any`
+    assertPartialResolutionResult(
+      typeSyntax: "Any",
+      result: .success(.anyType)
+    )
+    // Suppressed
+    assertPartialResolutionResult(
+      typeSyntax: "~Copyable",
+      result: .success(.anyType)
+    )
+    assertPartialResolutionResult(
+      typeSyntax: "~Escapable",
+      result: .success(.anyType)
+    )
+    assertPartialResolutionResult(
+      typeSyntax: "~Unechecked",
+      result: .success(.anyType)
+    )
+
+    // Tuple
+    assertPartialResolutionResult(
+      typeSyntax: "(a: Int, Bool, c: String)",
+      result: .success(
+        .tuple(labels: ["a", nil, "c"])
+      )
+    )
+
+    // Function
+    assertPartialResolutionResult(
+      typeSyntax: "(_ a: A, B) -> C",
+      result: .success(
+        .function(argumentCount: 2)
+      )
+    )
+
+    // Missing Type
+    assertPartialResolutionResult(
+      typeSyntax: "",
+      result: .failure(.missingType)
+    )
+    // Wildcard
+    assertPartialResolutionResult(
+      typeSyntax: "_",
+      result: .failure(.wildcardType)
+    )
+
+    // Metatype, named opaque return type, class restriction
+    assertPartialResolutionResult(
+      typeSyntax: "(() -> A, B).Type",
+      result: .success(.composition([]))
+    )
+    assertPartialResolutionResult(
+      typeSyntax: "<T: Hashable> [T]",
+      result: .success(.composition([]))
+    )
+    // I.e. Test `class` in `protocol A: class`.
+    assertPartialResolutionResult(
+      typeSyntaxPrefix: "protocol A: ",
+      typeSyntax: "class",
+      result: .success(.composition([]))
+    )
+  }
+  /// Tests identifier types
+  func testIdentifiers() {
+    // Simply type
+    assertPartialResolutionResult(
+      typeSyntax: "A",
+      result: .success(
+        .typeIdentifier(.success(TypeReference(name: "A")))
+      )
+    )
+    // Module selector
+    assertPartialResolutionResult(
+      typeSyntax: "Module::Type",
+      result: .success(
+        .typeIdentifier(
+          .success(
+            TypeReference(module: "Module", name: "Type")
+          )
+        )
+      )
+    )
+    // Erroneous
+    assertPartialResolutionResult(
+      typeSyntax: "Module::_",
+      result: .success(
+        .typeIdentifier(.failure(InvalidTypeIdentifierFailure()))
+      )
+    )
+    // Escaped `Any`
+    assertPartialResolutionResult(
+      typeSyntax: "`Any`",
+      result: .success(
+        .typeIdentifier(.success(TypeReference(name: "Any")))
+      )
+    )
+
+    // Members
+    assertPartialResolutionResult(
+      typeSyntax: "(Int & (A, B)).MyMember",
+      result: .success(
+        .member(
+          base: .typeSyntax("(Int & (A, B))"),
+          memberComponent: .success(
+            TypeReference(name: "MyMember")
+          )
+        )
+      )
+    )
+    // Members with module selectors
+    assertPartialResolutionResult(
+      typeSyntax: "(A & B).Module::C",
+      result: .success(
+        .member(
+          base: .typeSyntax("(A & B)"),
+          memberComponent: .success(
+            TypeReference(module: "Module", name: "C")
+          )
+        )
+      )
+    )
+    // Test 'Self' and '`Self`'
+    assertPartialResolutionResult(
+      typeSyntax: "(() -> Int).Self",
+      result: .success(
+        .member(
+          base: .typeSyntax("(() -> Int)"),
+          memberComponent: .success(
+            TypeReference(name: "Self")
+          )
+        )
+      )
+    )
+    assertPartialResolutionResult(
+      typeSyntax: "(() -> Int).`Self`",
+      result: .success(
+        .member(
+          base: .typeSyntax("(() -> Int)"),
+          memberComponent: .success(
+            TypeReference(name: "Self")
+          )
+        )
+      )
+    )
+  }
+
+  func testKnownNominals() {
+    // Optional
+    assertPartialResolutionResult(
+      typeSyntax: "T?",
+      result: .success(
+        .typeIdentifier(.success(TypeReference(module: "Swift", name: "Optional")))
+      )
+    )
+    assertPartialResolutionResult(
+      typeSyntax: "T!",
+      result: .success(
+        .typeIdentifier(.success(TypeReference(module: "Swift", name: "Optional")))
+      )
+    )
+    // Array
+    assertPartialResolutionResult(
+      typeSyntax: "[T]",
+      result: .success(
+        .typeIdentifier(.success(TypeReference(module: "Swift", name: "Array")))
+      )
+    )
+    // Inline array
+    assertPartialResolutionResult(
+      typeSyntax: "[_ of T]",
+      result: .success(
+        .typeIdentifier(
+          .success(TypeReference(module: "Swift", name: "InlineArray"))
+        )
+      )
+    )
+    // Dictionary
+    assertPartialResolutionResult(
+      typeSyntax: "[T: S]",
+      result: .success(
+        .typeIdentifier(
+          .success(TypeReference(module: "Swift", name: "Dictionary"))
+        )
+      )
+    )
+  }
+
+  func testNonNominalRecursive() {
+    // Single-element tuples
+    assertPartialResolutionResult(
+      typeSyntax: "(Any,)",
+      result: .success(.anyType)
+    )
+    assertPartialResolutionResult(
+      typeSyntax: "((label1: A, _: B))",
+      result: .success(.tuple(labels: ["label1", nil]))
+    )
+
+    // Attributed type
+    assertPartialResolutionResult(
+      typeSyntax: "@escapable @Sendable () -> Int",
+      result: .success(.function(argumentCount: 0))
+    )
+
+    // Opaque/any types
+    assertPartialResolutionResult(
+      typeSyntax: "some Proto & Class",
+      result: .success(.composition([.typeSyntax("Proto"), .typeSyntax("Class")]))
+    )
+    assertPartialResolutionResult(
+      typeSyntax: "any A",
+      result: .success(
+        .typeIdentifier(.success(TypeReference(name: "A")))
+      )
+    )
+
+    // Parameter elements/expansions
+    assertPartialResolutionResult(
+      typeSyntax: "repeat each T",
+      result: .success(
+        .typeIdentifier(.success(TypeReference(name: "T")))
+      )
+    )
+
+    // Compositions
+    assertPartialResolutionResult(
+      typeSyntax: "Module::MyType & Any",
+      result: .success(
+        .composition([
+          .typeSyntax("Module::MyType"),
+          .typeSyntax("Any"),
+        ])
+      )
+    )
+  }
+}

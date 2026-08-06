@@ -11,11 +11,11 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
-import SwiftLexicalLookup
+@_spi(Experimental) import SwiftLexicalLookup
 import SwiftSyntax
 import XCTest
 
-final class TestNameLookup: XCTestCase {
+final class NameLookupTests: XCTestCase {
   func testCodeBlockSimpleCase() {
     assertLexicalNameLookup(
       source: """
@@ -787,6 +787,43 @@ final class TestNameLookup: XCTestCase {
         "7️⃣": declExpectation,
         "9️⃣": declExpectation,
       ]
+    )
+  }
+  func testTypeDeclAvailabilityInTopLevel() {
+    let declExpectation: [ResultExpectation] = [
+      .fromScope(
+        SourceFileSyntax.self,
+        expectedNames: [
+          NameExpectation.declaration("2️⃣"),
+          NameExpectation.declaration("5️⃣"),
+          NameExpectation.declaration("8️⃣"),
+        ]
+      )
+    ]
+
+    assertLexicalNameLookup(
+      source: """
+        1️⃣a
+        2️⃣class a {}
+        3️⃣a
+        guard let x else { return }
+        4️⃣a
+        5️⃣actor a {}
+        6️⃣a
+        guard let x else { return }
+        7️⃣a
+        8️⃣struct a {}
+        9️⃣a
+        """,
+      references: [
+        "1️⃣": declExpectation,
+        "3️⃣": declExpectation,
+        "4️⃣": declExpectation,
+        "6️⃣": declExpectation,
+        "7️⃣": declExpectation,
+        "9️⃣": declExpectation,
+      ],
+      config: LookupConfig(_lookupTopScope: true, _dontFindGenericParametersForExtendedType: true)
     )
   }
 
