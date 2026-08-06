@@ -32,6 +32,8 @@ add_swift_syntax_library(SwiftLexicalLookup
   QualifiedLookup/TypeDeclSyntax.swift
   QualifiedLookup/TypeLikeSyntax.swift
   QualifiedLookup/ValueDeclSyntax.swift
+
+  TypeLookup/PartialTypeResolution.swift
 )
 
 target_link_swift_syntax_libraries(SwiftLexicalLookup PUBLIC
