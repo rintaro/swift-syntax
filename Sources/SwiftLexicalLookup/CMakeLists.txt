@@ -24,6 +24,7 @@ add_swift_syntax_library(SwiftLexicalLookup
   Scopes/SequentialScopeSyntax.swift
   Scopes/WithGenericParametersScopeSyntax.swift
 
+  QualifiedLookup/Attached.swift
   QualifiedLookup/DeclGroupLookup.swift
   QualifiedLookup/DeclName.swift
   QualifiedLookup/DeclScope.swift
@@ -32,6 +33,8 @@ add_swift_syntax_library(SwiftLexicalLookup
   QualifiedLookup/TypeDeclSyntax.swift
   QualifiedLookup/TypeLikeSyntax.swift
   QualifiedLookup/ValueDeclSyntax.swift
+
+  TypeLookup/PartialTypeResolution.swift
 )
 
 target_link_swift_syntax_libraries(SwiftLexicalLookup PUBLIC

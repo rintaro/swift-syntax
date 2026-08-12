@@ -11,11 +11,11 @@
 //===----------------------------------------------------------------------===//
 
 import Foundation
-import SwiftLexicalLookup
+@_spi(Experimental) import SwiftLexicalLookup
 import SwiftSyntax
 import XCTest
 
-final class TestNameLookup: XCTestCase {
+final class NameLookupTests: XCTestCase {
   func testCodeBlockSimpleCase() {
     assertLexicalNameLookup(
       source: """
