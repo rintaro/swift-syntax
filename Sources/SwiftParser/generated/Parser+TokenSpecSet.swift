@@ -552,6 +552,7 @@ extension ClosureCaptureSpecifierSyntax {
   public enum SpecifierOptions: TokenSpecSet {
     case weak
     case unowned
+    case sending
 
     init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
       switch PrepareForKeywordMatch(lexeme) {
@@ -559,6 +560,8 @@ extension ClosureCaptureSpecifierSyntax {
         self = .weak
       case TokenSpec(.unowned):
         self = .unowned
+      case TokenSpec(.sending):
+        self = .sending
       default:
         return nil
       }
@@ -570,6 +573,8 @@ extension ClosureCaptureSpecifierSyntax {
         self = .weak
       case TokenSpec(.unowned):
         self = .unowned
+      case TokenSpec(.sending):
+        self = .sending
       default:
         return nil
       }
@@ -581,6 +586,8 @@ extension ClosureCaptureSpecifierSyntax {
         return .keyword(.weak)
       case .unowned:
         return .keyword(.unowned)
+      case .sending:
+        return .keyword(.sending)
       }
     }
 
@@ -594,6 +601,8 @@ extension ClosureCaptureSpecifierSyntax {
         return .keyword(.weak)
       case .unowned:
         return .keyword(.unowned)
+      case .sending:
+        return .keyword(.sending)
       }
     }
   }

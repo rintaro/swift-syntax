@@ -71,6 +71,15 @@ final class ExpressionTests: ParserTestCase {
       }
       """
     )
+
+    assertParse(
+      """
+      { [sending self, sending sendingB = b] foo in
+        return 0
+      }
+      """,
+      languageFeatures: [.calledAttribute]
+    )
   }
 
   func testTrailingClosures() {

@@ -2105,6 +2105,20 @@ extension Parser {
           arena: self.arena
         )
       }
+    } else if self.languageFeatures.contains(.calledAttribute),
+      self.at(.keyword(.sending)),
+      self.peek(isAt: .identifier, .keyword(.`self`))
+    {
+      // "sending" is only a capture specifier if it's followed by an
+      // identifier or `self`; otherwise it's the name of the captured value itself.
+      let sendingContextualKeyword = self.eat(.keyword(.sending))
+      return RawClosureCaptureSpecifierSyntax(
+        specifier: sendingContextualKeyword,
+        leftParen: nil,
+        detail: nil,
+        rightParen: nil,
+        arena: self.arena
+      )
     } else {
       return nil
     }

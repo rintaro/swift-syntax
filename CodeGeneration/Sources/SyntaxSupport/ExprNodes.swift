@@ -350,7 +350,7 @@ public let EXPR_NODES: [Node] = [
     children: [
       Child(
         name: "specifier",
-        kind: .token(choices: [.keyword(.weak), .keyword(.unowned)])
+        kind: .token(choices: [.keyword(.weak), .keyword(.unowned), .keyword(.sending)])
       ),
       Child(
         name: "leftParen",
