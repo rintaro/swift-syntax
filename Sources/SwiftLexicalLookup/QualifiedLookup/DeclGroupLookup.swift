@@ -132,7 +132,7 @@ private func _visitDirectMembersOfDecl(
   /// Process a member or a member nested inside an if-config declaration.
   ///
   /// This pattern is similar to the SyntaxVisitor pattern, but a SyntaxVisitor
-  /// doesn't work because we use protocols like `NamedDeclSyntax`
+  /// doesn't work because we use custom syntax like `ValueDeclSyntax`
   func processMember(decl: DeclSyntax) {
     // Get only value declarations
     if let valueDecl = decl.as(ValueDeclSyntax.self) {
@@ -177,7 +177,7 @@ private func _visitDirectMembersOfDecl(
   processMember(decl: decl)
 }
 
-extension CodeBlockItemListSyntax {  //: _MemberBlockLike {
+extension CodeBlockItemListSyntax {
   func _visitDirectMembers(
     configuredRegions: ConfiguredRegions?,
     visit: (ValueDeclSyntax) -> Void,
