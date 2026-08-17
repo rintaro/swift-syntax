@@ -71,7 +71,7 @@ extension TypeDeclSyntax {
 // MARK: Upcasts
 
 extension TypeDeclSyntax {
-  public init(_ nominalType: NominalTypeDeclSyntax) {
+  public init(_ nominalType: some NominalTypeDeclSyntaxProtocol) {
     self = Syntax(nominalType).cast(TypeDeclSyntax.self)
   }
 
@@ -85,5 +85,22 @@ extension TypeDeclSyntax {
 
   public init(_ genericParameter: GenericParameterSyntax) {
     self = Syntax(genericParameter).cast(TypeDeclSyntax.self)
+  }
+}
+
+// MARK: Debug Description
+
+extension TypeDeclSyntax {
+  /// Uses the trimmed description of the type decl and removes
+  /// the member block for structs/enums/classes/actors/protocols/extensions,
+  /// similar to `DeclGroupSyntax/_memberlessDescription`.
+  var _memberlessDescription: String {
+    self.as(DeclGroupSyntaxType.self)?._memberlessDescription ?? trimmedDescription
+  }
+}
+
+extension Attached where Node == TypeDeclSyntax {
+  internal var _memberlessDescription: String {
+    node._memberlessDescription
   }
 }

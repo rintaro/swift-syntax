@@ -47,16 +47,26 @@ import SwiftSyntax
     at lookUpPosition: AbsolutePosition,
     with config: LookupConfig
   ) -> [LookupResult] {
-    return statements.flatMap { codeBlockItem in
-      if let guardStmt = codeBlockItem.item.as(GuardStmtSyntax.self) {
-        return guardStmt.lookupFromSequentialParent(
-          identifier,
-          at: lookUpPosition,
-          with: config
-        )
-      } else {
-        return []
+    // Default is not to lookup the top scope
+    if !config._lookupTopScope {
+      return statements.flatMap { codeBlockItem in
+        if let guardStmt = codeBlockItem.item.as(GuardStmtSyntax.self) {
+          return guardStmt.lookupFromSequentialParent(
+            identifier,
+            at: lookUpPosition,
+            with: config
+          )
+        } else {
+          return []
+        }
       }
+    } else {  // if config._lookupTopScope
+      return sequentialLookup(
+        in: statements,
+        identifier,
+        at: lookUpPosition,
+        with: config
+      )
     }
   }
 }
@@ -504,6 +514,18 @@ import SwiftSyntax
 
       return [.lookForGenericParameters(of: self)]
         + defaultLookupImplementation(identifier, at: lookUpPosition, with: config)
+    }
+
+    // TODO: This looks like a bug fix that shouldn't be gated behind a feature flag
+    //
+    // We took care of look ups within the member block & the generic where clause above.
+    // We also handle inheritance clauses where a generic where clause is defined.
+    //
+    // So just check we're not in the inheritance clause (if it exists).
+    if config._dontFindGenericParametersForExtendedType,
+      inheritanceClause?.range.contains(lookUpPosition) != true
+    {
+      return lookupInParent(identifier, at: lookUpPosition, with: config)
     }
 
     return [.lookForGenericParameters(of: self)]
@@ -1073,5 +1095,4 @@ extension SubscriptDeclSyntax: WithGenericParametersScopeSyntax, CanInterleaveRe
   @_spi(Experimental) public var scopeDebugName: String {
     "IfConfigScope"
   }
-
 }
