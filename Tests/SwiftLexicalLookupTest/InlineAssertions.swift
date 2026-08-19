@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+@_spi(_QualifiedLookup) @_spi(_QualifiedLookupTests) import SwiftLexicalLookup
 import SwiftParser
 import SwiftSyntax
 import XCTest
@@ -65,7 +66,7 @@ protocol LexicalMatcher {
 ///
 /// All annotations should be placed before the target token.
 ///
-/// Look for examples in `assertDirectLookup` and related assertion methods.
+/// Look for examples in `assertTypeResolution` and related assertion methods.
 struct LexicalLookupSource<Matcher: LexicalMatcher>: ExpressibleByStringLiteral, ExpressibleByStringInterpolation {
   enum Annotation {
     case definition(definition: Matcher.Definition)
@@ -78,9 +79,12 @@ struct LexicalLookupSource<Matcher: LexicalMatcher>: ExpressibleByStringLiteral,
 
   struct Interpolation: StringInterpolationProtocol {
     fileprivate var components: [Component]
+    /// A strong reference to identifier tokens used by `allocateIdentifier`
+    fileprivate var identifierTokens: [TokenSyntax]
 
-    init(literalCapacity: Int, interpolationCount: Int) {
+    init(literalCapacity: Int = 0, interpolationCount: Int = 0) {
       components = []
+      identifierTokens = []
     }
     mutating func appendLiteral(_ literal: String) {
       components.append(.stringFragment(literal))
@@ -98,6 +102,15 @@ struct LexicalLookupSource<Matcher: LexicalMatcher>: ExpressibleByStringLiteral,
       line: UInt = #line
     ) {
       components.append(.annotation(annotation: .expectations(expectations: expectations), file: file, line: line))
+    }
+    /// A correct way to create identifiers from strings. These identifier's lifetime
+    /// is tired to `LexicalLookupSource.Interpolation`, passed onto `LexicalLookupSource`
+    /// and should stay alive for `_assertLexicalLookup`.
+    mutating func allocateIdentifier(string: String) -> Identifier {
+      let token = TokenSyntax.identifier(string)
+      identifierTokens.append(token)
+      // Force unwrap because we're passing an identifier token.
+      return Identifier(token)!
     }
   }
 
@@ -210,7 +223,7 @@ enum LexicalMatcherExpectationFailure<Definition: LexicalAnnotation & Identifiab
 /// to verify lookup results.
 ///
 /// You should wrap this method using a custom `Matcher`
-/// for each use-case. See `assertDirectLookup` as an example.
+/// for each use-case. See `assertTypeResolution` as an example.
 ///
 /// Note: We don't diagnose unused definition annotations.
 func _assertLexicalLookup<Matcher: LexicalMatcher>(
@@ -354,7 +367,7 @@ enum LexicalAssertionUtilities {
       }
 
       XCTFail(
-        "Invalid annotation placement: Token '\(introducerToken.trimmedDescription)' should have a \(Parent.self) parent\(messageQualifier).",
+        "Invalid annotation placement: Token '\(introducerToken.trimmedDescription)' should have a \(Parent.self) parent (not '\(rawParent.kind)')\(messageQualifier).",
         file: file,
         line: line
       )
@@ -373,10 +386,6 @@ enum LexicalAssertionUtilities {
     let expectedMarkers = Set(expected.map(\.annotation.id))
     let actualMarkers = Set(actual.map(\.annotation.id))
 
-    if expected.map(\.annotation.id) != actual.map(\.annotation.id) {
-      print("Comparing \(expected) vs \(actual)")
-    }
-
     // Calculate differences
     let missingDefinitions = expected.filter({ !actualMarkers.contains($0.annotation.id) })
     if !missingDefinitions.isEmpty {
@@ -393,5 +402,61 @@ enum LexicalAssertionUtilities {
     {
       failures.append(.invalidResultOrder(expected: expected, actual: actual))
     }
+  }
+}
+
+// MARK: Attached + String Literal
+
+public protocol ParsableByAttached: SyntaxProtocol {
+  static func fileContents(syntaxString: String) -> String
+}
+
+extension TypeSyntax: ParsableByAttached {
+  public static func fileContents(syntaxString: String) -> String {
+    "typealias = \(syntaxString)"
+  }
+}
+extension TypeDeclSyntax: ParsableByAttached {
+  public static func fileContents(syntaxString: String) -> String {
+    // Type declarations parse as declarations
+    syntaxString
+  }
+}
+extension GenericParameterSyntax: ParsableByAttached {
+  public static func fileContents(syntaxString: String) -> String {
+    // Create a fake function to parse `< ... >` as a GenericParameterClauseSyntax
+    "func <\(syntaxString)>"
+  }
+}
+extension GenericParameterClauseSyntax: ParsableByAttached {
+  public static func fileContents(syntaxString: String) -> String {
+    // Create a fake function to parse the given `<T1, ..., TN>`
+    // as a GenericParameterClauseSyntax
+    "func \(syntaxString)"
+  }
+}
+extension ExtensionDeclSyntax: ParsableByAttached {
+  public static func fileContents(syntaxString: String) -> String { syntaxString }
+}
+extension DeclGroupSyntaxType: ParsableByAttached {
+  public static func fileContents(syntaxString: String) -> String { syntaxString }
+}
+
+// TODO: Merge with Attached.typeSyntax(_)
+extension Attached: ExpressibleByStringLiteral
+    & ExpressibleByExtendedGraphemeClusterLiteral
+    & ExpressibleByUnicodeScalarLiteral
+where
+  Node: ParsableByAttached
+{
+  public init(stringLiteral: String) {
+    // Wrap the type syntax in a file
+    var parser = Parser(Node.fileContents(syntaxString: stringLiteral))
+    let sourceFile = SourceFileSyntax.parse(from: &parser)
+    guard let castSyntax = sourceFile.children(ofType: Node.self).first else {
+      fatalError("Couldn't parse `\(stringLiteral)` as \(Node.self).")
+    }
+    // We should now be able to cast to SourceFileRoot
+    self = Attached(castSyntax)!
   }
 }

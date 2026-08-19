@@ -26,8 +26,7 @@ import SwiftSyntax
   }
 
   public static let structure: SwiftSyntax.SyntaxNodeStructure = .choices([
-    .node(StructDeclSyntax.self), .node(EnumDeclSyntax.self), .node(ClassDeclSyntax.self),
-    .node(ActorDeclSyntax.self), .node(ProtocolDeclSyntax.self), .node(ExtensionDeclSyntax.self),
+    .node(NominalTypeDeclSyntax.self), .node(ExtensionDeclSyntax.self),
   ])
 }
 
@@ -51,7 +50,6 @@ import SwiftSyntax
     }
   }
   private mutating func _setGroupProp<T>(
-    // _ visitor: some _DeclGroupVisitor<T>, newValue: T
     _ keyPath: WritableKeyPath<(any DeclGroupSyntax), T>,
     newValue: T
   ) {
@@ -126,7 +124,85 @@ import SwiftSyntax
 
 // MARK: Lookup
 
+private func _visitDirectMembersOfDecl(
+  decl: DeclSyntax,
+  configuredRegions: ConfiguredRegions?,
+  visit: (ValueDeclSyntax) -> Void
+) {
+  /// Process a member or a member nested inside an if-config declaration.
+  ///
+  /// This pattern is similar to the SyntaxVisitor pattern, but a SyntaxVisitor
+  /// doesn't work because we use custom syntax like `ValueDeclSyntax`
+  func processMember(decl: DeclSyntax) {
+    // Get only value declarations
+    if let valueDecl = decl.as(ValueDeclSyntax.self) {
+      visit(valueDecl)
+    }
+    // Visit variable declarations to get identifier patterns
+    else if let varDecl = decl.as(VariableDeclSyntax.self) {
+      for binding in varDecl.bindings {
+        guard let valueDecl = ValueDeclSyntax(binding.pattern.as(IdentifierPatternSyntax.self)) else { continue }
+        visit(valueDecl)
+      }
+    }
+    // Visit enum cases to get enum elements
+    else if let enumCase = decl.as(EnumCaseDeclSyntax.self) {
+      for enumElement in enumCase.elements {
+        visit(ValueDeclSyntax(enumElement))
+      }
+    }
+    // If configuredRegions is set, visit the members of the active clause (if it exists)
+    //
+    // We do this recursively to handle nested if-config declarations
+    else if let ifConfigDecl = decl.as(IfConfigDeclSyntax.self),
+      let configuredRegions,
+      case .decls(let members) = configuredRegions.activeClause(for: ifConfigDecl)?.elements
+    {
+      for member in members {
+        processMember(decl: member.decl)
+      }
+    }
+    // If configuredRegions is nil, visit all if-config clauses
+    else if let ifConfigDecl = decl.as(IfConfigDeclSyntax.self) {
+      for clause in ifConfigDecl.clauses {
+        guard case .decls(let members) = clause.elements else { return }
+        for member in members {
+          processMember(decl: member.decl)
+        }
+      }
+    }
+  }
+
+  // Find all ValueDeclSyntax members in this declaration
+  processMember(decl: decl)
+}
+
+extension CodeBlockItemListSyntax {
+  func _visitDirectMembers(
+    configuredRegions: ConfiguredRegions?,
+    visit: (ValueDeclSyntax) -> Void
+  ) {
+    for listItem in self {
+      guard case .decl(let decl) = listItem.item else { continue }
+      _visitDirectMembersOfDecl(
+        decl: decl,
+        configuredRegions: configuredRegions,
+        visit: visit
+      )
+    }
+  }
+}
+
 extension DeclGroupSyntax {
+  @_spi(_QualifiedLookup) public func visitDirectMembers(
+    configuredRegions: ConfiguredRegions?,
+    visit: (ValueDeclSyntax) -> Void
+  ) {
+    for member in memberBlock.members {
+      _visitDirectMembersOfDecl(decl: member.decl, configuredRegions: configuredRegions, visit: visit)
+    }
+  }
+
   /// Find named member declarations in the given group declaration.
   ///
   /// Results are filtered in the following ways:
@@ -142,66 +218,24 @@ extension DeclGroupSyntax {
     kind memberKind: MemberKind = .default,
     configuredRegions: ConfiguredRegions? = nil
   ) -> [ValueDeclSyntax] {
-    /// Filter the given declaration based on the given ``name`` and ``memberKind``
-    func filterDecl(_ valueDecl: ValueDeclSyntax) -> ValueDeclSyntax? {
-      // If given a name, check for a match
-      if let expectedName = name,
-        case .failure = valueDecl.declName.tryMatch(reference: expectedName.baseName)
-      {
-        return nil
-      }
-      // Filter for the kind
-      guard valueDecl.isKind(memberKind) else { return nil }
+    var valueDecls = [ValueDeclSyntax]()
+    visitDirectMembers(
+      configuredRegions: configuredRegions,
+      visit: { valueDecl in
+        // If given a name, check for a match
+        if let expectedName = name,
+          case .failure = valueDecl.declName.tryMatch(reference: expectedName.baseName)
+        {
+          return
+        }
+        // Filter for the kind
+        guard valueDecl.isKind(memberKind) else { return }
 
-      return valueDecl
-    }
-
-    /// Process a member or a member nested inside an if-config declaration.
-    ///
-    /// This pattern is similar to the SyntaxVisitor pattern, but a SyntaxVisitor
-    /// doesn't work because we use protocols like `NamedDeclSyntax`
-    func processMember(member: MemberBlockItemSyntax) -> [ValueDeclSyntax] {
-      // Get only value declarations
-      if let valueDecl = member.decl.as(ValueDeclSyntax.self) {
-        return if let valueDecl = filterDecl(valueDecl) { [valueDecl] } else { [] }
+        // Add to the results
+        valueDecls.append(valueDecl)
       }
-      // Visit variable declarations to get identifier patterns
-      else if let varDecl = member.decl.as(VariableDeclSyntax.self) {
-        return varDecl.bindings.compactMap({ binding in
-          ValueDeclSyntax(binding.pattern.as(IdentifierPatternSyntax.self)).flatMap(filterDecl(_:))
-        })
-      }
-      // Visit enum cases to get enum elements
-      else if let enumCase = member.decl.as(EnumCaseDeclSyntax.self) {
-        return enumCase.elements.compactMap({ enumElement in
-          filterDecl(ValueDeclSyntax(enumElement))
-        })
-      }
-      // If configuredRegions is set, visit the members of the active clause (if it exists)
-      //
-      // We do this recursively to handle nested if-config declarations
-      else if let ifConfigDecl = member.decl.as(IfConfigDeclSyntax.self),
-        let configuredRegions,
-        case .decls(let members) = configuredRegions.activeClause(for: ifConfigDecl)?.elements
-      {
-        return members.flatMap(processMember(member:))
-      }
-      // If configuredRegions is nil, visit all if-config clauses
-      else if let ifConfigDecl = member.decl.as(IfConfigDeclSyntax.self) {
-        return ifConfigDecl.clauses.flatMap({ clause -> [ValueDeclSyntax] in
-          guard case .decls(let members) = clause.elements else { return [] }
-          return members.flatMap(processMember(member:))
-        })
-      }
-      // No name, no gain
-      else {
-        return []
-      }
-    }
-
-    // Add each member in the group declaration
-    return self.memberBlock.members
-      .flatMap(processMember(member:))
+    )
+    return valueDecls
   }
 }
 
@@ -239,5 +273,17 @@ extension DeclGroupSyntax {
   /// readability in debug output.
   @_spi(_QualifiedLookupTests) public var _memberlessDescription: String {
     self.with(\.memberBlock, MemberBlockSyntax(members: [])).trimmedDescription
+  }
+}
+
+extension Attached where Node: DeclGroupSyntax {
+  internal var _memberlessDescription: String {
+    node._memberlessDescription
+  }
+}
+
+extension Attached where Node == DeclGroupSyntaxType {
+  internal init<DeclGroup: DeclGroupSyntax>(_ syntax: Attached<DeclGroup>) {
+    self = syntax.as(DeclGroupSyntaxType.self)!
   }
 }
