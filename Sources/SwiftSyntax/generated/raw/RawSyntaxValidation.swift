@@ -636,7 +636,7 @@ func validateLayout(layout: RawSyntaxBuffer, as kind: SyntaxKind) {
   func validateClosureCaptureSpecifierSyntax(kind: SyntaxKind, layout: RawSyntaxBuffer) {
     assert(layout.count == 9)
     assertNoError(kind, 0, verify(layout[0], as: RawUnexpectedNodesSyntax?.self))
-    assertNoError(kind, 1, verify(layout[1], as: RawTokenSyntax.self, tokenChoices: [.keyword("weak"), .keyword("unowned")]))
+    assertNoError(kind, 1, verify(layout[1], as: RawTokenSyntax.self, tokenChoices: [.keyword("weak"), .keyword("unowned"), .keyword("sending")]))
     assertNoError(kind, 2, verify(layout[2], as: RawUnexpectedNodesSyntax?.self))
     assertNoError(kind, 3, verify(layout[3], as: RawTokenSyntax?.self, tokenChoices: [.tokenKind(.leftParen)]))
     assertNoError(kind, 4, verify(layout[4], as: RawUnexpectedNodesSyntax?.self))
