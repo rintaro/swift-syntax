@@ -75,7 +75,7 @@ extension Lexer.Cursor {
 
     /// The lexer is inside a string literal of `kind` after having lexed
     /// `delimiterLength` raw string delimiters.
-    case inStringLiteral(kind: StringLiteralKind, delimiterLength: Int)
+    case inStringLiteral(delimiterLength: Int, kind: StringLiteralKind)
 
     /// The lexer has finished lexing the contents of a string literal and is now
     /// looking for the closing quote.
@@ -96,12 +96,12 @@ extension Lexer.Cursor {
     /// `(` that opens the string interpolation.
     ///
     /// `stringInterpolationStart` points to the first character inside the interpolation.
-    case inStringInterpolation(stringLiteralKind: StringLiteralKind, parenCount: Int)
+    case inStringInterpolation(parenCount: Int, stringLiteralKind: StringLiteralKind)
 
     /// We have encountered a regex literal, and have its tokens to work
     /// through. `lexemes` is a pointer to the lexemes allocated in the state
     /// stack bump pointer allocator.
-    case inRegexLiteral(index: UInt8, lexemes: UnsafePointer<RegexLiteralLexemes>)
+    case inRegexLiteral(lexemes: UnsafePointer<RegexLiteralLexemes>, index: UInt8)
 
     /// The mode in which leading trivia should be lexed for this state or `nil`
     /// if no trivia should be lexed.
@@ -113,7 +113,7 @@ extension Lexer.Cursor {
       case .afterStringLiteral: return nil
       case .afterClosingStringQuote: return nil
       case .inStringInterpolationStart: return nil
-      case .inStringInterpolation(let stringLiteralKind, _):
+      case .inStringInterpolation(_, let stringLiteralKind):
         // Single line strings cannot span multiple lines, so we don't want to
         // consume any newline inside a string interpolation either.
         switch stringLiteralKind {
@@ -147,7 +147,7 @@ extension Lexer.Cursor {
       switch self {
       case .normal, .preferRegexOverBinaryOperator: return false
       case .afterRawStringDelimiter: return false
-      case .inStringLiteral(kind: let stringLiteralKind, delimiterLength: _): return stringLiteralKind != .multiLine
+      case .inStringLiteral(delimiterLength: _, kind: let stringLiteralKind): return stringLiteralKind != .multiLine
       case .afterStringLiteral: return false
       case .afterClosingStringQuote: return false
       case .inStringInterpolationStart: return false
@@ -193,7 +193,7 @@ extension Lexer.Cursor {
       case .pushRegexLexemes(let index, let lexemes):
         perform(
           stateTransition: .push(
-            newState: .inRegexLiteral(index: index, lexemes: lexemes.allocate(in: stateAllocator))
+            newState: .inRegexLiteral(lexemes: lexemes.allocate(in: stateAllocator), index: index)
           ),
           stateAllocator: stateAllocator
         )
@@ -454,7 +454,7 @@ extension Lexer.Cursor {
       self.stateStack.perform(stateTransition: .pop, stateAllocator: stateAllocator)
     case .afterRawStringDelimiter(let delimiterLength):
       result = lexAfterRawStringDelimiter(delimiterLength: delimiterLength)
-    case .inStringLiteral(kind: let stringLiteralKind, let delimiterLength):
+    case .inStringLiteral(let delimiterLength, let stringLiteralKind):
       result = lexInStringLiteral(stringLiteralKind: stringLiteralKind, delimiterLength: delimiterLength)
     case .afterStringLiteral(kind: let stringLiteralKind, isRawString: _):
       result = lexAfterStringLiteral(stringLiteralKind: stringLiteralKind)
@@ -462,13 +462,13 @@ extension Lexer.Cursor {
       result = lexAfterClosingStringQuote()
     case .inStringInterpolationStart(let stringLiteralKind):
       result = lexInStringInterpolationStart(stringLiteralKind: stringLiteralKind)
-    case .inStringInterpolation(let stringLiteralKind, let parenCount):
+    case .inStringInterpolation(let parenCount, let stringLiteralKind):
       result = lexInStringInterpolation(
         stringLiteralKind: stringLiteralKind,
         parenCount: parenCount,
         sourceBufferStart: sourceBufferStart
       )
-    case .inRegexLiteral(let index, let lexemes):
+    case .inRegexLiteral(let lexemes, let index):
       result = lexInRegexLiteral(lexemes.pointee[index...], existingPtr: lexemes)
     }
 
@@ -1125,7 +1125,7 @@ extension Lexer.Cursor {
       _ = self.advance()
       return Lexer.Result(
         .leftParen,
-        stateTransition: .replace(newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: 0))
+        stateTransition: .replace(newState: .inStringInterpolation(parenCount: 0, stringLiteralKind: stringLiteralKind))
       )
     case nil:
       return Lexer.Result(.endOfFile)
@@ -1146,7 +1146,7 @@ extension Lexer.Cursor {
       return Lexer.Result(
         .leftParen,
         stateTransition: .replace(
-          newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: parenCount + 1)
+          newState: .inStringInterpolation(parenCount: parenCount + 1, stringLiteralKind: stringLiteralKind)
         )
       )
     case ")":
@@ -1157,7 +1157,7 @@ extension Lexer.Cursor {
         return Lexer.Result(
           .rightParen,
           stateTransition: .replace(
-            newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: parenCount - 1)
+            newState: .inStringInterpolation(parenCount: parenCount - 1, stringLiteralKind: stringLiteralKind)
           )
         )
       }
@@ -1850,9 +1850,9 @@ extension Lexer.Cursor {
     case .afterStringLiteral(kind: _, isRawString: false):
       return .pop
     case .afterRawStringDelimiter(let delimiterLength):
-      return .replace(newState: .inStringLiteral(kind: kind, delimiterLength: delimiterLength))
+      return .replace(newState: .inStringLiteral(delimiterLength: delimiterLength, kind: kind))
     case .normal, .preferRegexOverBinaryOperator, .inStringInterpolation:
-      return .push(newState: .inStringLiteral(kind: kind, delimiterLength: 0))
+      return .push(newState: .inStringLiteral(delimiterLength: 0, kind: kind))
     case .inRegexLiteral, .inStringLiteral, .afterClosingStringQuote, .inStringInterpolationStart:
       preconditionFailure("Unexpected currentState '\(currentState)' for 'stateTransitionAfterLexingStringQuote'")
     }
