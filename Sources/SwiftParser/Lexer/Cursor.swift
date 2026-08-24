@@ -167,8 +167,16 @@ extension Lexer.Cursor {
   /// entries, the required memory is allocated in a bump allocator that is
   /// expected to outlive the stack.
   struct StateStack {
+    /// The states below `topState`, oldest first, or `nil` if `topState` is the
+    /// only state on the stack. Allocated in the lexer's state allocator.
+    ///
+    /// This is a pointer and a separate count rather than an
+    /// `UnsafeBufferPointer?` because an optional buffer pointer needs a byte of
+    /// its own for the nil tag: its `baseAddress` is already optional, so there
+    /// is no spare bit left for the outer optional to use.
+    private var stateStackBase: UnsafePointer<State>? = nil
     private var topState: State? = nil
-    private var stateStack: UnsafeBufferPointer<State>? = nil
+    private var stateStackCount: UInt32 = 0
 
     var currentState: State {
       return topState ?? .normal
@@ -178,15 +186,19 @@ extension Lexer.Cursor {
       switch stateTransition {
       case .push(let newState):
         if let topState {
-          if let stateStack = stateStack {
-            let newStateStack = stateAllocator.allocate(State.self, count: stateStack.count + 1)
-            let (_, existingStateStackEndIndex) = newStateStack.initialize(from: stateStack)
+          if let stateStackBase {
+            let newStateStack = stateAllocator.allocate(State.self, count: Int(stateStackCount) + 1)
+            let (_, existingStateStackEndIndex) = newStateStack.initialize(
+              from: UnsafeBufferPointer(start: stateStackBase, count: Int(stateStackCount))
+            )
             newStateStack[existingStateStackEndIndex] = topState
-            self.stateStack = UnsafeBufferPointer(newStateStack)
+            self.stateStackBase = UnsafePointer(newStateStack.baseAddress!)
+            self.stateStackCount += 1
           } else {
             let newStateStack = stateAllocator.allocate(State.self, count: 1)
             newStateStack[0] = topState
-            self.stateStack = UnsafeBufferPointer(newStateStack)
+            self.stateStackBase = UnsafePointer(newStateStack.baseAddress!)
+            self.stateStackCount = 1
           }
         }
         topState = newState
@@ -200,12 +212,13 @@ extension Lexer.Cursor {
       case .replace(let newState):
         topState = newState
       case .pop:
-        if let stateStack {
-          topState = stateStack.last!
-          if stateStack.count == 1 {
-            self.stateStack = nil
+        if let stateStackBase {
+          topState = stateStackBase[Int(stateStackCount) - 1]
+          if stateStackCount == 1 {
+            self.stateStackBase = nil
+            self.stateStackCount = 0
           } else {
-            self.stateStack = UnsafeBufferPointer(start: stateStack.baseAddress, count: stateStack.count - 1)
+            self.stateStackCount -= 1
           }
         } else {
           topState = nil
@@ -215,7 +228,7 @@ extension Lexer.Cursor {
 
     /// See `Lexer.Cursor.hasProgressed(comparedTo:)`.
     fileprivate func hasProgressed(comparedTo other: StateStack) -> Bool {
-      return currentState != other.currentState || stateStack?.count != other.stateStack?.count
+      return currentState != other.currentState || stateStackCount != other.stateStackCount
     }
   }
 
