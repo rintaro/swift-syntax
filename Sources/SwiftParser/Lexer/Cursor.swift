@@ -427,7 +427,7 @@ extension Lexer.Cursor.Position {
 // MARK: - Entry point
 
 extension Lexer.Cursor {
-  mutating func nextToken(sourceBufferStart: Lexer.Cursor, stateAllocator: BumpPtrAllocator) -> Lexer.Lexeme {
+  mutating func nextToken(sourceBufferStart: UnsafePointer<UInt8>?, stateAllocator: BumpPtrAllocator) -> Lexer.Lexeme {
     let cursor = self
     // Leading trivia.
     let leadingTriviaStart = self
@@ -551,8 +551,8 @@ extension Lexer.Cursor {
   /// Peeks back `offset` bytes.
   /// `bufferBegin` is the start of the source file buffer to guard that we are
   /// not dereferencing a pointer that points before the source buffer.
-  func peekBack(by offset: Int, bufferBegin: Lexer.Cursor) -> UInt8? {
-    guard let bufferBaseAddress = bufferBegin.input.baseAddress,
+  func peekBack(by offset: Int, bufferBegin: UnsafePointer<UInt8>?) -> UInt8? {
+    guard let bufferBaseAddress = bufferBegin,
       let selfBaseAddress = self.input.baseAddress
     else {
       return nil
@@ -858,11 +858,11 @@ extension Lexer.Cursor {
 // MARK: - Boundness of operators
 
 extension Lexer.Cursor {
-  /// `bufferBegin` is a cursor that points to the start of the source file that
-  /// is being lexed.
-  func isLeftBound(sourceBufferStart: Lexer.Cursor) -> Bool {
+  /// `sourceBufferStart` points to the first byte of the source file that is
+  /// being lexed.
+  func isLeftBound(sourceBufferStart: UnsafePointer<UInt8>?) -> Bool {
     // The first character in the file is not left-bound.
-    if self.input.baseAddress == sourceBufferStart.input.baseAddress {
+    if self.input.baseAddress == sourceBufferStart {
       return false
     }
 
@@ -932,7 +932,7 @@ extension Lexer.Cursor {
 
 extension Lexer.Cursor {
   private mutating func lexNormal(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     switch self.peek() {
@@ -1024,7 +1024,7 @@ extension Lexer.Cursor {
   }
 
   private mutating func lexNormalQuestionOrExclamation(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     if let result = lexPostfixOptionalChain(sourceBufferStart: sourceBufferStart) {
@@ -1037,7 +1037,7 @@ extension Lexer.Cursor {
   }
 
   private mutating func lexNormalLeftAngle(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     if self.is(offset: 1, at: "#"),
@@ -1052,7 +1052,7 @@ extension Lexer.Cursor {
   }
 
   private mutating func lexNormalMiscellaneous(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     var tmp = self
@@ -1137,7 +1137,7 @@ extension Lexer.Cursor {
   private mutating func lexInStringInterpolation(
     stringLiteralKind: StringLiteralKind,
     parenCount: Int,
-    sourceBufferStart: Lexer.Cursor
+    sourceBufferStart: UnsafePointer<UInt8>?
   ) -> Lexer.Result {
     // Keep track of open parentheses
     switch self.peek() {
@@ -2155,7 +2155,7 @@ extension Lexer.Cursor {
   }
 
   /// Attempt to lex a postfix '!' or '?'.
-  mutating func lexPostfixOptionalChain(sourceBufferStart: Lexer.Cursor) -> Lexer.Result? {
+  mutating func lexPostfixOptionalChain(sourceBufferStart: UnsafePointer<UInt8>?) -> Lexer.Result? {
     // Must be left bound, otherwise this isn't postfix.
     guard self.isLeftBound(sourceBufferStart: sourceBufferStart) else { return nil }
 
@@ -2185,7 +2185,7 @@ extension Lexer.Cursor {
   static func classifyOperatorToken(
     operStart: Lexer.Cursor,
     operEnd: Lexer.Cursor,
-    sourceBufferStart: Lexer.Cursor
+    sourceBufferStart: UnsafePointer<UInt8>?
   ) -> (RawTokenKind, error: LexingDiagnostic?) {
     // Decide between the binary, prefix, and postfix cases.
     // It's binary if either both sides are bound or both sides are not bound.
@@ -2256,7 +2256,7 @@ extension Lexer.Cursor {
   }
 
   mutating func lexOperatorIdentifier(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     let tokStart = self
@@ -2354,7 +2354,7 @@ extension Lexer.Cursor {
 // MARK: - Editor Placeholders
 
 extension Lexer.Cursor {
-  mutating func tryLexEditorPlaceholder(sourceBufferStart: Lexer.Cursor) -> Lexer.Result? {
+  mutating func tryLexEditorPlaceholder(sourceBufferStart: UnsafePointer<UInt8>?) -> Lexer.Result? {
     precondition(self.is(at: "<") && self.is(offset: 1, at: "#"))
     let start = self
     var ptr = self

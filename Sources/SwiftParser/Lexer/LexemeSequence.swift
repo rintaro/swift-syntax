@@ -21,7 +21,7 @@ extension Lexer {
   /// that points into an input buffer.
   @_spi(Testing)
   public struct LexemeSequence: IteratorProtocol, Sequence, CustomDebugStringConvertible {
-    fileprivate let sourceBufferStart: Lexer.Cursor
+    fileprivate let sourceBufferStart: UnsafePointer<UInt8>?
     fileprivate var cursor: Lexer.Cursor
     fileprivate var nextToken: Lexer.Lexeme
     /// If the lexer has more than one state on its state stack, it will
@@ -49,7 +49,7 @@ extension Lexer {
     let lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>
 
     fileprivate init(
-      sourceBufferStart: Lexer.Cursor,
+      sourceBufferStart: UnsafePointer<UInt8>?,
       cursor: Lexer.Cursor,
       lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>
     ) {
@@ -85,7 +85,7 @@ extension Lexer {
 
     /// Get the offset of the leading trivia start of `token` relative to `sourceBufferStart`.
     func offsetToStart(_ token: Lexer.Lexeme) -> Int {
-      return self.sourceBufferStart.distance(to: token.cursor)
+      return self.sourceBufferStart!.distance(to: token.cursor.pointer)
     }
 
     /// Advance the the cursor by `offset` and reset `currentToken`
@@ -157,14 +157,13 @@ extension Lexer {
   ) -> LexemeSequence {
     precondition(input.isEmpty || startIndex < input.endIndex)
     let startChar = startIndex == input.startIndex ? UInt8(ascii: "\0") : input[startIndex - 1]
-    let start = Cursor(input: input, previous: UInt8(ascii: "\0"), languageFeatures: languageFeatures)
     let cursor = Cursor(
       input: UnsafeBufferPointer(rebasing: input[startIndex...]),
       previous: startChar,
       languageFeatures: languageFeatures
     )
     return LexemeSequence(
-      sourceBufferStart: start,
+      sourceBufferStart: input.baseAddress,
       cursor: cursor,
       lookaheadTracker: lookaheadTracker
     )

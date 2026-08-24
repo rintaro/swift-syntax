@@ -684,7 +684,7 @@ extension Lexer.Cursor {
   fileprivate func tryScanOperatorAsRegexLiteral(
     operatorStart: Lexer.Cursor,
     operatorEnd: Lexer.Cursor,
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> RegexLiteralLexemes? {
     precondition(self.pointer >= operatorStart.pointer, "lexing before the operator?")
@@ -766,7 +766,7 @@ extension Lexer.Cursor {
     at regexStart: Lexer.Cursor,
     operatorStart: Lexer.Cursor,
     operatorEnd: Lexer.Cursor,
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result? {
     guard
