@@ -266,8 +266,7 @@ public struct Parser {
 
     self.lexemes = Lexer.tokenize(
       input,
-      lookaheadTracker: lookaheadTrackerOwner.lookaheadTracker,
-      languageFeatures: languageFeatures
+      lookaheadTracker: lookaheadTrackerOwner.lookaheadTracker
     )
     self.currentToken = self.lexemes.advance()
     if let parseTransition {

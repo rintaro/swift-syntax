@@ -268,8 +268,6 @@ extension Lexer {
     }
     var position: Position
 
-    var languageFeatures: Parser.LanguageFeatures
-
     /// If we have already lexed a token, the kind of the previously lexed token
     var previousTokenKind: RawTokenKind?
 
@@ -282,9 +280,8 @@ extension Lexer {
 
     private var stateStack: StateStack = StateStack()
 
-    init(input: UnsafeBufferPointer<UInt8>, previous: UInt8, languageFeatures: Parser.LanguageFeatures) {
+    init(input: UnsafeBufferPointer<UInt8>, previous: UInt8) {
       self.position = Position(input: input, previous: previous)
-      self.languageFeatures = languageFeatures
     }
 
     /// Returns `true` if this cursor is sufficiently different to `other` in a way that indicates that the lexer has
@@ -2534,7 +2531,7 @@ extension Lexer.Cursor {
       return false
     }
 
-    guard let end = Self.findConflictEnd(start, markerKind: kind, languageFeatures: languageFeatures) else {
+    guard let end = Self.findConflictEnd(start, markerKind: kind) else {
       // No end of conflict marker found.
       return false
     }
@@ -2552,16 +2549,14 @@ extension Lexer.Cursor {
   /// Find the end of a version control conflict marker.
   static func findConflictEnd(
     _ curPtr: Lexer.Cursor,
-    markerKind: ConflictMarker,
-    languageFeatures: Parser.LanguageFeatures
+    markerKind: ConflictMarker
   ) -> Lexer.Cursor? {
     // Get a reference to the rest of the buffer minus the length of the start
     // of the conflict marker.
     let advanced = curPtr.input.baseAddress?.advanced(by: markerKind.introducer.count)
     var restOfBuffer = Lexer.Cursor(
       input: .init(start: advanced, count: curPtr.input.count - markerKind.introducer.count),
-      previous: curPtr.input[markerKind.introducer.count - 1],
-      languageFeatures: languageFeatures
+      previous: curPtr.input[markerKind.introducer.count - 1]
     )
     let terminator = markerKind.terminator
     let terminatorStart = terminator.first!
@@ -2582,8 +2577,7 @@ extension Lexer.Cursor {
       let advanced = restOfBuffer.input.baseAddress?.advanced(by: terminator.count)
       return Lexer.Cursor(
         input: .init(start: advanced, count: restOfBuffer.input.count - terminator.count),
-        previous: restOfBuffer.input[terminator.count - 1],
-        languageFeatures: languageFeatures
+        previous: restOfBuffer.input[terminator.count - 1]
       )
     }
     return nil
