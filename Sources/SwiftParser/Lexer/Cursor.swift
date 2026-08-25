@@ -11,9 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6)
-@_spi(RawSyntax) @_spi(BumpPtrAllocator) @_spi(Testing) internal import SwiftSyntax
+@_spi(RawSyntax) @_spi(BumpPtrAllocator) internal import SwiftSyntax
 #else
-@_spi(RawSyntax) @_spi(BumpPtrAllocator) @_spi(Testing) import SwiftSyntax
+@_spi(RawSyntax) @_spi(BumpPtrAllocator) import SwiftSyntax
 #endif
 
 extension SyntaxText {
@@ -2634,13 +2634,3 @@ extension Lexer.Cursor {
     return nil
   }
 }
-
-/// See `ParserMemoryLayout`.
-let LexerMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
-  "Lexer.Cursor": layout(Lexer.Cursor.self),
-  "Lexer.Cursor.Position": layout(Lexer.Cursor.Position.self),
-  "Lexer.Cursor.State": layout(Lexer.Cursor.State.self),
-  "Lexer.Cursor.StateStack": layout(Lexer.Cursor.StateStack.self),
-  "Lexer.Lexeme": layout(Lexer.Lexeme.self),
-  "Lexer.LexemeSequence": layout(Lexer.LexemeSequence.self),
-]

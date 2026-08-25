@@ -11,12 +11,31 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6)
-@_spi(RawSyntax) @_spi(BumpPtrAllocator) public import SwiftSyntax
+@_spi(RawSyntax) @_spi(BumpPtrAllocator) internal import SwiftSyntax
 #else
 @_spi(RawSyntax) @_spi(BumpPtrAllocator) import SwiftSyntax
 #endif
 
 extension Lexer {
+  /// Holds the allocator that the lexer's state stack spills into, so that
+  /// ``Lexer/tokenize`` can be handed one without `BumpPtrAllocator` appearing
+  /// in its signature, which would oblige callers to import that type's SPI
+  /// from `SwiftSyntax`.
+  ///
+  /// Whoever creates this keeps it alive for as long as the lexeme sequence made
+  /// from it, and anything copied from that sequence. ``Lexer/LexemeSequence``
+  /// refers to the allocator without owning it, so that copying one to start a
+  /// ``Parser/Lookahead`` neither retains nor releases anything.
+  @_spi(Testing)
+  public final class StateAllocator {
+    let allocator: BumpPtrAllocator
+
+    @_spi(Testing)
+    public init() {
+      self.allocator = BumpPtrAllocator(initialSlabSize: 256)
+    }
+  }
+
   /// A sequence of ``Lexer/Lexeme`` tokens starting from a ``Lexer/Cursor``
   /// that points into an input buffer.
   @_spi(Testing)
@@ -160,7 +179,7 @@ extension Lexer {
     _ input: UnsafeBufferPointer<UInt8>,
     from startIndex: Int = 0,
     lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>,
-    stateAllocator: BumpPtrAllocator
+    stateAllocator: StateAllocator
   ) -> LexemeSequence {
     precondition(input.isEmpty || startIndex < input.endIndex)
     let startChar = startIndex == input.startIndex ? UInt8(ascii: "\0") : input[startIndex - 1]
@@ -172,7 +191,7 @@ extension Lexer {
       sourceBufferStart: input.baseAddress,
       cursor: cursor,
       lookaheadTracker: lookaheadTracker,
-      stateAllocator: stateAllocator
+      stateAllocator: stateAllocator.allocator
     )
   }
 }

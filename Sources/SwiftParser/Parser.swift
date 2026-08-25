@@ -11,9 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6)
-@_spi(RawSyntax) @_spi(BumpPtrAllocator) @_spi(Testing) public import SwiftSyntax
+@_spi(RawSyntax) public import SwiftSyntax
 #else
-@_spi(RawSyntax) @_spi(BumpPtrAllocator) @_spi(Testing) import SwiftSyntax
+@_spi(RawSyntax) import SwiftSyntax
 #endif
 
 /// A parser for the Swift programming language.
@@ -134,7 +134,7 @@ public struct Parser {
   /// ``Lexer/LexemeSequence`` refers to this without owning it, so that copying
   /// one does not retain it. This parser outlives its own ``lexemes`` and every
   /// ``Lookahead`` copied from them, so it is the one to keep it alive.
-  private let lexerStateAllocator: BumpPtrAllocator
+  private let lexerStateAllocator: Lexer.StateAllocator
 
   /// Owns the source buffer for the lifetime of this parser when the parser
   /// created its own arena. The source is not copied into the arena, so it is
@@ -280,7 +280,7 @@ public struct Parser {
     self.swiftVersion = swiftVersion ?? Self.defaultSwiftVersion
     self.languageFeatures = languageFeatures
     self.lookaheadTrackerOwner = LookaheadTrackerOwner()
-    self.lexerStateAllocator = BumpPtrAllocator(initialSlabSize: 256)
+    self.lexerStateAllocator = Lexer.StateAllocator()
     if collectsLookaheadRanges {
       self.lookaheadRanges.reserveCapacity(utf8ByteCount: input.count)
     }
@@ -1080,10 +1080,3 @@ public struct LookaheadRanges: Sendable {
     self.lookaheadRanges.reserveCapacity(utf8ByteCount / 80)
   }
 }
-
-/// See `ParserMemoryLayout`.
-let ParserMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
-  "Parser": layout(Parser.self),
-  "Parser.Lookahead": layout(Parser.Lookahead.self),
-  "TokenSpec": layout(TokenSpec.self),
-]

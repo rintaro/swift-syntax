@@ -56,3 +56,24 @@ func layout<T>(_: T.Type) -> SyntaxMemoryLayout.Value {
     ]
   }
 }
+
+/// The lexer types. See `ParserMemoryLayout`.
+///
+/// These live here rather than beside the types they measure, because unlike
+/// their counterparts in `SwiftSyntax` none of them is file private, so keeping
+/// them here saves their files from importing the `Testing` SPI.
+let LexerMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
+  "Lexer.Cursor": layout(Lexer.Cursor.self),
+  "Lexer.Cursor.Position": layout(Lexer.Cursor.Position.self),
+  "Lexer.Cursor.State": layout(Lexer.Cursor.State.self),
+  "Lexer.Cursor.StateStack": layout(Lexer.Cursor.StateStack.self),
+  "Lexer.Lexeme": layout(Lexer.Lexeme.self),
+  "Lexer.LexemeSequence": layout(Lexer.LexemeSequence.self),
+]
+
+/// The parser types. See `ParserMemoryLayout`.
+let ParserMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
+  "Parser": layout(Parser.self),
+  "Parser.Lookahead": layout(Parser.Lookahead.self),
+  "TokenSpec": layout(TokenSpec.self),
+]
