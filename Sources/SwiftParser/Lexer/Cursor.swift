@@ -767,6 +767,30 @@ extension Lexer.Cursor {
     while self.advance(if: predicate) {}
   }
 
+  /// Advance the cursor past every character that can continue an identifier.
+  ///
+  /// This spells out the ASCII characters that `isAsciiIdentifierContinue`
+  /// accepts so that they are classified inline, rather than through a closure
+  /// that the optimizer has to call for each byte.
+  mutating func advanceOverIdentifierContinuationCharacters() {
+    while let byte = self.peek() {
+      switch byte {
+      case UInt8(ascii: "0")...UInt8(ascii: "9"),
+        UInt8(ascii: "A")...UInt8(ascii: "Z"),
+        UInt8(ascii: "a")...UInt8(ascii: "z"),
+        UInt8(ascii: "_"),
+        UInt8(ascii: "$"):
+        _ = self.advance()
+      case 0..<0x80:
+        return
+      default:
+        guard self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) else {
+          return
+        }
+      }
+    }
+  }
+
   /// Advance the cursor to the end of the current line.
   mutating func advanceToEndOfLine() {
     while self.is(notAt: "\n", "\r") {
@@ -2101,7 +2125,7 @@ extension Lexer.Cursor {
     precondition(didStart, "Unexpected start")
 
     // Lex [a-zA-Z_$0-9[[:XID_Continue:]]]*
-    self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
+    self.advanceOverIdentifierContinuationCharacters()
 
     let text = tokStart.text(upTo: self)
     if let keyword = Keyword(text), keyword.isLexerClassified {
