@@ -15,15 +15,21 @@ import SwiftSyntaxBuilder
 import SyntaxSupport
 import Utils
 
-func tokenCaseMatch(
+/// A `switch` case that assigns `self` when the scrutinee is `enumCaseCallName`.
+///
+/// When further cases follow in a later `switch`, the assignment is followed by a
+/// `return` so that those cases are not also considered.
+func matchCase(
   _ enumCaseCallName: TokenSyntax,
-  experimentalFeature: ExperimentalFeature?
+  experimentalFeature: ExperimentalFeature?,
+  isLast: Bool
 ) -> SwitchCaseSyntax {
   var whereClause = ""
   if let feature = experimentalFeature {
-    whereClause += "where languageFeatures.contains(.\(feature.token))"
+    whereClause += " where languageFeatures.contains(.\(feature.token))"
   }
-  return "case TokenSpec(.\(enumCaseCallName))\(raw: whereClause): self = .\(enumCaseCallName)"
+  let body = isLast ? "self = .\(enumCaseCallName)" : "self = .\(enumCaseCallName)\nreturn"
+  return "case .\(enumCaseCallName)\(raw: whereClause): \(raw: body)"
 }
 
 let parserTokenSpecSetFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
@@ -53,25 +59,52 @@ let parserTokenSpecSetFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
               }
             }
 
+            // A token choice is matched on the lexeme's kind, a keyword choice on the
+            // keyword that the lexer resolved for it. Switching instead of comparing
+            // against one `TokenSpec` per choice lets the compiler build a jump table.
+            //
+            // The token choices are checked first: an `identifier` choice takes
+            // precedence over a keyword choice, and every set that has both spells
+            // `identifier` ahead of its keywords.
+            let tokenChoices: [(TokenSyntax, ExperimentalFeature?)] = choices.compactMap {
+              if case .token(let token) = $0 {
+                return (token.spec.enumCaseCallName, token.spec.experimentalFeature)
+              }
+              return nil
+            }
+            let keywordChoices: [(TokenSyntax, ExperimentalFeature?)] = choices.compactMap {
+              if case .keyword(let keyword) = $0 {
+                return (keyword.spec.enumCaseCallName, keyword.spec.experimentalFeature)
+              }
+              return nil
+            }
+
             try InitializerDeclSyntax(
               "init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures)"
             ) {
-              try SwitchExprSyntax("switch PrepareForKeywordMatch(lexeme)") {
-                for choice in choices {
-                  switch choice {
-                  case .keyword(let keyword):
-                    tokenCaseMatch(
-                      keyword.spec.enumCaseCallName,
-                      experimentalFeature: keyword.spec.experimentalFeature
-                    )
-                  case .token(let token):
-                    tokenCaseMatch(
-                      token.spec.enumCaseCallName,
-                      experimentalFeature: token.spec.experimentalFeature
-                    )
+              if !tokenChoices.isEmpty {
+                try SwitchExprSyntax("switch lexeme.rawTokenKind") {
+                  for (caseName, feature) in tokenChoices {
+                    matchCase(caseName, experimentalFeature: feature, isLast: keywordChoices.isEmpty)
+                  }
+                  if keywordChoices.isEmpty {
+                    SwitchCaseSyntax("default: return nil")
+                  } else {
+                    SwitchCaseSyntax("default: break")
                   }
                 }
-                SwitchCaseSyntax("default: return nil")
+              }
+              if !keywordChoices.isEmpty {
+                // Bind the keyword before switching on it: in a `switch` over
+                // `Keyword?`, `case .none` and `case .some` would name the optional's
+                // cases rather than the keywords spelled `none` and `some`.
+                StmtSyntax("guard let keyword = lexeme.keyword else { return nil }")
+                try SwitchExprSyntax("switch keyword") {
+                  for (caseName, feature) in keywordChoices {
+                    matchCase(caseName, experimentalFeature: feature, isLast: true)
+                  }
+                  SwitchCaseSyntax("default: return nil")
+                }
               }
             }
 
