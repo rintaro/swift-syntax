@@ -1278,54 +1278,56 @@ extension Lexer.Cursor {
     }
 
     while true {
-      let start = self
-
-      switch self.advance() {
+      // The character is only consumed once it is known to be trivia, so the
+      // cursor does not have to be saved in order to put it back. Only the
+      // branches that look at the character a second time need its position.
+      switch self.peek() {
       // 'continue' - the character is a part of the trivia.
-      // 'break' - the character should a part of token text.
+      // 'return' - the character should be a part of token text.
       case nil:
-        break
+        return TriviaResult(newlinePresence: newlinePresence, error: error)
       case "\n":
         if mode == .noNewlines {
-          break
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
         newlinePresence = .present
+        _ = self.advance()
         continue
       case "\r":
         if mode == .noNewlines {
-          break
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
         newlinePresence = .present
+        _ = self.advance()
         continue
 
-      case " ":
-        continue
-      case "\t":
-        continue
-      case "\u{000B}":
-        continue
-      case "\u{000C}":
+      case " ", "\t", "\u{000B}", "\u{000C}":
+        _ = self.advance()
         continue
       case "/":
-        switch self.peek() {
+        switch self.peek(at: 1) {
         case "/":
           self.advanceToEndOfLine()
           continue
         case "*":
-          let starSlashResult = self.advanceToEndOfSlashStarComment(slashPosition: start)
+          let slashPosition = self
+          _ = self.advance()
+          let starSlashResult = self.advanceToEndOfSlashStarComment(slashPosition: slashPosition)
           if starSlashResult.newlinePresence == .present {
             newlinePresence = .present
           }
           error = error ?? starSlashResult.error
           continue
         default:
-          break
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
       case "<", ">":
+        let start = self
         if self.tryLexConflictMarker(start: start) {
           error = LexingDiagnostic(.sourceConflictMarker, position: start)
           continue
         }
+        return TriviaResult(newlinePresence: newlinePresence, error: error)
       // Start character of tokens.
       //        case (char)-1: case (char)-2:
       case  // Punctuation.
@@ -1348,10 +1350,11 @@ extension Lexer.Cursor {
 
         // Start of operators.
         "%", "!", "?", "=", "-", "+", "*", "&", "|", "^", "~", ".":
-        break
+        return TriviaResult(newlinePresence: newlinePresence, error: error)
       case 0xEF:
-        if self.is(at: 0xBB), self.is(offset: 1, at: 0xBF) {
+        if self.is(offset: 1, at: 0xBB), self.is(offset: 2, at: 0xBF) {
           // BOM marker.
+          _ = self.advance()
           _ = self.advance()
           _ = self.advance()
           continue
@@ -1359,27 +1362,26 @@ extension Lexer.Cursor {
 
         fallthrough
       default:
-        if let peekedScalar = start.peekScalar(), peekedScalar.isValidIdentifierStartCodePoint {
-          break
+        if let peekedScalar = self.peekScalar(), peekedScalar.isValidIdentifierStartCodePoint {
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
-        if let peekedScalar = start.peekScalar(), peekedScalar.isOperatorStartCodePoint {
-          break
+        if let peekedScalar = self.peekScalar(), peekedScalar.isOperatorStartCodePoint {
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
 
-        // `lexUnknown` expects that the first character has not been consumed yet.
-        self = start
+        // `lexUnknown` expects that the first character has not been consumed
+        // yet, which it is not, but it does consume what it looks at. Put the
+        // cursor back if what it found belongs to the token rather than to the
+        // trivia.
+        let unknownStart = self
         if case .trivia(let unknownError) = self.lexUnknown() {
           error = error ?? unknownError
           continue
         } else {
-          break
+          self = unknownStart
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
       }
-
-      // `break` means the character was not a trivia. Reset the cursor and
-      // return the result.
-      self = start
-      return TriviaResult(newlinePresence: newlinePresence, error: error)
     }
   }
 }
