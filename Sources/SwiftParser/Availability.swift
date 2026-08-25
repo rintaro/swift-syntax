@@ -66,16 +66,34 @@ extension Parser {
     case identifier
 
     init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(.message): self = .message
-      case TokenSpec(.renamed): self = .renamed
-      case TokenSpec(.introduced): self = .introduced
-      case TokenSpec(.deprecated): self = .deprecated
-      case TokenSpec(.obsoleted): self = .obsoleted
-      case TokenSpec(.unavailable): self = .unavailable
-      case TokenSpec(.noasync): self = .noasync
-      case TokenSpec(.binaryOperator) where lexeme.tokenText == "*": self = .star
-      case TokenSpec(.identifier): self = .identifier
+      let keyword = lexeme.keyword
+      switch keyword {
+      case .message:
+        self = .message
+        return
+      case .renamed:
+        self = .renamed
+        return
+      case .introduced:
+        self = .introduced
+        return
+      case .deprecated:
+        self = .deprecated
+        return
+      case .obsoleted:
+        self = .obsoleted
+        return
+      case .unavailable:
+        self = .unavailable
+        return
+      case .noasync:
+        self = .noasync
+        return
+      default: break
+      }
+      switch lexeme.rawTokenKind {
+      case .binaryOperator where lexeme.tokenText == "*": self = .star
+      case .identifier: self = .identifier
       default: return nil
       }
     }

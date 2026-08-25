@@ -16,30 +16,6 @@
 @_spi(RawSyntax) import SwiftSyntax
 #endif
 
-/// Holds the parts of a lexeme that matching against a ``TokenSpec`` looks at.
-///
-/// A `switch` over a lexeme compares it against one ``TokenSpec`` per case, and
-/// each comparison would otherwise re-read these out of the lexeme, which is an
-/// order of magnitude larger and whose `isAtStartOfLine` is stored in a flag set.
-/// Reading them once up front keeps them in registers for the whole `switch`.
-struct PrepareForKeywordMatch {
-  /// The kind of the lexeme.
-  fileprivate let rawTokenKind: RawTokenKind
-
-  /// If the lexeme has the same text as a keyword, that keyword, otherwise `nil`.
-  fileprivate let keyword: Keyword?
-
-  /// Whether the lexeme occurred at the start of a line.
-  fileprivate let isAtStartOfLine: Bool
-
-  @inline(__always)
-  init(_ lexeme: Lexer.Lexeme) {
-    self.rawTokenKind = lexeme.rawTokenKind
-    self.keyword = lexeme.keyword
-    self.isAtStartOfLine = lexeme.isAtStartOfLine
-  }
-}
-
 /// Describes a token that should be consumed by the parser.
 ///
 /// All the methods in here and all functions that take a ``TokenSpec`` need to be
@@ -155,15 +131,6 @@ public struct TokenSpec: Sendable {
       rawTokenKind: token.tokenKind,
       keyword: Keyword(token.tokenView.rawText),
       atStartOfLine: token.leadingTriviaPieces.contains(where: \.isNewline)
-    )
-  }
-
-  @inline(__always)
-  static func ~= (kind: TokenSpec, lexeme: PrepareForKeywordMatch) -> Bool {
-    return kind.matches(
-      rawTokenKind: lexeme.rawTokenKind,
-      keyword: lexeme.keyword,
-      atStartOfLine: lexeme.isAtStartOfLine
     )
   }
 

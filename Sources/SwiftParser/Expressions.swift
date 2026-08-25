@@ -270,15 +270,27 @@ extension Parser {
       case `throws`
 
       init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-        switch PrepareForKeywordMatch(lexeme) {
-        case TokenSpec(.binaryOperator): self = .binaryOperator
-        case TokenSpec(.infixQuestionMark): self = .infixQuestionMark
-        case TokenSpec(.equal): self = .equal
-        case TokenSpec(.is): self = .is
-        case TokenSpec(.as): self = .as
-        case TokenSpec(.async): self = .async
-        case TokenSpec(.arrow): self = .arrow
-        case TokenSpec(.throws): self = .throws
+        switch lexeme.rawTokenKind {
+        case .binaryOperator:
+          self = .binaryOperator
+          return
+        case .infixQuestionMark:
+          self = .infixQuestionMark
+          return
+        case .equal:
+          self = .equal
+          return
+        case .arrow:
+          self = .arrow
+          return
+        default: break
+        }
+        let keyword = lexeme.keyword
+        switch keyword {
+        case .is: self = .is
+        case .as: self = .as
+        case .async: self = .async
+        case .throws: self = .throws
         default: return nil
         }
       }

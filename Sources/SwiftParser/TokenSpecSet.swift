@@ -69,13 +69,14 @@ enum AccessorModifier: TokenSpecSet {
   case yielding
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(.__consuming): self = .__consuming
-    case TokenSpec(.consuming): self = .consuming
-    case TokenSpec(.borrowing): self = .borrowing
-    case TokenSpec(.mutating): self = .mutating
-    case TokenSpec(.nonmutating): self = .nonmutating
-    case TokenSpec(.yielding): self = .yielding
+    let keyword = lexeme.keyword
+    switch keyword {
+    case .__consuming: self = .__consuming
+    case .consuming: self = .consuming
+    case .borrowing: self = .borrowing
+    case .mutating: self = .mutating
+    case .nonmutating: self = .nonmutating
+    case .yielding: self = .yielding
     default: return nil
     }
   }
@@ -161,10 +162,11 @@ enum CompilationCondition: TokenSpecSet {
   case canImport
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(.swift): self = .swift
-    case TokenSpec(.compiler): self = .compiler
-    case TokenSpec(.canImport): self = .canImport
+    let keyword = lexeme.keyword
+    switch keyword {
+    case .swift: self = .swift
+    case .compiler: self = .compiler
+    case .canImport: self = .canImport
     default: return nil
     }
   }
@@ -624,9 +626,10 @@ enum SwitchCaseStart: TokenSpecSet {
   case `default`
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(.case): self = .case
-    case TokenSpec(.default): self = .default
+    let keyword = lexeme.keyword
+    switch keyword {
+    case .case: self = .case
+    case .default: self = .default
     default: return nil
     }
   }
@@ -743,10 +746,11 @@ enum SingleValueStatementExpression: TokenSpecSet {
   case `switch`
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(.do) where languageFeatures.contains(.doExpressions): self = .do
-    case TokenSpec(.if): self = .if
-    case TokenSpec(.switch): self = .switch
+    let keyword = lexeme.keyword
+    switch keyword {
+    case .do where languageFeatures.contains(.doExpressions): self = .do
+    case .if: self = .if
+    case .switch: self = .switch
     default: return nil
     }
   }
@@ -791,8 +795,9 @@ enum PureMatchingPatternStart: TokenSpecSet {
   case `is`
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(.is): self = .is
+    let keyword = lexeme.keyword
+    switch keyword {
+    case .is: self = .is
     default: return nil
     }
   }
@@ -814,9 +819,10 @@ enum ParameterModifier: TokenSpecSet {
   case isolated
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(._const): self = ._const
-    case TokenSpec(.isolated): self = .isolated
+    let keyword = lexeme.keyword
+    switch keyword {
+    case ._const: self = ._const
+    case .isolated: self = .isolated
     default: return nil
     }
   }
@@ -1029,14 +1035,16 @@ enum EffectSpecifiers: TokenSpecSet {
   case `try`
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    switch PrepareForKeywordMatch(lexeme) {
-    case TokenSpec(.async): self = .async
-    case TokenSpec(.await, allowAtStartOfLine: false): self = .await
-    case TokenSpec(.reasync): self = .reasync
-    case TokenSpec(.rethrows): self = .rethrows
-    case TokenSpec(.throw, allowAtStartOfLine: false): self = .throw
-    case TokenSpec(.throws): self = .throws
-    case TokenSpec(.try, allowAtStartOfLine: false): self = .try
+    let atStartOfLine = lexeme.isAtStartOfLine
+    let keyword = lexeme.keyword
+    switch keyword {
+    case .async: self = .async
+    case .await where !atStartOfLine: self = .await
+    case .reasync: self = .reasync
+    case .rethrows: self = .rethrows
+    case .throw where !atStartOfLine: self = .throw
+    case .throws: self = .throws
+    case .try where !atStartOfLine: self = .try
     default: return nil
     }
   }

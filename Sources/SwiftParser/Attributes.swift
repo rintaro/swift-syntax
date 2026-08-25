@@ -1068,13 +1068,14 @@ extension Parser {
           }
 
           init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-            switch PrepareForKeywordMatch(lexeme) {
-            case TokenSpec(.private): self = .private
-            case TokenSpec(.fileprivate): self = .fileprivate
-            case TokenSpec(.internal): self = .internal
-            case TokenSpec(.package): self = .package
-            case TokenSpec(.public): self = .public
-            case TokenSpec(.open): self = .open
+            let keyword = lexeme.keyword
+            switch keyword {
+            case .private: self = .private
+            case .fileprivate: self = .fileprivate
+            case .internal: self = .internal
+            case .package: self = .package
+            case .public: self = .public
+            case .open: self = .open
             default: return nil
             }
           }

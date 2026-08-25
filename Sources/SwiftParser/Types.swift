@@ -325,9 +325,16 @@ extension Parser {
       case wildcard
 
       init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-        switch PrepareForKeywordMatch(lexeme) {
-        case .keyword(.Self): self = .Self
-        case .keyword(.Any): self = .Any
+        switch lexeme.keyword {
+        case .Self:
+          self = .Self
+          return
+        case .Any:
+          self = .Any
+          return
+        default: break
+        }
+        switch lexeme.rawTokenKind {
         case .identifier: self = .identifier
         case .leftParen: self = .leftParen
         case .leftSquare: self = .leftSquare
