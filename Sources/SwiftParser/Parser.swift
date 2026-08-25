@@ -115,8 +115,16 @@ public struct Parser {
   /// See comments in ``IncrementalParseLookup``
   var parseLookup: IncrementalParseLookup?
 
-  /// See comments in ``LookaheadRanges``
+  /// See comments in ``LookaheadRanges``.
+  ///
+  /// Only populated when the parser was asked to collect them. Recording a range
+  /// for every node costs a hash table insertion per node, and only an
+  /// incremental reparse ever reads them, so a plain parse does not pay for it.
   public internal(set) var lookaheadRanges = LookaheadRanges()
+
+  /// Whether to record how far the parser looked ahead to parse each node, for a
+  /// later incremental reparse to consult.
+  let collectsLookaheadRanges: Bool
 
   /// Parser should own a ``LookaheadTracker`` so that we can share one `furthestOffset` in a parse.
   private let lookaheadTrackerOwner: LookaheadTrackerOwner
@@ -234,9 +242,11 @@ public struct Parser {
     arena: ParsingRawSyntaxArena?,
     copySource: Bool,
     swiftVersion: SwiftVersion?,
-    languageFeatures: LanguageFeatures
+    languageFeatures: LanguageFeatures,
+    collectsLookaheadRanges: Bool
   ) {
     self.arena = arena ?? ParsingRawSyntaxArena(parseTriviaFunction: TriviaParser.parseTrivia)
+    self.collectsLookaheadRanges = collectsLookaheadRanges
 
     var input = input
     if parseTransition == nil {
@@ -263,7 +273,9 @@ public struct Parser {
     self.swiftVersion = swiftVersion ?? Self.defaultSwiftVersion
     self.languageFeatures = languageFeatures
     self.lookaheadTrackerOwner = LookaheadTrackerOwner()
-    self.lookaheadRanges.reserveCapacity(utf8ByteCount: input.count)
+    if collectsLookaheadRanges {
+      self.lookaheadRanges.reserveCapacity(utf8ByteCount: input.count)
+    }
 
     self.lexemes = Lexer.tokenize(
       input,
@@ -295,7 +307,8 @@ public struct Parser {
     maximumNestingLevel: Int? = nil,
     parseTransition: IncrementalParseTransition? = nil,
     swiftVersion: SwiftVersion? = nil,
-    languageFeatures: LanguageFeatures = []
+    languageFeatures: LanguageFeatures = [],
+    collectsLookaheadRanges: Bool = false
   ) {
     var input = input
     input.makeContiguousUTF8()
@@ -310,7 +323,8 @@ public struct Parser {
         // copied into a parser-owned buffer.
         copySource: true,
         swiftVersion: swiftVersion,
-        languageFeatures: languageFeatures
+        languageFeatures: languageFeatures,
+        collectsLookaheadRanges: collectsLookaheadRanges
       )
     }
   }
@@ -335,7 +349,8 @@ public struct Parser {
     maximumNestingLevel: Int? = nil,
     parseTransition: IncrementalParseTransition? = nil,
     swiftVersion: SwiftVersion? = nil,
-    languageFeatures: LanguageFeatures = []
+    languageFeatures: LanguageFeatures = [],
+    collectsLookaheadRanges: Bool = false
   ) {
     // Copy the source so the caller may free `input` after this initializer
     // returns.
@@ -346,7 +361,8 @@ public struct Parser {
       arena: nil,
       copySource: true,
       swiftVersion: swiftVersion,
-      languageFeatures: languageFeatures
+      languageFeatures: languageFeatures,
+      collectsLookaheadRanges: collectsLookaheadRanges
     )
   }
 
@@ -359,7 +375,8 @@ public struct Parser {
     parseTransition: IncrementalParseTransition? = nil,
     arena: ParsingRawSyntaxArena,
     swiftVersion: SwiftVersion? = nil,
-    languageFeatures: LanguageFeatures = []
+    languageFeatures: LanguageFeatures = [],
+    collectsLookaheadRanges: Bool = false
   ) {
     // Copy the source so the caller may free `input` after this initializer
     // returns, and so the resulting tree does not depend on `input` (its tokens
@@ -371,7 +388,8 @@ public struct Parser {
       arena: arena,
       copySource: true,
       swiftVersion: swiftVersion,
-      languageFeatures: languageFeatures
+      languageFeatures: languageFeatures,
+      collectsLookaheadRanges: collectsLookaheadRanges
     )
   }
 
@@ -395,6 +413,7 @@ public struct Parser {
     parseTransition: IncrementalParseTransition? = nil,
     swiftVersion: SwiftVersion? = nil,
     languageFeatures: LanguageFeatures = [],
+    collectsLookaheadRanges: Bool = false,
     body: (inout Parser) -> T
   ) -> T {
     var parser = Parser(
@@ -404,7 +423,8 @@ public struct Parser {
       arena: nil,
       copySource: false,
       swiftVersion: swiftVersion,
-      languageFeatures: languageFeatures
+      languageFeatures: languageFeatures,
+      collectsLookaheadRanges: collectsLookaheadRanges
     )
     return body(&parser)
   }
@@ -423,6 +443,7 @@ public struct Parser {
     parseTransition: IncrementalParseTransition? = nil,
     swiftVersion: SwiftVersion? = nil,
     languageFeatures: LanguageFeatures = [],
+    collectsLookaheadRanges: Bool = false,
     body: (inout Parser) -> T
   ) -> T {
     var input = input
@@ -434,6 +455,7 @@ public struct Parser {
         parseTransition: parseTransition,
         swiftVersion: swiftVersion,
         languageFeatures: languageFeatures,
+        collectsLookaheadRanges: collectsLookaheadRanges,
         body: body
       )
     }
