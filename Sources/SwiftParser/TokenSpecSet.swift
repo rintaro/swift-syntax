@@ -299,32 +299,45 @@ enum PureDeclarationKeyword: TokenSpecSet {
   case using
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    // `pound` is a token kind rather than a keyword.
-    if lexeme.rawTokenKind == .pound {
-      self = .pound
-      return
+    func token() -> Self? {
+      // `pound` is a token kind rather than a keyword.
+      return switch lexeme.rawTokenKind {
+      case .pound: .pound
+      default: nil
+      }
     }
-    switch lexeme.keyword {
-    case .actor: self = .actor
-    case .macro: self = .macro
-    case .associatedtype: self = .associatedtype
-    case .case: self = .case
-    case .class: self = .class
-    case .deinit: self = .deinit
-    case .enum: self = .enum
-    case .extension: self = .extension
-    case .func: self = .func
-    case .import: self = .import
-    case .`init`: self = .`init`
-    case .operator: self = .operator
-    case .precedencegroup: self = .precedencegroup
-    case .protocol: self = .protocol
-    case .struct: self = .struct
-    case .subscript: self = .subscript
-    case .typealias: self = .typealias
-    case .using where languageFeatures.contains(.defaultIsolationPerFile): self = .using
-    default: return nil
+
+    func keyword() -> Self? {
+      guard let keyword = lexeme.keyword else {
+        return nil
+      }
+      return switch keyword {
+      case .actor: .actor
+      case .macro: .macro
+      case .associatedtype: .associatedtype
+      case .case: .case
+      case .class: .class
+      case .deinit: .deinit
+      case .enum: .enum
+      case .extension: .extension
+      case .func: .func
+      case .import: .import
+      case .`init`: .`init`
+      case .operator: .operator
+      case .precedencegroup: .precedencegroup
+      case .protocol: .protocol
+      case .struct: .struct
+      case .subscript: .subscript
+      case .typealias: .typealias
+      case .using where languageFeatures.contains(.defaultIsolationPerFile): .using
+      default: nil
+      }
     }
+
+    guard let match = token() ?? keyword() else {
+      return nil
+    }
+    self = match
   }
 
   var spec: TokenSpec {
@@ -594,17 +607,13 @@ enum OperatorLike: TokenSpecSet {
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
     if case .prefixOperator = lexeme.rawTokenKind {
       self = .prefixOperator
-      return
-    }
-    if let binOp = BinaryOperatorLike(lexeme: lexeme, languageFeatures: languageFeatures) {
+    } else if let binOp = BinaryOperatorLike(lexeme: lexeme, languageFeatures: languageFeatures) {
       self = .binaryOperatorLike(binOp)
-      return
-    }
-    if let postfixOp = PostfixOperatorLike(lexeme: lexeme, languageFeatures: languageFeatures) {
+    } else if let postfixOp = PostfixOperatorLike(lexeme: lexeme, languageFeatures: languageFeatures) {
       self = .postfixOperatorLike(postfixOp)
-      return
+    } else {
+      return nil
     }
-    return nil
   }
 
   static var allCases: [OperatorLike] {
