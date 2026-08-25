@@ -270,29 +270,33 @@ extension Parser {
       case `throws`
 
       init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-        switch lexeme.rawTokenKind {
-        case .binaryOperator:
-          self = .binaryOperator
-          return
-        case .infixQuestionMark:
-          self = .infixQuestionMark
-          return
-        case .equal:
-          self = .equal
-          return
-        case .arrow:
-          self = .arrow
-          return
-        default: break
+        func token() -> Self? {
+          return switch lexeme.rawTokenKind {
+          case .binaryOperator: .binaryOperator
+          case .infixQuestionMark: .infixQuestionMark
+          case .equal: .equal
+          case .arrow: .arrow
+          default: nil
+          }
         }
-        let keyword = lexeme.keyword
-        switch keyword {
-        case .is: self = .is
-        case .as: self = .as
-        case .async: self = .async
-        case .throws: self = .throws
-        default: return nil
+
+        func keyword() -> Self? {
+          guard let keyword = lexeme.keyword else {
+            return nil
+          }
+          return switch keyword {
+          case .is: .is
+          case .as: .as
+          case .async: .async
+          case .throws: .throws
+          default: nil
+          }
         }
+
+        guard let match = token() ?? keyword() else {
+          return nil
+        }
+        self = match
       }
 
       var spec: TokenSpec {

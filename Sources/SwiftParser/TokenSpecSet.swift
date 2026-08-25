@@ -868,83 +868,55 @@ enum PrimaryExpressionStart: TokenSpecSet {
   case singleQuote
 
   init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-    switch lexeme.rawTokenKind {
-    case .atSign:
-      self = .atSign
-      return
-    case .colonColon:
-      self = .colonColon
-      return
-    case .dollarIdentifier:
-      self = .dollarIdentifier
-      return
-    case .floatLiteral:
-      self = .floatLiteral
-      return
-    case .identifier:
-      self = .identifier
-      return
-    case .integerLiteral:
-      self = .integerLiteral
-      return
-    case .leftBrace:
-      self = .leftBrace
-      return
-    case .leftParen:
-      self = .leftParen
-      return
-    case .leftSquare:
-      self = .leftSquare
-      return
-    case .period:
-      self = .period
-      return
-    case .pound:
-      self = .pound
-      return
-    case .poundAvailable:
-      self = .poundAvailable
-      return
-    case .poundUnavailable:
-      self = .poundUnavailable
-      return
-    case .regexSlash:
-      self = .regexSlash
-      return
-    case .regexPoundDelimiter:
-      self = .extendedRegexDelimiter
-      return
-    case .wildcard:
-      self = .wildcard
-      return
-    case .rawStringPoundDelimiter:
-      self = .rawStringDelimiter
-      return
-    case .stringQuote:
-      self = .stringQuote
-      return
-    case .multilineStringQuote:
-      self = .multilineStringQuote
-      return
-    case .singleQuote:
-      self = .singleQuote
-      return
-    default: break
+    func token() -> Self? {
+      return switch lexeme.rawTokenKind {
+      case .atSign: .atSign
+      case .colonColon: .colonColon
+      case .dollarIdentifier: .dollarIdentifier
+      case .floatLiteral: .floatLiteral
+      case .identifier: .identifier
+      case .integerLiteral: .integerLiteral
+      case .leftBrace: .leftBrace
+      case .leftParen: .leftParen
+      case .leftSquare: .leftSquare
+      case .period: .period
+      case .pound: .pound
+      case .poundAvailable: .poundAvailable
+      case .poundUnavailable: .poundUnavailable
+      case .regexSlash: .regexSlash
+      case .regexPoundDelimiter: .extendedRegexDelimiter
+      case .wildcard: .wildcard
+      case .rawStringPoundDelimiter: .rawStringDelimiter
+      case .stringQuote: .stringQuote
+      case .multilineStringQuote: .multilineStringQuote
+      case .singleQuote: .singleQuote
+      default: nil
+      }
     }
-    guard let keyword = lexeme.keyword else { return nil }
-    switch keyword {
-    case .Any: self = .Any
-    case .Self: self = .Self
-    case .deinit: self = .`deinit`
-    case .false: self = .false
-    case .`init`: self = .`init`
-    case .nil: self = .nil
-    case .self: self = .self
-    case .subscript: self = .`subscript`
-    case .super: self = .super
-    case .true: self = .true
-    default: return nil
+
+    func keyword() -> Self? {
+      guard let keyword = lexeme.keyword else {
+        return nil
+      }
+      return switch keyword {
+      case .Any: .Any
+      case .Self: .Self
+      case .deinit: .`deinit`
+      case .false: .false
+      case .`init`: .`init`
+      case .nil: .nil
+      case .self: .self
+      case .subscript: .`subscript`
+      case .super: .super
+      case .true: .true
+      default: nil
+      }
     }
+
+    guard let match = token() ?? keyword() else {
+      return nil
+    }
+    self = match
   }
 
   var spec: TokenSpec {
