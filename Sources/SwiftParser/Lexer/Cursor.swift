@@ -510,10 +510,24 @@ extension Lexer.Cursor {
 
     diagnostic = TokenDiagnostic(combining: diagnostic, result.error?.tokenDiagnostic(tokenStart: cursor))
 
+    let textStartPointer = textStart.pointer
+    let keyword: Keyword?
+    switch result.tokenKind {
+    case .keyword:
+      keyword = result.keywordKind
+    case .identifier:
+      keyword = Keyword(
+        SyntaxText(baseAddress: textStartPointer, count: textStartPointer.distance(to: trailingTriviaStart.pointer))
+      )
+    default:
+      keyword = nil
+    }
+
     let lexeme = Lexer.Lexeme(
       tokenKind: result.tokenKind,
       flags: flags,
       diagnostic: diagnostic,
+      keyword: keyword,
       start: leadingTriviaStart.pointer,
       leadingTriviaLength: leadingTriviaStart.distance(to: textStart),
       textLength: textStart.distance(to: trailingTriviaStart),
