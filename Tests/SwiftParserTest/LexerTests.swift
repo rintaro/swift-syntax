@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 @_spi(RawSyntax) @_spi(Testing) @_spi(ExperimentalLanguageFeatures) import SwiftParser
-@_spi(RawSyntax) @_spi(ExperimentalLanguageFeatures) import SwiftSyntax
+@_spi(BumpPtrAllocator) @_spi(RawSyntax) @_spi(ExperimentalLanguageFeatures) import SwiftSyntax
 import XCTest
 
 private func lex(_ sourceBytes: [UInt8], body: ([Lexer.Lexeme]) throws -> Void) rethrows {
@@ -20,9 +20,16 @@ private func lex(_ sourceBytes: [UInt8], body: ([Lexer.Lexeme]) throws -> Void) 
     lookaheadTracker.deallocate()
   }
   lookaheadTracker.initialize(to: LookaheadTracker())
+  // Outlives the lexeme sequence, which refers to it without owning it.
+  let stateAllocator = BumpPtrAllocator(initialSlabSize: 256)
   try sourceBytes.withUnsafeBufferPointer { (buf) in
     var lexemes = [Lexer.Lexeme]()
-    for token in Lexer.tokenize(buf, from: 0, lookaheadTracker: lookaheadTracker) {
+    for token in Lexer.tokenize(
+      buf,
+      from: 0,
+      lookaheadTracker: lookaheadTracker,
+      stateAllocator: stateAllocator
+    ) {
       lexemes.append(token)
 
       if token.rawTokenKind == .endOfFile {

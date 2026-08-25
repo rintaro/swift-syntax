@@ -11,7 +11,7 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6)
-@_spi(RawSyntax) @_spi(BumpPtrAllocator) internal import SwiftSyntax
+@_spi(RawSyntax) @_spi(BumpPtrAllocator) public import SwiftSyntax
 #else
 @_spi(RawSyntax) @_spi(BumpPtrAllocator) import SwiftSyntax
 #endif
@@ -29,12 +29,17 @@ extension Lexer {
     /// additional states on its stack. This is more efficient than paying the
     /// retain/release cost of an array.
     ///
-    /// The states will be freed when the lexer is finished, i.e. when this
-    /// ``LexemeSequence`` is deallocated.
-    ///
     /// The memory footprint of not freeing past lexer states is negligible. It's
     /// usually less than 0.1% of the memory allocated by the syntax arena.
-    var lexerStateAllocator = BumpPtrAllocator(initialSlabSize: 256)
+    ///
+    /// This is `unowned(unsafe)` for the same reasons ``lookaheadTracker`` is a
+    /// pointer: a copy has to keep using the same allocator, and holding it
+    /// strongly would make ``LexemeSequence`` non-trivial, so that copying one
+    /// to create a ``Lookahead`` would retain it and destroying that
+    /// ``Lookahead`` would release it. Whoever creates the sequence keeps the
+    /// allocator alive for at least as long as the sequence and anything copied
+    /// from it.
+    unowned(unsafe) let lexerStateAllocator: BumpPtrAllocator
 
     /// The offset of the trailing trivia end of `nextToken` relative to the source buffer’s start.
     var offsetToNextTokenEnd: Int {
@@ -51,13 +56,15 @@ extension Lexer {
     fileprivate init(
       sourceBufferStart: UnsafePointer<UInt8>?,
       cursor: Lexer.Cursor,
-      lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>
+      lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>,
+      stateAllocator: BumpPtrAllocator
     ) {
       self.sourceBufferStart = sourceBufferStart
       self.cursor = cursor
+      self.lexerStateAllocator = stateAllocator
       self.nextToken = self.cursor.nextToken(
         sourceBufferStart: self.sourceBufferStart,
-        stateAllocator: lexerStateAllocator
+        stateAllocator: stateAllocator
       )
       self.lookaheadTracker = lookaheadTracker
     }
@@ -152,7 +159,8 @@ extension Lexer {
   public static func tokenize(
     _ input: UnsafeBufferPointer<UInt8>,
     from startIndex: Int = 0,
-    lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>
+    lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>,
+    stateAllocator: BumpPtrAllocator
   ) -> LexemeSequence {
     precondition(input.isEmpty || startIndex < input.endIndex)
     let startChar = startIndex == input.startIndex ? UInt8(ascii: "\0") : input[startIndex - 1]
@@ -163,7 +171,8 @@ extension Lexer {
     return LexemeSequence(
       sourceBufferStart: input.baseAddress,
       cursor: cursor,
-      lookaheadTracker: lookaheadTracker
+      lookaheadTracker: lookaheadTracker,
+      stateAllocator: stateAllocator
     )
   }
 }

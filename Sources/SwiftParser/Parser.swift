@@ -11,9 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6)
-@_spi(RawSyntax) public import SwiftSyntax
+@_spi(RawSyntax) @_spi(BumpPtrAllocator) public import SwiftSyntax
 #else
-@_spi(RawSyntax) import SwiftSyntax
+@_spi(RawSyntax) @_spi(BumpPtrAllocator) import SwiftSyntax
 #endif
 
 /// A parser for the Swift programming language.
@@ -128,6 +128,13 @@ public struct Parser {
 
   /// Parser should own a ``LookaheadTracker`` so that we can share one `furthestOffset` in a parse.
   private let lookaheadTrackerOwner: LookaheadTrackerOwner
+
+  /// Owns the memory that the lexer's state stack spills into.
+  ///
+  /// ``Lexer/LexemeSequence`` refers to this without owning it, so that copying
+  /// one does not retain it. This parser outlives its own ``lexemes`` and every
+  /// ``Lookahead`` copied from them, so it is the one to keep it alive.
+  private let lexerStateAllocator: BumpPtrAllocator
 
   /// Owns the source buffer for the lifetime of this parser when the parser
   /// created its own arena. The source is not copied into the arena, so it is
@@ -273,13 +280,15 @@ public struct Parser {
     self.swiftVersion = swiftVersion ?? Self.defaultSwiftVersion
     self.languageFeatures = languageFeatures
     self.lookaheadTrackerOwner = LookaheadTrackerOwner()
+    self.lexerStateAllocator = BumpPtrAllocator(initialSlabSize: 256)
     if collectsLookaheadRanges {
       self.lookaheadRanges.reserveCapacity(utf8ByteCount: input.count)
     }
 
     self.lexemes = Lexer.tokenize(
       input,
-      lookaheadTracker: lookaheadTrackerOwner.lookaheadTracker
+      lookaheadTracker: lookaheadTrackerOwner.lookaheadTracker,
+      stateAllocator: lexerStateAllocator
     )
     self.currentToken = self.lexemes.advance()
     if let parseTransition {

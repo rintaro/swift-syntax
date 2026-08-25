@@ -14,7 +14,7 @@ import SwiftDiagnostics
 @_spi(FixItApplier) import SwiftIDEUtils
 @_spi(Testing) @_spi(RawSyntax) @_spi(AlternateTokenIntrospection) @_spi(ExperimentalLanguageFeatures) import SwiftParser
 @_spi(RawSyntax) import SwiftParserDiagnostics
-@_spi(RawSyntax) import SwiftSyntax
+@_spi(BumpPtrAllocator) @_spi(RawSyntax) import SwiftSyntax
 import XCTest
 import _SwiftSyntaxTestSupport
 
@@ -204,12 +204,15 @@ func assertLexemes(
     lookaheadTracker.deallocate()
   }
   lookaheadTracker.initialize(to: LookaheadTracker())
+  // Outlives the lexeme sequence, which refers to it without owning it.
+  let stateAllocator = BumpPtrAllocator(initialSlabSize: 256)
   source.withUTF8 { buf in
     var lexemes = [Lexer.Lexeme]()
     for token in Lexer.tokenize(
       buf,
       from: 0,
-      lookaheadTracker: lookaheadTracker
+      lookaheadTracker: lookaheadTracker,
+      stateAllocator: stateAllocator
     ) {
       lexemes.append(token)
 
