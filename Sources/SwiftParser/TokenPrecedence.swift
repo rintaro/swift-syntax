@@ -242,40 +242,9 @@ enum TokenPrecedence: Comparable {
       .import, .using:
       self = .declKeyword
 
-    case  // `TypeAttribute`
-    ._noMetadata,
-      ._opaqueReturnTypeOf,
-      .autoclosure,
-      .convention,
-      .differentiable,
-      .escaping,
-      .noDerivative,
-      .noescape,
-      .preconcurrency,
-      .Sendable,
-      .retroactive,
-      .unchecked:
-      // Note that .isolated is preferred as a decl keyword
-      self = .exprKeyword
-
-    case  // `DeclarationAttributeWithSpecialSyntax`
-    ._backDeploy,
-      ._documentation,
-      ._dynamicReplacement,
-      ._effects,
-      ._implements,
-      ._originallyDefinedIn,
-      .section,
-      .specialized,
-      ._specialize,
-      ._spi_available,
-      .abi,
-      .attached,
-      .available,
-      .backDeployed,
+    case  // Differentiation attribute names
+    .differentiable,
       .derivative,
-      .freestanding,
-      .objc,
       .transpose:
       self = .exprKeyword
 

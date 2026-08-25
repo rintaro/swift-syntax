@@ -92,28 +92,40 @@ extension Parser {
     case transpose
 
     init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
-      switch PrepareForKeywordMatch(lexeme) {
-      case TokenSpec(._backDeploy): self = ._backDeploy
-      case TokenSpec(._documentation): self = ._documentation
-      case TokenSpec(._dynamicReplacement): self = ._dynamicReplacement
-      case TokenSpec(._effects): self = ._effects
-      case TokenSpec(._implements): self = ._implements
-      case TokenSpec(._originallyDefinedIn): self = ._originallyDefinedIn
-      case TokenSpec(.section): self = .section
-      case TokenSpec(.specialized): self = .specialized
-      case TokenSpec(._specialize): self = ._specialize
-      case TokenSpec(._spi_available): self = ._spi_available
-      case TokenSpec(.`rethrows`): self = .rethrows
-      case TokenSpec(.abi): self = .abi
-      case TokenSpec(.attached): self = .attached
-      case TokenSpec(.available): self = .available
-      case TokenSpec(.backDeployed): self = .backDeployed
-      case TokenSpec(.derivative): self = .derivative
-      case TokenSpec(.differentiable): self = .differentiable
-      case TokenSpec(.freestanding): self = .freestanding
-      case TokenSpec(.objc): self = .objc
-      case TokenSpec(.Sendable): self = .Sendable
-      case TokenSpec(.transpose): self = .transpose
+      switch lexeme.rawTokenKind {
+      case .keyword:
+        // `rethrows` is a reserved keyword, so it is lexed as one rather than
+        // as an identifier.
+        switch Keyword(lexeme.tokenText) {
+        case .rethrows: self = .rethrows
+        default: return nil
+        }
+      case .identifier:
+        // The remaining attribute names are always parsed as a type, so they are
+        // lexed as identifiers rather than declared as keywords.
+        switch lexeme.tokenText {
+        case "_backDeploy": self = ._backDeploy
+        case "_documentation": self = ._documentation
+        case "_dynamicReplacement": self = ._dynamicReplacement
+        case "_effects": self = ._effects
+        case "_implements": self = ._implements
+        case "_originallyDefinedIn": self = ._originallyDefinedIn
+        case "section": self = .section
+        case "specialized": self = .specialized
+        case "_specialize": self = ._specialize
+        case "_spi_available": self = ._spi_available
+        case "abi": self = .abi
+        case "attached": self = .attached
+        case "available": self = .available
+        case "backDeployed": self = .backDeployed
+        case "derivative": self = .derivative
+        case "differentiable": self = .differentiable
+        case "freestanding": self = .freestanding
+        case "objc": self = .objc
+        case "Sendable": self = .Sendable
+        case "transpose": self = .transpose
+        default: return nil
+        }
       default:
         return nil
       }
@@ -121,27 +133,8 @@ extension Parser {
 
     var spec: TokenSpec {
       switch self {
-      case ._backDeploy: return .keyword(._backDeploy)
-      case ._documentation: return .keyword(._documentation)
-      case ._dynamicReplacement: return .keyword(._dynamicReplacement)
-      case ._effects: return .keyword(._effects)
-      case ._implements: return .keyword(._implements)
-      case ._originallyDefinedIn: return .keyword(._originallyDefinedIn)
-      case .section: return .keyword(.section)
-      case .specialized: return .keyword(.specialized)
-      case ._specialize: return .keyword(._specialize)
-      case ._spi_available: return .keyword(._spi_available)
-      case .`rethrows`: return .keyword(.rethrows)
-      case .abi: return .keyword(.abi)
-      case .attached: return .keyword(.attached)
-      case .available: return .keyword(.available)
-      case .backDeployed: return .keyword(.backDeployed)
-      case .derivative: return .keyword(.derivative)
-      case .differentiable: return .keyword(.differentiable)
-      case .freestanding: return .keyword(.freestanding)
-      case .objc: return .keyword(.objc)
-      case .Sendable: return .keyword(.Sendable)
-      case .transpose: return .keyword(.transpose)
+      case .rethrows: return .keyword(.rethrows)
+      default: return .identifier
       }
     }
   }
