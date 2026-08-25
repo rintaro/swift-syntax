@@ -105,7 +105,7 @@ extension Lexer.Cursor {
 
     /// The mode in which leading trivia should be lexed for this state or `nil`
     /// if no trivia should be lexed.
-    func leadingTriviaLexingMode(cursor: Lexer.Cursor) -> TriviaLexingMode? {
+    func leadingTriviaLexingMode() -> TriviaLexingMode? {
       switch self {
       case .normal, .preferRegexOverBinaryOperator: return .normal
       case .afterRawStringDelimiter: return nil
@@ -126,7 +126,7 @@ extension Lexer.Cursor {
 
     /// The mode in which trailing trivia should be lexed for this state or `nil`
     /// if no trivia should be lexed.
-    func trailingTriviaLexingMode(cursor: Lexer.Cursor) -> TriviaLexingMode? {
+    func trailingTriviaLexingMode() -> TriviaLexingMode? {
       switch self {
       case .normal, .preferRegexOverBinaryOperator: return .noNewlines
       case .afterRawStringDelimiter: return nil
@@ -443,7 +443,7 @@ extension Lexer.Cursor {
     let leadingTriviaStart = self
     let newlineInLeadingTrivia: NewlinePresence
     var diagnostic: TokenDiagnostic? = nil
-    if let leadingTriviaMode = self.currentState.leadingTriviaLexingMode(cursor: self) {
+    if let leadingTriviaMode = self.currentState.leadingTriviaLexingMode() {
       let triviaResult = self.lexTrivia(mode: leadingTriviaMode)
       newlineInLeadingTrivia = triviaResult.newlinePresence
       diagnostic = TokenDiagnostic(combining: diagnostic, triviaResult.error?.tokenDiagnostic(tokenStart: cursor))
@@ -498,7 +498,7 @@ extension Lexer.Cursor {
 
     // Trailing trivia.
     let trailingTriviaStart = self
-    if let trailingTriviaMode = result.trailingTriviaLexingMode ?? currentState.trailingTriviaLexingMode(cursor: self) {
+    if let trailingTriviaMode = result.trailingTriviaLexingMode ?? currentState.trailingTriviaLexingMode() {
       let triviaResult = self.lexTrivia(mode: trailingTriviaMode)
       self.previousLexemeTrailingNewlinePresence = triviaResult.newlinePresence
       diagnostic = TokenDiagnostic(combining: diagnostic, triviaResult.error?.tokenDiagnostic(tokenStart: cursor))
