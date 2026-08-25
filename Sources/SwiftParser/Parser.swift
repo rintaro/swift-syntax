@@ -11,9 +11,9 @@
 //===----------------------------------------------------------------------===//
 
 #if compiler(>=6)
-@_spi(RawSyntax) @_spi(BumpPtrAllocator) public import SwiftSyntax
+@_spi(RawSyntax) @_spi(BumpPtrAllocator) @_spi(Testing) public import SwiftSyntax
 #else
-@_spi(RawSyntax) @_spi(BumpPtrAllocator) import SwiftSyntax
+@_spi(RawSyntax) @_spi(BumpPtrAllocator) @_spi(Testing) import SwiftSyntax
 #endif
 
 /// A parser for the Swift programming language.
@@ -1080,3 +1080,10 @@ public struct LookaheadRanges: Sendable {
     self.lookaheadRanges.reserveCapacity(utf8ByteCount / 80)
   }
 }
+
+/// See `ParserMemoryLayout`.
+let ParserMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
+  "Parser": layout(Parser.self),
+  "Parser.Lookahead": layout(Parser.Lookahead.self),
+  "TokenSpec": layout(TokenSpec.self),
+]

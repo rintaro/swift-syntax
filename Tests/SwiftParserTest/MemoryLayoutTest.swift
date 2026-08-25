@@ -1,0 +1,65 @@
+//===----------------------------------------------------------------------===//
+//
+// This source file is part of the Swift.org open source project
+//
+// Copyright (c) 2014 - 2023 Apple Inc. and the Swift project authors
+// Licensed under Apache License v2.0 with Runtime Library Exception
+//
+// See https://swift.org/LICENSE.txt for license information
+// See https://swift.org/CONTRIBUTORS.txt for the list of Swift project authors
+//
+//===----------------------------------------------------------------------===//
+
+@_spi(Testing) import SwiftParser
+@_spi(Testing) import SwiftSyntax
+import XCTest
+
+final class MemoryLayoutTest: XCTestCase {
+
+  func testMemoryLayouts() throws {
+    #if !arch(x86_64) && !arch(arm64)
+    throw XCTSkip("Only runs on x86_64 and arm64")
+    #endif
+
+    /// This test result is just for tracking the memory footprint of the lexer
+    /// and parser, and they are totally informative purpose. Although we want to
+    /// keep the numbers as low as possible, nothing should rely on them, and are
+    /// not hard limits in any way.
+    /// If this fails, just update the numbers.
+    ///
+    /// A ``Lexer/Cursor`` is stored in every ``Lexer/Lexeme``, and a
+    /// ``Lexer/LexemeSequence`` is copied to start every ``Parser/Lookahead``,
+    /// so these sizes are multiplied several times over on the hot path.
+    let expected: [String: SyntaxMemoryLayout.Value] = [
+      "Lexer.Cursor": .init(size: 48, stride: 48, alignment: 8),
+      "Lexer.Cursor.Position": .init(size: 17, stride: 24, alignment: 8),
+      "Lexer.Cursor.State": .init(size: 10, stride: 16, alignment: 8),
+      "Lexer.Cursor.StateStack": .init(size: 24, stride: 24, alignment: 8),
+      "Lexer.Lexeme": .init(size: 88, stride: 88, alignment: 8),
+      "Lexer.LexemeSequence": .init(size: 160, stride: 160, alignment: 8),
+
+      "Parser": .init(size: 392, stride: 392, alignment: 8),
+      "Parser.Lookahead": .init(size: 272, stride: 272, alignment: 8),
+      "TokenSpec": .init(size: 5, stride: 5, alignment: 1),
+    ]
+
+    let values = ParserMemoryLayout.values
+    XCTAssertEqual(values.count, expected.count)
+    for exp in expected {
+      let actualValue = try XCTUnwrap(values[exp.key], "Missing '\(exp.key)'")
+      XCTAssertEqual(actualValue, exp.value, "Matching '\(exp.key)' values")
+    }
+  }
+
+  func testLookaheadTypesAreTrivial() throws {
+    /// Starting a ``Parser/Lookahead`` copies the parser's
+    /// ``Lexer/LexemeSequence``, and roughly a hundred call sites do so. As long
+    /// as nothing in it has to be retained, that copy is a move and discarding
+    /// the lookahead costs nothing. Holding anything reference counted in there
+    /// instead — the allocator that the lexer's state stack spills into used to
+    /// be held that way — turns both into calls out to a value witness.
+    for (name, isTrivial) in ParserMemoryLayout.trivialTypes {
+      XCTAssertTrue(isTrivial, "'\(name)' is expected to be trivially copyable")
+    }
+  }
+}
