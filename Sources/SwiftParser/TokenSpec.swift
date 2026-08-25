@@ -16,9 +16,12 @@
 @_spi(RawSyntax) import SwiftSyntax
 #endif
 
-/// Pre-computes the keyword a lexeme might represent. This makes matching
-/// a lexeme that has been converted into `PrepareForKeyword` match cheaper to
-/// match against multiple ``TokenSpec`` that assume a keyword.
+/// Holds the parts of a lexeme that matching against a ``TokenSpec`` looks at.
+///
+/// A `switch` over a lexeme compares it against one ``TokenSpec`` per case, and
+/// each comparison would otherwise re-read these out of the lexeme, which is an
+/// order of magnitude larger and whose `isAtStartOfLine` is stored in a flag set.
+/// Reading them once up front keeps them in registers for the whole `switch`.
 struct PrepareForKeywordMatch {
   /// The kind of the lexeme.
   fileprivate let rawTokenKind: RawTokenKind
@@ -26,7 +29,7 @@ struct PrepareForKeywordMatch {
   /// If the lexeme has the same text as a keyword, that keyword, otherwise `nil`.
   fileprivate let keyword: Keyword?
 
-  /// Whether to lexeme occurred at the start of a line.
+  /// Whether the lexeme occurred at the start of a line.
   fileprivate let isAtStartOfLine: Bool
 
   @inline(__always)
