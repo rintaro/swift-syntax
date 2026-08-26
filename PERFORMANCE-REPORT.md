@@ -1,16 +1,16 @@
 # SwiftParser performance work — 2026-08
 
-Branch `perf-parser-2026-woc`, 28 commits off `main` (`a3cd836bf`).
+Branch `perf-parser-2026-woc`, 31 commits off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.06× faster on a 177 KB source file and 1.95× on a 317 KB
+**Parsing is 2.15× faster on a 177 KB source file and 2.05× on a 317 KB
 declaration-heavy one**, with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.886 ms | 2.368 ms | **−51.5%** (2.06×) |
-| concatenated parser sources (317 KB) | 8.264 ms | 4.228 ms | **−48.8%** (1.95×) |
+| `MinimalCollections.swift.input` (177 KB) | 4.916 ms | 2.284 ms | **−53.5%** (2.15×) |
+| concatenated parser sources (317 KB) | 8.384 ms | 4.095 ms | **−51.2%** (2.05×) |
 
 Repeated runs of this pair vary by a few percent; treat it as roughly 2× and
 1.9×.
@@ -237,6 +237,39 @@ allocates, which is why the collections input keeps 66 of its 135 nodes.
 `perform` call, so it died at the end of that statement while the cursor lived
 on. Nothing read freed memory only because pushing onto an empty stack did not
 allocate — which is exactly what the list changes.
+
+### Crossing the module boundary
+
+| | |
+|---|---|
+| `7b2b378a4` Inline the bump pointer allocator's fast path into its callers | **−1.7% / −3.8%** |
+| `f43212b5b` Combine a token diagnostic only when there is one to combine | −1.5% / −1.5% |
+
+Both come from the same observation: SwiftParser's hot loop calls into
+SwiftSyntax, and a call across a module boundary neither inlines nor folds the
+constants its caller passes. Bumping a slab is an align, a compare and an add,
+and 5.1% of a parse sat in `allocate` and `allocateFromCurrentSlab`.
+
+`@inlinable` on that fast path makes parsing **14% slower**, which is the most
+surprising result on the branch. The inlining works — those frames go to zero,
+retain traffic and binary size barely move — but inlined into another module the
+compiler can no longer prove that the accesses to the allocator's stored
+properties do not overlap, so it enforces exclusivity at run time.
+`swift_beginAccess` went from nothing to **0.44 ms of the 0.61 ms regression**.
+`@exclusivity(unchecked)` on the two properties the bump touches removes them
+and the win appears.
+
+That is worth remembering as a shape: an `@inlinable` fast path that mutates
+stored properties of a class can pay for itself several times over in dynamic
+exclusivity checks, and the checks do not show up as anything recognisable
+unless the profile is read symbol by symbol.
+
+The diagnostic commit is the same boundary seen from the other side.
+`nextToken` folds a diagnostic into the token three times and for almost every
+token all three are `nil`, so it was three calls into another module to be told
+the answer is the argument. `@inlinable` on the initializer measures the same as
+testing at the call sites, but it is plain public API rather than SPI and has
+exactly three callers, so the test went to the callers.
 
 ### Cleanups and tests
 
