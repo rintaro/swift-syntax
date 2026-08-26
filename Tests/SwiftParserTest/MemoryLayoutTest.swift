@@ -31,15 +31,15 @@ final class MemoryLayoutTest: XCTestCase {
     /// ``Lexer/LexemeSequence`` is copied to start every ``Parser/Lookahead``,
     /// so these sizes are multiplied several times over on the hot path.
     let expected: [String: SyntaxMemoryLayout.Value] = [
-      "Lexer.Cursor": .init(size: 48, stride: 48, alignment: 8),
+      "Lexer.Cursor": .init(size: 32, stride: 32, alignment: 8),
       "Lexer.Cursor.Position": .init(size: 17, stride: 24, alignment: 8),
       "Lexer.Cursor.State": .init(size: 10, stride: 16, alignment: 8),
-      "Lexer.Cursor.StateStack": .init(size: 24, stride: 24, alignment: 8),
-      "Lexer.Lexeme": .init(size: 88, stride: 88, alignment: 8),
-      "Lexer.LexemeSequence": .init(size: 160, stride: 160, alignment: 8),
+      "Lexer.Cursor.StateStack": .init(size: 8, stride: 8, alignment: 8),
+      "Lexer.Lexeme": .init(size: 72, stride: 72, alignment: 8),
+      "Lexer.LexemeSequence": .init(size: 128, stride: 128, alignment: 8),
 
-      "Parser": .init(size: 392, stride: 392, alignment: 8),
-      "Parser.Lookahead": .init(size: 272, stride: 272, alignment: 8),
+      "Parser": .init(size: 344, stride: 344, alignment: 8),
+      "Parser.Lookahead": .init(size: 224, stride: 224, alignment: 8),
       "TokenSpec": .init(size: 5, stride: 5, alignment: 1),
     ]
 
