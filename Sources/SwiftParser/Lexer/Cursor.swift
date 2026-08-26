@@ -174,7 +174,7 @@ extension Lexer.Cursor {
     /// by every stack that has it in its tail. That is what gives the stack value
     /// semantics without copying: a transition performed on one ``Lexer/Cursor``
     /// leaves the chain that any copy of it refers to untouched.
-    private struct Node {
+    struct Node {
       /// The state below `state`, or `nil` if `state` sits directly on the
       /// implicit `normal` bottom.
       let next: UnsafePointer<Node>?
@@ -212,9 +212,20 @@ extension Lexer.Cursor {
     private mutating func setTop(
       to state: State,
       above next: UnsafePointer<Node>?,
-      stateAllocator: BumpPtrAllocator
+      stateAllocator: Lexer.StateAllocator
     ) {
-      let node = stateAllocator.allocate(Node.self, count: 1).baseAddress!
+      // A node standing on the empty stack is determined entirely by its state,
+      // so one built earlier in the parse describes this stack just as well. See
+      // `StateAllocator.nodesOnEmptyStack`.
+      let standsOnEmptyStack = next == nil
+      if standsOnEmptyStack,
+        let shared = stateAllocator.nodesOnEmptyStack.first(where: { $0.pointee.state == state })
+      {
+        self.top = shared
+        return
+      }
+
+      let node = stateAllocator.allocator.allocate(Node.self, count: 1).baseAddress!
       node.initialize(
         to: Node(
           next: next,
@@ -223,15 +234,21 @@ extension Lexer.Cursor {
         )
       )
       self.top = UnsafePointer(node)
+
+      if standsOnEmptyStack,
+        stateAllocator.nodesOnEmptyStack.count < Lexer.StateAllocator.nodesOnEmptyStackLimit
+      {
+        stateAllocator.nodesOnEmptyStack.append(UnsafePointer(node))
+      }
     }
 
-    mutating func perform(stateTransition: Lexer.StateTransition, stateAllocator: BumpPtrAllocator) {
+    mutating func perform(stateTransition: Lexer.StateTransition, stateAllocator: Lexer.StateAllocator) {
       switch stateTransition {
       case .push(let newState):
         self.setTop(to: newState, above: self.top, stateAllocator: stateAllocator)
       case .pushRegexLexemes(let index, let lexemes):
         self.setTop(
-          to: .inRegexLiteral(lexemes: lexemes.allocate(in: stateAllocator), index: index),
+          to: .inRegexLiteral(lexemes: lexemes.allocate(in: stateAllocator.allocator), index: index),
           above: self.top,
           stateAllocator: stateAllocator
         )
@@ -317,7 +334,7 @@ extension Lexer {
       stateStack.currentState
     }
 
-    mutating func perform(stateTransition: Lexer.StateTransition, stateAllocator: BumpPtrAllocator) {
+    mutating func perform(stateTransition: Lexer.StateTransition, stateAllocator: Lexer.StateAllocator) {
       self.stateStack.perform(stateTransition: stateTransition, stateAllocator: stateAllocator)
     }
 
@@ -453,7 +470,7 @@ extension Lexer.Cursor.Position {
 // MARK: - Entry point
 
 extension Lexer.Cursor {
-  mutating func nextToken(sourceBufferStart: UnsafePointer<UInt8>?, stateAllocator: BumpPtrAllocator) -> Lexer.Lexeme {
+  mutating func nextToken(sourceBufferStart: UnsafePointer<UInt8>?, stateAllocator: Lexer.StateAllocator) -> Lexer.Lexeme {
     let cursor = self
     // Leading trivia.
     let leadingTriviaStart = self

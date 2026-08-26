@@ -30,9 +30,27 @@ extension Lexer {
   public final class StateAllocator {
     let allocator: BumpPtrAllocator
 
+    /// Nodes already built for a state pushed onto the empty stack, so that a
+    /// source file entering the same state over and over builds one node rather
+    /// than one per occurrence. A plain string literal enters two, and a file of
+    /// them enters no others.
+    ///
+    /// Sound because a node is written once and never mutated, so any stack that
+    /// would build an identical one can point at the node already there. Only
+    /// nodes standing on the empty stack are shared: they are the ones that
+    /// recur, and matching a whole chain would cost more than it saves.
+    ///
+    /// Bounded so that a file which genuinely enters many distinct states falls
+    /// back to allocating rather than turning every transition into a long scan.
+    /// Measured over the parser's own sources, six entries suffice.
+    var nodesOnEmptyStack: [UnsafePointer<Lexer.Cursor.StateStack.Node>] = []
+
+    static let nodesOnEmptyStackLimit = 16
+
     @_spi(Testing)
     public init() {
       self.allocator = BumpPtrAllocator(initialSlabSize: 256)
+      self.nodesOnEmptyStack.reserveCapacity(Self.nodesOnEmptyStackLimit)
     }
   }
 
@@ -58,7 +76,7 @@ extension Lexer {
     /// ``Lookahead`` would release it. Whoever creates the sequence keeps the
     /// allocator alive for at least as long as the sequence and anything copied
     /// from it.
-    unowned(unsafe) let lexerStateAllocator: BumpPtrAllocator
+    unowned(unsafe) let lexerStateAllocator: Lexer.StateAllocator
 
     /// The offset of the trailing trivia end of `nextToken` relative to the source buffer’s start.
     var offsetToNextTokenEnd: Int {
@@ -76,7 +94,7 @@ extension Lexer {
       sourceBufferStart: UnsafePointer<UInt8>?,
       cursor: Lexer.Cursor,
       lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>,
-      stateAllocator: BumpPtrAllocator
+      stateAllocator: Lexer.StateAllocator
     ) {
       self.sourceBufferStart = sourceBufferStart
       self.cursor = cursor
@@ -191,7 +209,7 @@ extension Lexer {
       sourceBufferStart: input.baseAddress,
       cursor: cursor,
       lookaheadTracker: lookaheadTracker,
-      stateAllocator: stateAllocator.allocator
+      stateAllocator: stateAllocator
     )
   }
 }
