@@ -89,43 +89,48 @@ extension StringSegmentSyntax {
       return
     }
 
-    rawText.withBuffer { buffer in
-      var cursor = Lexer.Cursor(input: buffer, previous: 0, languageFeatures: [])
+    // The lexer's state stack spills into this allocator, so it has to outlive
+    // `cursor` below rather than be a temporary of the `perform` call.
+    let stateAllocator = BumpPtrAllocator(initialSlabSize: 256)
+    withExtendedLifetime(stateAllocator) {
+      rawText.withBuffer { buffer in
+        var cursor = Lexer.Cursor(input: buffer, previous: 0, languageFeatures: [])
 
-      // Put the cursor in the string literal lexing state. This is just
-      // defensive as it's currently not used by `lexCharacterInStringLiteral`.
-      let state = Lexer.Cursor.State.inStringLiteral(kind: stringLiteralKind, delimiterLength: delimiterLength)
-      let transition = Lexer.StateTransition.push(newState: state)
-      cursor.perform(stateTransition: transition, stateAllocator: BumpPtrAllocator(initialSlabSize: 256))
+        // Put the cursor in the string literal lexing state. This is just
+        // defensive as it's currently not used by `lexCharacterInStringLiteral`.
+        let state = Lexer.Cursor.State.inStringLiteral(kind: stringLiteralKind, delimiterLength: delimiterLength)
+        let transition = Lexer.StateTransition.push(newState: state)
+        cursor.perform(stateTransition: transition, stateAllocator: stateAllocator)
 
-      while true {
-        let lex = cursor.lexCharacterInStringLiteral(
-          stringLiteralKind: stringLiteralKind,
-          delimiterLength: delimiterLength
-        )
+        while true {
+          let lex = cursor.lexCharacterInStringLiteral(
+            stringLiteralKind: stringLiteralKind,
+            delimiterLength: delimiterLength
+          )
 
-        switch lex {
-        case .success(Unicode.Scalar("\r")):
-          // Line endings in multi-line string literals are normalized to line feeds even if the source file has a
-          // different encoding for new lines.
-          output.append("\n")
-          if cursor.peek() == "\n" {
-            // If we have \r\n, eat the \n as well and leave
-            let consumed = cursor.lexCharacterInStringLiteral(
-              stringLiteralKind: stringLiteralKind,
-              delimiterLength: delimiterLength
-            )
-            assert(consumed == .success(Unicode.Scalar("\n")))
+          switch lex {
+          case .success(Unicode.Scalar("\r")):
+            // Line endings in multi-line string literals are normalized to line feeds even if the source file has a
+            // different encoding for new lines.
+            output.append("\n")
+            if cursor.peek() == "\n" {
+              // If we have \r\n, eat the \n as well and leave
+              let consumed = cursor.lexCharacterInStringLiteral(
+                stringLiteralKind: stringLiteralKind,
+                delimiterLength: delimiterLength
+              )
+              assert(consumed == .success(Unicode.Scalar("\n")))
+            }
+          case .success(let scalar),
+            .validatedEscapeSequence(let scalar):
+            output.append(Character(scalar))
+          case .endOfString, .error:
+            // We get an error at the end of the string because
+            // `lexCharacterInStringLiteral` expects the closing quote.
+            // We can assume the error just signals the end of string
+            // because we made sure the token lexed fine before.
+            return
           }
-        case .success(let scalar),
-          .validatedEscapeSequence(let scalar):
-          output.append(Character(scalar))
-        case .endOfString, .error:
-          // We get an error at the end of the string because
-          // `lexCharacterInStringLiteral` expects the closing quote.
-          // We can assume the error just signals the end of string
-          // because we made sure the token lexed fine before.
-          return
         }
       }
     }
