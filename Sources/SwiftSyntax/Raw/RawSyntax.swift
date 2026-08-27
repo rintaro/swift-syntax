@@ -54,16 +54,27 @@ internal struct RawSyntaxData: Sendable {
   /// The RawSyntax's `arena` must have a valid trivia parsing function to
   /// lazily materialize the leading/trailing trivia pieces.
   struct ParsedToken: Sendable {
-    var tokenKind: RawTokenKind
-
     /// Whole text of this token including leading/trailing trivia.
+    ///
+    /// First because it is the widest: Swift lays a struct out in declaration
+    /// order, so a byte in front of this would cost seven to pad.
     var wholeText: SyntaxText
+
+    var tokenKind: RawTokenKind
 
     /// Range of the actual token’s text.
     ///
     /// Text in `wholeText` before `textRange.lowerBound` is leading trivia and
     /// after `textRange.upperBound` is trailing trivia.
-    var textRange: Range<SyntaxText.Index>
+    ///
+    /// Held as 32-bit offsets: these index within a single token, so an `Int`
+    /// apiece is 8 bytes spent on a range no token can reach.
+    var textRange: Range<SyntaxText.Index> {
+      return Int(self.textLowerBound)..<Int(self.textUpperBound)
+    }
+
+    private var textLowerBound: UInt32
+    private var textUpperBound: UInt32
 
     var presence: SourcePresence
 
@@ -101,7 +112,9 @@ internal struct RawSyntaxData: Sendable {
     ) {
       self.tokenKind = tokenKind
       self.wholeText = wholeText
-      self.textRange = textRange
+      precondition(textRange.upperBound <= UInt32.max, "a token cannot be 4 GB long")
+      self.textLowerBound = UInt32(textRange.lowerBound)
+      self.textUpperBound = UInt32(textRange.upperBound)
       self.presence = presence
       self.tokenDiagnosticKind = tokenDiagnostic?.kind
       self.tokenDiagnosticByteOffset = tokenDiagnostic?.byteOffset ?? 0
@@ -163,12 +176,41 @@ internal struct RawSyntaxData: Sendable {
 
   /// Layout node including collections.
   struct Layout: Sendable {
-    var kind: SyntaxKind
+    /// First because it is the widest. See `ParsedToken.wholeText`.
     var layout: RawSyntaxBuffer
-    var byteLength: Int
-    /// Number of nodes in this subtree, excluding this node.
-    var descendantCount: Int
+
+    var kind: SyntaxKind
     var recursiveFlags: RecursiveRawSyntaxFlags
+
+    /// Held as 32 bits each: they measure one file, where an `Int` apiece is 8
+    /// bytes spent on sizes no source reaches.
+    private var byteLengthStorage: UInt32
+    private var descendantCountStorage: UInt32
+
+    var byteLength: Int {
+      return Int(self.byteLengthStorage)
+    }
+
+    /// Number of nodes in this subtree, excluding this node.
+    var descendantCount: Int {
+      return Int(self.descendantCountStorage)
+    }
+
+    init(
+      kind: SyntaxKind,
+      layout: RawSyntaxBuffer,
+      byteLength: Int,
+      descendantCount: Int,
+      recursiveFlags: RecursiveRawSyntaxFlags
+    ) {
+      precondition(byteLength <= UInt32.max, "a source file cannot be 4 GB long")
+      precondition(descendantCount <= UInt32.max, "a syntax tree cannot have 4 billion nodes")
+      self.kind = kind
+      self.layout = layout
+      self.recursiveFlags = recursiveFlags
+      self.byteLengthStorage = UInt32(byteLength)
+      self.descendantCountStorage = UInt32(descendantCount)
+    }
   }
 
   var payload: Payload
@@ -984,6 +1026,9 @@ extension RawSyntax: Identifiable {
 let RawSyntaxDataMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
   "RawSyntaxData": .init(RawSyntaxData.self),
   "RawSyntaxData.Layout": .init(RawSyntaxData.Layout.self),
+  // What every node in a tree costs, since an enum is as large as its largest
+  // case. `RawSyntaxData` is this plus the arena reference.
+  "RawSyntaxData.Payload": .init(RawSyntaxData.Payload.self),
   "RawSyntaxData.ParsedToken": .init(RawSyntaxData.ParsedToken.self),
   "RawSyntaxData.MaterializedToken": .init(RawSyntaxData.MaterializedToken.self),
   "RawSyntax?": .init(RawSyntax?.self),
