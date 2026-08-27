@@ -59,6 +59,23 @@ public struct RawObjCSelectorPieceListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawObjCSelectorPieceSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .objCSelectorPieceList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawObjCSelectorPieceSyntax] {
     layoutView.children.map {
       RawObjCSelectorPieceSyntax(raw: $0!)
@@ -975,6 +992,23 @@ public struct RawPatternBindingListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawPatternBindingSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .patternBindingList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawPatternBindingSyntax] {
     layoutView.children.map {
       RawPatternBindingSyntax(raw: $0!)
@@ -1215,6 +1249,23 @@ public struct RawPlatformVersionItemListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawPlatformVersionItemSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .platformVersionItemList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawPlatformVersionItemSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .platformVersionItemList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -1982,6 +2033,23 @@ public struct RawPrecedenceGroupAttributeListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<Element>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .precedenceGroupAttributeList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawSyntax] {
     layoutView.children.map {
       RawSyntax(raw: $0!)
@@ -2149,6 +2217,23 @@ public struct RawPrecedenceGroupNameListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawPrecedenceGroupNameSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .precedenceGroupNameList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawPrecedenceGroupNameSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .precedenceGroupNameList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -2503,6 +2588,23 @@ public struct RawPrimaryAssociatedTypeListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawPrimaryAssociatedTypeSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .primaryAssociatedTypeList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawPrimaryAssociatedTypeSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .primaryAssociatedTypeList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {

@@ -135,6 +135,25 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
 
           DeclSyntax(
             """
+            /// Build this collection from elements held in memory the caller owns,
+            /// so that a caller which has them contiguously already need not put
+            /// them in an `Array` for this.
+            public init(elements: UnsafeBufferPointer<\(element)>, arena: __shared RawSyntaxArena) {
+              let raw = RawSyntax.makeLayout(
+                kind: .\(node.memberCallName), uninitializedCount: elements.count, arena: arena) { layout in
+                  guard var ptr = layout.baseAddress else { return }
+                  for elem in elements {
+                    ptr.initialize(to: elem.raw)
+                    ptr += 1
+                  }
+              }
+              self.init(unchecked: raw)
+            }
+            """
+          )
+
+          DeclSyntax(
+            """
             public var elements: [Raw\(node.collectionElementType.syntaxBaseName)] {
               layoutView.children.map { Raw\(node.collectionElementType.syntaxBaseName)(raw: $0!) }
             }

@@ -323,7 +323,7 @@ extension Parser {
     case .attached, .freestanding:
       return parseAttribute(argumentMode: .customAttribute) { parser in
         let arguments = parser.parseMacroRoleArguments()
-        return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments, arena: parser.arena)))
+        return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments.buffer, arena: parser.arena)))
       }
     case .rethrows:
       let (unexpectedBeforeAtSign, atSign) = self.expect(.atSign)
@@ -353,7 +353,7 @@ extension Parser {
           pattern: .none,
           allowTrailingComma: true
         )
-        return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments, arena: parser.arena)))
+        return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments.buffer, arena: parser.arena)))
       }
     }
   }
@@ -388,7 +388,7 @@ extension RawLabeledExprSyntax {
 }
 
 extension Parser {
-  mutating func parseMacroRoleArguments() -> [RawLabeledExprSyntax] {
+  mutating func parseMacroRoleArguments() -> RawSyntaxNodeList<RawLabeledExprSyntax> {
     let (unexpectedBeforeRole, role) = self.expect(
       .identifier,
       TokenSpec(.extension, remapping: .identifier),
@@ -408,7 +408,12 @@ extension Parser {
       flavor: .attributeArguments,
       allowTrailingComma: false
     )
-    return [roleElement] + additionalArgs
+    var resultBuilder = RawSyntaxNodeListBuilder<RawLabeledExprSyntax>(
+      initialCapacity: additionalArgs.count + 1
+    )
+    resultBuilder.append(roleElement, allocator: self.nodeListAllocator)
+    resultBuilder.append(contentsOf: additionalArgs.buffer, allocator: self.nodeListAllocator)
+    return resultBuilder.build()
   }
 }
 

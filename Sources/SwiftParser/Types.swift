@@ -1498,7 +1498,7 @@ extension Parser {
             pattern: .none,
             allowTrailingComma: true
           )
-          return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments, arena: parser.arena)))
+          return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments.buffer, arena: parser.arena)))
         }
       )
 

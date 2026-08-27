@@ -199,6 +199,23 @@ public struct RawEffectsAttributeArgumentListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawTokenSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .effectsAttributeArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawTokenSyntax] {
     layoutView.children.map {
       RawTokenSyntax(raw: $0!)
@@ -330,6 +347,23 @@ public struct RawEnumCaseElementListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawEnumCaseElementSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .enumCaseElementList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawEnumCaseElementSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .enumCaseElementList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -556,6 +590,23 @@ public struct RawEnumCaseParameterListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawEnumCaseParameterSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .enumCaseParameterList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawEnumCaseParameterSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .enumCaseParameterList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -878,6 +929,23 @@ public struct RawExprListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawExprSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .exprList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawExprSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .exprList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -2095,6 +2163,23 @@ public struct RawFunctionParameterListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawFunctionParameterSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .functionParameterList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawFunctionParameterSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .functionParameterList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {

@@ -536,13 +536,11 @@ extension Parser {
           matching: openingPounds
         )
         let leftParen = self.expectWithoutRecoveryOrLeadingTrivia(.leftParen)
-        let expressions = RawLabeledExprListSyntax(
-          elements: self.parseArgumentListElements(
-            pattern: .none,
-            allowTrailingComma: true
-          ),
-          arena: self.arena
+        let arguments = self.parseArgumentListElements(
+          pattern: .none,
+          allowTrailingComma: true
         )
+        let expressions = RawLabeledExprListSyntax(elements: arguments.buffer, arena: self.arena)
 
         // For recovery, eat anything up to the next token that either starts a new string segment or terminates the string.
         // This allows us to skip over extraneous identifiers etc. in an unterminated string interpolation.

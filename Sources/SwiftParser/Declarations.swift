@@ -2305,7 +2305,7 @@ extension Parser {
 
     // Parse the optional parenthesized argument list.
     let leftParen = self.consume(if: TokenSpec(.leftParen, allowAtStartOfLine: false))
-    let args: [RawLabeledExprSyntax]
+    let args: RawSyntaxNodeList<RawLabeledExprSyntax>
     let unexpectedBeforeRightParen: RawUnexpectedNodesSyntax?
     let rightParen: RawTokenSyntax?
     if leftParen != nil {
@@ -2315,7 +2315,7 @@ extension Parser {
       )
       (unexpectedBeforeRightParen, rightParen) = self.expect(.rightParen)
     } else {
-      args = []
+      args = .empty
       unexpectedBeforeRightParen = nil
       rightParen = nil
     }
@@ -2343,10 +2343,7 @@ extension Parser {
       macroName: macro,
       genericArgumentClause: generics,
       leftParen: leftParen,
-      arguments: RawLabeledExprListSyntax(
-        elements: args,
-        arena: self.arena
-      ),
+      arguments: RawLabeledExprListSyntax(elements: args.buffer, arena: self.arena),
       unexpectedBeforeRightParen,
       rightParen: rightParen,
       trailingClosure: trailingClosure,

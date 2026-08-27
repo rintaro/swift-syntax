@@ -890,7 +890,7 @@ extension Parser {
       RawFunctionCallExprSyntax(
         calledExpression: leadingExpr,
         leftParen: lparen,
-        arguments: RawLabeledExprListSyntax(elements: args, arena: self.arena),
+        arguments: RawLabeledExprListSyntax(elements: args.buffer, arena: self.arena),
         unexpectedBeforeRParen,
         rightParen: rparen,
         trailingClosure: trailingClosure,
@@ -909,9 +909,9 @@ extension Parser {
       return nil
     }
 
-    let args: [RawLabeledExprSyntax]
+    let args: RawSyntaxNodeList<RawLabeledExprSyntax>
     if self.at(.rightSquare) {
-      args = []
+      args = .empty
     } else {
       args = self.parseArgumentListElements(
         pattern: pattern,
@@ -934,7 +934,7 @@ extension Parser {
       RawSubscriptCallExprSyntax(
         calledExpression: leadingExpr,
         leftSquare: lsquare,
-        arguments: RawLabeledExprListSyntax(elements: args, arena: self.arena),
+        arguments: RawLabeledExprListSyntax(elements: args.buffer, arena: self.arena),
         unexpectedBeforeRSquare,
         rightSquare: rsquare,
         trailingClosure: trailingClosure,
@@ -1159,9 +1159,9 @@ extension Parser {
 
         precondition(self.at(.leftSquare))
         let lsquare = self.consumeAnyToken()
-        let args: [RawLabeledExprSyntax]
+        let args: RawSyntaxNodeList<RawLabeledExprSyntax>
         if self.at(.rightSquare) {
-          args = []
+          args = .empty
         } else {
           args = self.parseArgumentListElements(
             pattern: pattern,
@@ -1177,10 +1177,7 @@ extension Parser {
             component: .subscript(
               RawKeyPathSubscriptComponentSyntax(
                 leftSquare: lsquare,
-                arguments: RawLabeledExprListSyntax(
-                  elements: args,
-                  arena: self.arena
-                ),
+                arguments: RawLabeledExprListSyntax(elements: args.buffer, arena: self.arena),
                 unexpectedBeforeRSquare,
                 rightSquare: rsquare,
                 arena: self.arena
@@ -1241,10 +1238,7 @@ extension Parser {
                   declName: declName,
                   unexpectedBeforeLParen,
                   leftParen: leftParen,
-                  arguments: RawLabeledExprListSyntax(
-                    elements: args,
-                    arena: self.arena
-                  ),
+                  arguments: RawLabeledExprListSyntax(elements: args.buffer, arena: self.arena),
                   unexpectedBeforeRParen,
                   rightParen: rightParen,
                   arena: self.arena
@@ -1514,7 +1508,7 @@ extension Parser {
 
     // Parse the optional parenthesized argument list.
     let leftParen = self.consume(if: TokenSpec(.leftParen, allowAtStartOfLine: false))
-    let args: [RawLabeledExprSyntax]
+    let args: RawSyntaxNodeList<RawLabeledExprSyntax>
     let unexpectedBeforeRightParen: RawUnexpectedNodesSyntax?
     let rightParen: RawTokenSyntax?
     if leftParen != nil {
@@ -1524,7 +1518,7 @@ extension Parser {
       )
       (unexpectedBeforeRightParen, rightParen) = self.expect(.rightParen)
     } else {
-      args = []
+      args = .empty
       unexpectedBeforeRightParen = nil
       rightParen = nil
     }
@@ -1547,10 +1541,7 @@ extension Parser {
       macroName: macroName,
       genericArgumentClause: generics,
       leftParen: leftParen,
-      arguments: RawLabeledExprListSyntax(
-        elements: args,
-        arena: self.arena
-      ),
+      arguments: RawLabeledExprListSyntax(elements: args.buffer, arena: self.arena),
       unexpectedBeforeRightParen,
       rightParen: rightParen,
       trailingClosure: trailingClosure,
@@ -1644,7 +1635,7 @@ extension Parser {
     return RawTupleExprSyntax(
       unexpectedBeforeLParen,
       leftParen: lparen,
-      elements: RawLabeledExprListSyntax(elements: elements, arena: self.arena),
+      elements: RawLabeledExprListSyntax(elements: elements.buffer, arena: self.arena),
       unexpectedBeforeRParen,
       rightParen: rparen,
       arena: self.arena
@@ -2158,9 +2149,10 @@ extension Parser {
     pattern: PatternContext,
     flavor: ExprFlavor = .basic,
     allowTrailingComma: Bool
-  ) -> [RawLabeledExprSyntax] {
+  ) -> RawSyntaxNodeList<RawLabeledExprSyntax> {
+    var result = RawSyntaxNodeListBuilder<RawLabeledExprSyntax>()
     if let remainingTokens = remainingTokensIfMaximumNestingLevelReached() {
-      return [
+      result.append(
         RawLabeledExprSyntax(
           remainingTokens,
           label: nil,
@@ -2168,15 +2160,16 @@ extension Parser {
           expression: RawMissingExprSyntax(arena: self.arena),
           trailingComma: nil,
           arena: self.arena
-        )
-      ]
+        ),
+        allocator: self.nodeListAllocator
+      )
+      return result.build()
     }
 
     guard !self.at(.rightParen) else {
-      return []
+      return result.build()
     }
 
-    var result = [RawLabeledExprSyntax]()
     var keepGoing: RawTokenSyntax? = nil
     var loopProgress = LoopProgressCondition()
     repeat {
@@ -2214,10 +2207,11 @@ extension Parser {
           expression: expr,
           trailingComma: keepGoing,
           arena: self.arena
-        )
+        ),
+        allocator: self.nodeListAllocator
       )
     } while keepGoing != nil && !atArgumentListTerminator(allowTrailingComma) && self.hasProgressed(&loopProgress)
-    return result
+    return result.build()
   }
 
   mutating func atArgumentListTerminator(_ allowTrailingComma: Bool) -> Bool {

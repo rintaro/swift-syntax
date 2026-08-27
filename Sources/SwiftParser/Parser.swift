@@ -129,6 +129,12 @@ public struct Parser {
   /// Parser should own a ``LookaheadTracker`` so that we can share one `furthestOffset` in a parse.
   private let lookaheadTrackerOwner: LookaheadTrackerOwner
 
+  /// Owns the memory that gathering the elements of a syntax collection uses.
+  ///
+  /// See ``RawSyntaxNodeListAllocator``: this is not the syntax arena, because
+  /// what is gathered dies with the parse rather than with the tree.
+  let nodeListAllocator: RawSyntaxNodeListAllocator = RawSyntaxNodeListAllocator()
+
   /// Owns the memory that the lexer's state stack spills into.
   ///
   /// ``Lexer/LexemeSequence`` refers to this without owning it, so that copying

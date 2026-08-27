@@ -256,6 +256,23 @@ public struct RawCatchClauseListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawCatchClauseSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .catchClauseList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawCatchClauseSyntax] {
     layoutView.children.map {
       RawCatchClauseSyntax(raw: $0!)
@@ -375,6 +392,23 @@ public struct RawCatchItemListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawCatchItemSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .catchItemList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawCatchItemSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .catchItemList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -802,6 +836,23 @@ public struct RawClosureCaptureListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawClosureCaptureSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .closureCaptureList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawClosureCaptureSyntax] {
     layoutView.children.map {
       RawClosureCaptureSyntax(raw: $0!)
@@ -1216,6 +1267,23 @@ public struct RawClosureParameterListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawClosureParameterSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .closureParameterList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawClosureParameterSyntax] {
     layoutView.children.map {
       RawClosureParameterSyntax(raw: $0!)
@@ -1395,6 +1463,23 @@ public struct RawClosureShorthandParameterListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawClosureShorthandParameterSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .closureShorthandParameterList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawClosureShorthandParameterSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .closureShorthandParameterList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -1745,6 +1830,23 @@ public struct RawCodeBlockItemListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawCodeBlockItemSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .codeBlockItemList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawCodeBlockItemSyntax] {
     layoutView.children.map {
       RawCodeBlockItemSyntax(raw: $0!)
@@ -1992,6 +2094,23 @@ public struct RawCompositionTypeElementListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawCompositionTypeElementSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .compositionTypeElementList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawCompositionTypeElementSyntax] {
     layoutView.children.map {
       RawCompositionTypeElementSyntax(raw: $0!)
@@ -2157,6 +2276,23 @@ public struct RawConditionElementListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawConditionElementSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .conditionElementList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawConditionElementSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .conditionElementList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {

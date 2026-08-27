@@ -141,6 +141,23 @@ public struct RawDeclModifierListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawDeclModifierSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .declModifierList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawDeclModifierSyntax] {
     layoutView.children.map {
       RawDeclModifierSyntax(raw: $0!)
@@ -248,6 +265,23 @@ public struct RawDeclNameArgumentListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawDeclNameArgumentSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .declNameArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawDeclNameArgumentSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .declNameArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -948,6 +982,23 @@ public struct RawDesignatedTypeListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: raw)
   }
 
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawDesignatedTypeSyntax>, arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .designatedTypeList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
   public var elements: [RawDesignatedTypeSyntax] {
     layoutView.children.map {
       RawDesignatedTypeSyntax(raw: $0!)
@@ -1055,6 +1106,23 @@ public struct RawDictionaryElementListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawDictionaryElementSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .dictionaryElementList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawDictionaryElementSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .dictionaryElementList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -1418,6 +1486,23 @@ public struct RawDifferentiabilityArgumentListSyntax: RawSyntaxNodeProtocol {
   }
 
   public init(elements: [RawDifferentiabilityArgumentSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .differentiabilityArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawDifferentiabilityArgumentSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .differentiabilityArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
@@ -2141,6 +2226,23 @@ public struct RawDocumentationAttributeArgumentListSyntax: RawSyntaxNodeProtocol
   }
 
   public init(elements: [RawDocumentationAttributeArgumentSyntax], arena: __shared RawSyntaxArena) {
+    let raw = RawSyntax.makeLayout(
+      kind: .documentationAttributeArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
+        guard var ptr = layout.baseAddress else {
+          return
+        }
+        for elem in elements {
+          ptr.initialize(to: elem.raw)
+          ptr += 1
+        }
+    }
+    self.init(unchecked: raw)
+  }
+
+  /// Build this collection from elements held in memory the caller owns,
+  /// so that a caller which has them contiguously already need not put
+  /// them in an `Array` for this.
+  public init(elements: UnsafeBufferPointer<RawDocumentationAttributeArgumentSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .documentationAttributeArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
