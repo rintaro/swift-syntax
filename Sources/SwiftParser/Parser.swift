@@ -177,7 +177,7 @@ public struct Parser {
   ) -> RawMultipleTrailingClosureElementListSyntax {
     if _emptyRawMultipleTrailingClosureElementListSyntax == nil {
       _emptyRawMultipleTrailingClosureElementListSyntax = RawMultipleTrailingClosureElementListSyntax(
-        elements: [],
+        elements: .init(),
         arena: self.arena
       )
     }
@@ -192,7 +192,7 @@ public struct Parser {
   /// on subsequent calls, reducing memory usage.
   mutating func emptyCollection(_: RawDeclModifierListSyntax.Type) -> RawDeclModifierListSyntax {
     if _emptyRawDeclModifierListSyntax == nil {
-      _emptyRawDeclModifierListSyntax = RawDeclModifierListSyntax(elements: [], arena: self.arena)
+      _emptyRawDeclModifierListSyntax = RawDeclModifierListSyntax(elements: .init(), arena: self.arena)
     }
     return _emptyRawDeclModifierListSyntax!
   }
@@ -205,7 +205,7 @@ public struct Parser {
   /// on subsequent calls, reducing memory usage.
   mutating func emptyCollection(_: RawAttributeListSyntax.Type) -> RawAttributeListSyntax {
     if _emptyRawAttributeListSyntax == nil {
-      _emptyRawAttributeListSyntax = RawAttributeListSyntax(elements: [], arena: self.arena)
+      _emptyRawAttributeListSyntax = RawAttributeListSyntax(elements: .init(), arena: self.arena)
     }
     return _emptyRawAttributeListSyntax!
   }
@@ -218,7 +218,7 @@ public struct Parser {
   /// on subsequent calls, reducing memory usage.
   mutating func emptyCollection(_: RawTypeSpecifierListSyntax.Type) -> RawTypeSpecifierListSyntax {
     if _emptyRawTypeSpecifierListSyntax == nil {
-      _emptyRawTypeSpecifierListSyntax = RawTypeSpecifierListSyntax(elements: [], arena: self.arena)
+      _emptyRawTypeSpecifierListSyntax = RawTypeSpecifierListSyntax(elements: .init(), arena: self.arena)
     }
     return _emptyRawTypeSpecifierListSyntax!
   }

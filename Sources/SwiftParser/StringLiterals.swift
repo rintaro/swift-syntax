@@ -540,7 +540,7 @@ extension Parser {
           pattern: .none,
           allowTrailingComma: true
         )
-        let expressions = RawLabeledExprListSyntax(elements: arguments.buffer, arena: self.arena)
+        let expressions = RawLabeledExprListSyntax(elements: arguments, arena: self.arena)
 
         // For recovery, eat anything up to the next token that either starts a new string segment or terminates the string.
         // This allows us to skip over extraneous identifiers etc. in an unterminated string interpolation.
@@ -586,6 +586,7 @@ extension Parser {
               arena: self.arena
             )
           )
+
         )
       } else {
         break
@@ -624,7 +625,9 @@ extension Parser {
           arena: self.arena
         ),
         openingQuote: postProcessed.openingQuote,
-        segments: RawStringLiteralSegmentListSyntax(elements: postProcessed.segments, arena: self.arena),
+        segments: postProcessed.segments.withRawSyntaxNodeList {
+          RawStringLiteralSegmentListSyntax(elements: $0, arena: self.arena)
+        },
         RawUnexpectedNodesSyntax(
           combining: postProcessed.unexpectedBeforeClosingQuote,
           unexpectedBeforeClosingQuote,
@@ -640,7 +643,9 @@ extension Parser {
         openingPounds: openingPounds,
         unexpectedBeforeOpeningQuote,
         openingQuote: openQuote,
-        segments: RawStringLiteralSegmentListSyntax(elements: segments, arena: self.arena),
+        segments: segments.withRawSyntaxNodeList {
+          RawStringLiteralSegmentListSyntax(elements: $0, arena: self.arena)
+        },
         unexpectedBeforeClosingQuote,
         closingQuote: closingQuote,
         unexpectedBeforeClosingPounds,
@@ -658,7 +663,7 @@ extension Parser {
     )
 
     /// Parse segments.
-    var segments: [RawStringSegmentSyntax] = []
+    var segments = RawSyntaxNodeListBuilder<RawStringSegmentSyntax>()
     var loopProgress = LoopProgressCondition()
     while hasProgressed(&loopProgress) {
       // If we encounter a token with leading trivia, we're no longer in the
@@ -681,7 +686,10 @@ extension Parser {
           )
         }
 
-        segments.append(RawStringSegmentSyntax(content: stringSegment, unexpectedAfterContent, arena: self.arena))
+        segments.append(
+          RawStringSegmentSyntax(content: stringSegment, unexpectedAfterContent, arena: self.arena),
+          allocator: self.nodeListAllocator
+        )
       } else {
         break
       }
@@ -694,7 +702,7 @@ extension Parser {
       let postProcessed = postProcessMultilineStringLiteral(
         rawStringDelimitersToken: openDelimiter,
         openQuote: openQuote,
-        segments: segments.compactMap { RawStringLiteralSegmentListSyntax.Element.stringSegment($0) },
+        segments: segments.elements.map { RawStringLiteralSegmentListSyntax.Element.stringSegment($0) },
         closeQuote: closeQuote
       )
 
@@ -706,12 +714,12 @@ extension Parser {
           arena: self.arena
         ),
         openingQuote: postProcessed.openingQuote,
-        segments: RawSimpleStringLiteralSegmentListSyntax(
-          // `RawSimpleStringLiteralSegmentListSyntax` only accepts `RawStringSegmentSyntax`.
-          // So we can safely cast.
-          elements: postProcessed.segments.map { $0.cast(RawStringSegmentSyntax.self) },
-          arena: self.arena
-        ),
+        // `RawSimpleStringLiteralSegmentListSyntax` only accepts
+        // `RawStringSegmentSyntax`, so this can safely cast.
+        segments: postProcessed.segments.map { $0.cast(RawStringSegmentSyntax.self) }
+          .withRawSyntaxNodeList {
+            RawSimpleStringLiteralSegmentListSyntax(elements: $0, arena: self.arena)
+          },
         RawUnexpectedNodesSyntax(
           combining: unexpectedBetweenSegmentAndCloseQuote,
           postProcessed.unexpectedBeforeClosingQuote,
@@ -728,7 +736,7 @@ extension Parser {
       return RawSimpleStringLiteralExprSyntax(
         RawUnexpectedNodesSyntax(combining: unexpectedBeforeOpenQuote, openDelimiter, arena: self.arena),
         openingQuote: openQuote,
-        segments: RawSimpleStringLiteralSegmentListSyntax(elements: segments, arena: self.arena),
+        segments: RawSimpleStringLiteralSegmentListSyntax(elements: segments.build(), arena: self.arena),
         unexpectedBetweenSegmentAndCloseQuote,
         closingQuote: closeQuote,
         RawUnexpectedNodesSyntax([closeDelimiter], arena: self.arena),

@@ -368,30 +368,17 @@ public struct RawAccessorDeclListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
 
-  public init(elements: [RawAccessorDeclSyntax], arena: __shared RawSyntaxArena) {
+  /// See ``RawSyntaxNodeList``, which is deliberately the only way to
+  /// build one of these: an `Array` for the handful of elements a
+  /// collection almost always has is a heap allocation, a reference
+  /// count and a free that gathering them elsewhere does not need.
+  public init(elements: RawSyntaxNodeList<RawAccessorDeclSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .accessorDeclList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
           return
         }
-        for elem in elements {
-          ptr.initialize(to: elem.raw)
-          ptr += 1
-        }
-    }
-    self.init(unchecked: raw)
-  }
-
-  /// Build this collection from elements held in memory the caller owns,
-  /// so that a caller which has them contiguously already need not put
-  /// them in an `Array` for this.
-  public init(elements: UnsafeBufferPointer<RawAccessorDeclSyntax>, arena: __shared RawSyntaxArena) {
-    let raw = RawSyntax.makeLayout(
-      kind: .accessorDeclList, uninitializedCount: elements.count, arena: arena) { layout in
-        guard var ptr = layout.baseAddress else {
-          return
-        }
-        for elem in elements {
+        for elem in elements.buffer {
           ptr.initialize(to: elem.raw)
           ptr += 1
         }
@@ -847,30 +834,17 @@ public struct RawArrayElementListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
 
-  public init(elements: [RawArrayElementSyntax], arena: __shared RawSyntaxArena) {
+  /// See ``RawSyntaxNodeList``, which is deliberately the only way to
+  /// build one of these: an `Array` for the handful of elements a
+  /// collection almost always has is a heap allocation, a reference
+  /// count and a free that gathering them elsewhere does not need.
+  public init(elements: RawSyntaxNodeList<RawArrayElementSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .arrayElementList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
           return
         }
-        for elem in elements {
-          ptr.initialize(to: elem.raw)
-          ptr += 1
-        }
-    }
-    self.init(unchecked: raw)
-  }
-
-  /// Build this collection from elements held in memory the caller owns,
-  /// so that a caller which has them contiguously already need not put
-  /// them in an `Array` for this.
-  public init(elements: UnsafeBufferPointer<RawArrayElementSyntax>, arena: __shared RawSyntaxArena) {
-    let raw = RawSyntax.makeLayout(
-      kind: .arrayElementList, uninitializedCount: elements.count, arena: arena) { layout in
-        guard var ptr = layout.baseAddress else {
-          return
-        }
-        for elem in elements {
+        for elem in elements.buffer {
           ptr.initialize(to: elem.raw)
           ptr += 1
         }
@@ -1612,30 +1586,17 @@ public struct RawAttributeListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
 
-  public init(elements: [Element], arena: __shared RawSyntaxArena) {
+  /// See ``RawSyntaxNodeList``, which is deliberately the only way to
+  /// build one of these: an `Array` for the handful of elements a
+  /// collection almost always has is a heap allocation, a reference
+  /// count and a free that gathering them elsewhere does not need.
+  public init(elements: RawSyntaxNodeList<Element>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .attributeList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
           return
         }
-        for elem in elements {
-          ptr.initialize(to: elem.raw)
-          ptr += 1
-        }
-    }
-    self.init(unchecked: raw)
-  }
-
-  /// Build this collection from elements held in memory the caller owns,
-  /// so that a caller which has them contiguously already need not put
-  /// them in an `Array` for this.
-  public init(elements: UnsafeBufferPointer<Element>, arena: __shared RawSyntaxArena) {
-    let raw = RawSyntax.makeLayout(
-      kind: .attributeList, uninitializedCount: elements.count, arena: arena) { layout in
-        guard var ptr = layout.baseAddress else {
-          return
-        }
-        for elem in elements {
+        for elem in elements.buffer {
           ptr.initialize(to: elem.raw)
           ptr += 1
         }
@@ -1972,30 +1933,17 @@ public struct RawAvailabilityArgumentListSyntax: RawSyntaxNodeProtocol {
     self.init(unchecked: other.raw)
   }
 
-  public init(elements: [RawAvailabilityArgumentSyntax], arena: __shared RawSyntaxArena) {
+  /// See ``RawSyntaxNodeList``, which is deliberately the only way to
+  /// build one of these: an `Array` for the handful of elements a
+  /// collection almost always has is a heap allocation, a reference
+  /// count and a free that gathering them elsewhere does not need.
+  public init(elements: RawSyntaxNodeList<RawAvailabilityArgumentSyntax>, arena: __shared RawSyntaxArena) {
     let raw = RawSyntax.makeLayout(
       kind: .availabilityArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
         guard var ptr = layout.baseAddress else {
           return
         }
-        for elem in elements {
-          ptr.initialize(to: elem.raw)
-          ptr += 1
-        }
-    }
-    self.init(unchecked: raw)
-  }
-
-  /// Build this collection from elements held in memory the caller owns,
-  /// so that a caller which has them contiguously already need not put
-  /// them in an `Array` for this.
-  public init(elements: UnsafeBufferPointer<RawAvailabilityArgumentSyntax>, arena: __shared RawSyntaxArena) {
-    let raw = RawSyntax.makeLayout(
-      kind: .availabilityArgumentList, uninitializedCount: elements.count, arena: arena) { layout in
-        guard var ptr = layout.baseAddress else {
-          return
-        }
-        for elem in elements {
+        for elem in elements.buffer {
           ptr.initialize(to: elem.raw)
           ptr += 1
         }

@@ -50,7 +50,7 @@ struct RawSyntaxNodeListBuilder<Element: RawSyntaxNodeProtocol> {
   /// Room for elements, of which the first ``count`` are initialized.
   private var buffer: UnsafeMutableBufferPointer<Element>
 
-  private var count: Int
+  private(set) var count: Int
 
   /// How much room to take when the first element is appended.
   ///
@@ -74,6 +74,27 @@ struct RawSyntaxNodeListBuilder<Element: RawSyntaxNodeProtocol> {
 
   var isEmpty: Bool {
     return self.count == 0
+  }
+
+  /// The element gathered most recently, or `nil` if there is none.
+  var last: Element? {
+    return self.count == 0 ? nil : self.buffer[self.count - 1]
+  }
+
+  subscript(index: Int) -> Element {
+    get {
+      precondition(index < self.count)
+      return self.buffer[index]
+    }
+    set {
+      precondition(index < self.count)
+      self.buffer[index] = newValue
+    }
+  }
+
+  /// The elements gathered so far, to read without building the collection.
+  var elements: UnsafeBufferPointer<Element> {
+    return self.build().buffer
   }
 
   mutating func append(_ element: Element, allocator: RawSyntaxNodeListAllocator) {
@@ -118,17 +139,37 @@ struct RawSyntaxNodeListBuilder<Element: RawSyntaxNodeProtocol> {
   }
 }
 
-struct RawSyntaxNodeList<Element: RawSyntaxNodeProtocol> {
-  let buffer: UnsafeBufferPointer<Element>
-
-  fileprivate init(buffer: UnsafeBufferPointer<Element>) {
-    self.buffer = buffer
+extension RawSyntaxNodeListAllocator {
+  /// Copy `elements` into memory this owns and return them as a
+  /// ``RawSyntaxNodeList``.
+  ///
+  /// For the places that have an `Array` already: a literal handful of elements,
+  /// or nodes gathered while recovering from a parse error, where what a
+  /// collection costs is beside the point. Copying is needed because the array's
+  /// own storage goes away at the end of the expression, while the list has to
+  /// stay readable until the collection is built.
+  ///
+  /// Somewhere that builds a collection per token or per declaration should gather
+  /// into a ``RawSyntaxNodeListBuilder`` and never make the array at all.
+  func list<Element: RawSyntaxNodeProtocol>(_ elements: [Element]) -> RawSyntaxNodeList<Element> {
+    guard !elements.isEmpty else {
+      return RawSyntaxNodeList()
+    }
+    let copy = self.allocator.allocate(Element.self, count: elements.count)
+    _ = copy.initialize(fromContentsOf: elements)
+    return RawSyntaxNodeList(buffer: UnsafeBufferPointer(copy))
   }
+}
 
-  static var empty: Self {
-    self.init(buffer: UnsafeBufferPointer(start: nil, count: 0))
+extension Array where Element: RawSyntaxNodeProtocol {
+  /// Call `body` with these elements as a ``RawSyntaxNodeList``.
+  ///
+  /// The list borrows the array's own storage, so this is for building a
+  /// collection then and there. Where the list has to outlive the expression, or
+  /// where there is no array to begin with, see
+  /// ``RawSyntaxNodeListAllocator/list(_:)`` and
+  /// ``RawSyntaxNodeListBuilder`` respectively.
+  func withRawSyntaxNodeList<Result>(_ body: (RawSyntaxNodeList<Element>) -> Result) -> Result {
+    return self.withUnsafeBufferPointer { body(RawSyntaxNodeList(buffer: $0)) }
   }
-
-  var count: Int { buffer.count }
-  var isEmpty: Bool { buffer.isEmpty }
 }

@@ -53,7 +53,7 @@ extension Parser {
     } else {
       // For testing purposes, parse everything as 'unexpectedBeforeEndOfFileToken'.
       shebang = nil
-      items = RawCodeBlockItemListSyntax(elements: [], arena: self.arena)
+      items = RawCodeBlockItemListSyntax(elements: .init(), arena: self.arena)
     }
 
     let (unexpectedBeforeEndOfFileToken, endOfFile) = self.expectEndOfFile()
@@ -81,7 +81,7 @@ extension Parser {
     allowInitDecl: Bool = true,
     until stopCondition: (inout Parser) -> Bool = { $0.at(.rightBrace) || $0.atEndOfIfConfigClauseBody() }
   ) -> RawCodeBlockItemListSyntax {
-    var elements = [RawCodeBlockItemSyntax]()
+    var elements = RawSyntaxNodeListBuilder<RawCodeBlockItemSyntax>()
     var loopProgress = LoopProgressCondition()
     while !stopCondition(&self), !self.at(.endOfFile), self.hasProgressed(&loopProgress) {
       let newItemAtStartOfLine = self.atStartOfLine
@@ -102,9 +102,9 @@ extension Parser {
           arena: self.arena
         )
       }
-      elements.append(newItem)
+      elements.append(newItem, allocator: self.nodeListAllocator)
     }
-    return .init(elements: elements, arena: self.arena)
+    return .init(elements: elements.build(), arena: self.arena)
   }
 
   /// Parse the top level items in a source file.
@@ -260,10 +260,9 @@ extension Parser {
           handle: .init(spec: .keyword(.as))
         )
         let sequence = RawSequenceExprSyntax(
-          elements: RawExprListSyntax(
-            elements: [expr, op, rhs],
-            arena: self.arena
-          ),
+          elements: [expr, op, rhs].withRawSyntaxNodeList {
+            RawExprListSyntax(elements: $0, arena: self.arena)
+          },
           arena: self.arena
         )
         return .init(expr: sequence)

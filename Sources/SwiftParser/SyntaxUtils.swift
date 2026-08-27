@@ -36,7 +36,9 @@ extension RawUnexpectedNodesSyntax {
     if nodes.isEmpty {
       return nil
     } else {
-      self.init(elements: nodes.map(RawSyntax.init), arena: arena)
+      self = nodes.map(RawSyntax.init).withRawSyntaxNodeList {
+        RawUnexpectedNodesSyntax(elements: $0, arena: arena)
+      }
     }
   }
 

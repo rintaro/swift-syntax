@@ -61,7 +61,7 @@ extension Parser {
     if elements.isEmpty {
       return self.emptyCollection(RawAttributeListSyntax.self)
     } else {
-      return RawAttributeListSyntax(elements: elements, arena: self.arena)
+      return RawAttributeListSyntax(elements: self.nodeListAllocator.list(elements), arena: self.arena)
     }
   }
 }
@@ -306,11 +306,13 @@ extension Parser {
       return parseAttribute(argumentMode: .required) { parser in
         // The contents of the @_effects attribute are parsed in SIL, we just
         // represent the contents as a list of tokens in SwiftSyntax.
-        var tokens: [RawTokenSyntax] = []
+        var tokens = RawSyntaxNodeListBuilder<RawTokenSyntax>()
         while !parser.at(.rightParen, .endOfFile) {
-          tokens.append(parser.consumeAnyToken())
+          tokens.append(parser.consumeAnyToken(), allocator: parser.nodeListAllocator)
         }
-        return (nil, .effectsArguments(RawEffectsAttributeArgumentListSyntax(elements: tokens, arena: parser.arena)))
+        return (
+          nil, .effectsArguments(RawEffectsAttributeArgumentListSyntax(elements: tokens.build(), arena: parser.arena))
+        )
       }
     case ._implements:
       return parseAttribute(argumentMode: .required) { parser in
@@ -323,7 +325,7 @@ extension Parser {
     case .attached, .freestanding:
       return parseAttribute(argumentMode: .customAttribute) { parser in
         let arguments = parser.parseMacroRoleArguments()
-        return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments.buffer, arena: parser.arena)))
+        return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments, arena: parser.arena)))
       }
     case .rethrows:
       let (unexpectedBeforeAtSign, atSign) = self.expect(.atSign)
@@ -353,7 +355,7 @@ extension Parser {
           pattern: .none,
           allowTrailingComma: true
         )
-        return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments.buffer, arena: parser.arena)))
+        return (nil, .argumentList(RawLabeledExprListSyntax(elements: arguments, arena: parser.arena)))
       }
     }
   }
@@ -507,17 +509,17 @@ extension Parser {
       )
     }
 
-    var elements = [RawDifferentiabilityArgumentSyntax]()
+    var elements = RawSyntaxNodeListBuilder<RawDifferentiabilityArgumentSyntax>()
     var loopProgress = LoopProgressCondition()
     while !self.at(.endOfFile, .rightParen) && self.hasProgressed(&loopProgress) {
       guard let param = self.parseDifferentiabilityArgument() else {
         break
       }
-      elements.append(param)
+      elements.append(param, allocator: self.nodeListAllocator)
     }
     let (unexpectedBeforeRightParen, rightParen) = self.expect(.rightParen)
 
-    let arguments = RawDifferentiabilityArgumentListSyntax(elements: elements, arena: self.arena)
+    let arguments = RawDifferentiabilityArgumentListSyntax(elements: elements.build(), arena: self.arena)
     let list = RawDifferentiabilityArgumentsSyntax(
       leftParen: leftParen,
       arguments: arguments,
@@ -663,7 +665,7 @@ extension Parser {
 
 extension Parser {
   mutating func parseObjectiveCSelector() -> RawObjCSelectorPieceListSyntax {
-    var elements = [RawObjCSelectorPieceSyntax]()
+    var elements = RawSyntaxNodeListBuilder<RawObjCSelectorPieceSyntax>()
     var loopProgress = LoopProgressCondition()
     while self.hasProgressed(&loopProgress) {
       // Empty selector piece, splitting `::` into two colons.
@@ -673,7 +675,8 @@ extension Parser {
             name: nil,
             colon: colon,
             arena: self.arena
-          )
+          ),
+          allocator: self.nodeListAllocator
         )
         continue
       } else if self.at(.identifier, .wildcard) || self.currentToken.isLexerClassifiedKeyword {
@@ -686,7 +689,8 @@ extension Parser {
               name: name,
               colon: nil,
               arena: self.arena
-            )
+            ),
+            allocator: self.nodeListAllocator
           )
           break
         }
@@ -699,13 +703,14 @@ extension Parser {
             unexpectedBeforeColon,
             colon: colon,
             arena: self.arena
-          )
+          ),
+          allocator: self.nodeListAllocator
         )
       } else {
         break
       }
     }
-    return RawObjCSelectorPieceListSyntax(elements: elements, arena: self.arena)
+    return RawObjCSelectorPieceListSyntax(elements: elements.build(), arena: self.arena)
   }
 }
 
@@ -737,6 +742,7 @@ extension Parser {
               arena: self.arena
             )
           )
+
         )
       case (.availability, let handle)?:
         let label = self.eat(handle)
@@ -755,6 +761,7 @@ extension Parser {
               arena: self.arena
             )
           )
+
         )
       case (.exported, let handle)?:
         let label = self.eat(handle)
@@ -773,6 +780,7 @@ extension Parser {
               arena: self.arena
             )
           )
+
         )
       case (.kind, let handle)?:
         let label = self.eat(handle)
@@ -790,6 +798,7 @@ extension Parser {
               arena: self.arena
             )
           )
+
         )
       case (.spiModule, let handle)?,
         (.spi, let handle)?:
@@ -808,6 +817,7 @@ extension Parser {
               arena: self.arena
             )
           )
+
         )
       case nil:
         break LOOP
@@ -819,7 +829,7 @@ extension Parser {
       let whereClause = self.parseGenericWhereClause()
       elements.append(.genericWhereClause(whereClause))
     }
-    return RawSpecializeAttributeArgumentListSyntax(elements: elements, arena: self.arena)
+    return RawSpecializeAttributeArgumentListSyntax(elements: self.nodeListAllocator.list(elements), arena: self.arena)
   }
 }
 
@@ -866,10 +876,9 @@ extension Parser {
       arena: self.arena
     )
 
-    return RawLabeledExprListSyntax(
-      elements: [isolationKindElement],
-      arena: self.arena
-    )
+    var arguments = RawSyntaxNodeListBuilder<RawLabeledExprSyntax>()
+    arguments.append(isolationKindElement, allocator: self.nodeListAllocator)
+    return RawLabeledExprListSyntax(elements: arguments.build(), arena: self.arena)
   }
 }
 
@@ -884,7 +893,11 @@ extension Parser {
       return RawABIAttributeArgumentsSyntax(
         provider: .missing(
           RawMissingDeclSyntax(
-            unexpectedBefore.isEmpty ? nil : RawUnexpectedNodesSyntax(elements: unexpectedBefore, arena: self.arena),
+            unexpectedBefore.isEmpty
+              ? nil
+              : unexpectedBefore.withRawSyntaxNodeList {
+                RawUnexpectedNodesSyntax(elements: $0, arena: self.arena)
+              },
             attributes: self.emptyCollection(RawAttributeListSyntax.self),
             modifiers: self.emptyCollection(RawDeclModifierListSyntax.self),
             placeholder: self.missingToken(.identifier, text: "<#declaration#>"),
@@ -918,7 +931,9 @@ extension Parser {
       let ifConfig = self.parsePoundIfDirective({ parser in
         let decl = parser.parseDeclaration(in: .argumentList)
         let member = RawMemberBlockItemSyntax(decl: decl, semicolon: nil, arena: parser.arena)
-        return .decls(RawMemberBlockItemListSyntax(elements: [member], arena: parser.arena))
+        var members = RawSyntaxNodeListBuilder<RawMemberBlockItemSyntax>()
+        members.append(member, allocator: parser.nodeListAllocator)
+        return .decls(RawMemberBlockItemListSyntax(elements: members.build(), arena: parser.arena))
       })
       decl = ifConfig.makeUnexpectedKeepingFirstNode(
         of: RawDeclSyntax.self,
@@ -950,7 +965,7 @@ extension Parser {
   mutating func parseBackDeployedAttributeArguments() -> RawBackDeployedAttributeArgumentsSyntax {
     let (unexpectedBeforeLabel, label) = self.expect(.keyword(.before))
     let (unexpectedBeforeColon, colon) = self.expect(.colon)
-    var elements: [RawPlatformVersionItemSyntax] = []
+    var elements = RawSyntaxNodeListBuilder<RawPlatformVersionItemSyntax>()
     var keepGoing: RawTokenSyntax? = nil
     repeat {
       let versionRestriction = self.parsePlatformVersion()
@@ -960,7 +975,8 @@ extension Parser {
           platformVersion: versionRestriction,
           trailingComma: keepGoing,
           arena: self.arena
-        )
+        ),
+        allocator: self.nodeListAllocator
       )
     } while keepGoing != nil
     return RawBackDeployedAttributeArgumentsSyntax(
@@ -968,7 +984,7 @@ extension Parser {
       beforeLabel: label,
       unexpectedBeforeColon,
       colon: colon,
-      platforms: RawPlatformVersionItemListSyntax(elements: elements, arena: self.arena),
+      platforms: RawPlatformVersionItemListSyntax(elements: elements.build(), arena: self.arena),
       arena: self.arena
     )
   }
@@ -981,7 +997,7 @@ extension Parser {
     let moduleName = self.parseStringLiteral()
     let (unexpectedBeforeComma, comma) = self.expect(.comma)
 
-    var platforms: [RawPlatformVersionItemSyntax] = []
+    var platforms = RawSyntaxNodeListBuilder<RawPlatformVersionItemSyntax>()
     var keepGoing: RawTokenSyntax?
     repeat {
       let restriction = self.parsePlatformVersion(allowStarAsVersionNumber: true)
@@ -991,7 +1007,8 @@ extension Parser {
           platformVersion: restriction,
           trailingComma: keepGoing,
           arena: self.arena
-        )
+        ),
+        allocator: self.nodeListAllocator
       )
     } while keepGoing != nil
 
@@ -1003,7 +1020,7 @@ extension Parser {
       moduleName: moduleName,
       unexpectedBeforeComma,
       comma: comma,
-      platforms: RawPlatformVersionItemListSyntax(elements: platforms, arena: self.arena),
+      platforms: RawPlatformVersionItemListSyntax(elements: platforms.build(), arena: self.arena),
       arena: self.arena
     )
   }
@@ -1039,7 +1056,7 @@ extension Parser {
 
 extension Parser {
   mutating func parseDocumentationAttributeArguments() -> RawDocumentationAttributeArgumentListSyntax {
-    var arguments: [RawDocumentationAttributeArgumentSyntax] = []
+    var arguments = RawSyntaxNodeListBuilder<RawDocumentationAttributeArgumentSyntax>()
 
     var keepGoing: RawTokenSyntax? = nil
     repeat {
@@ -1111,11 +1128,12 @@ extension Parser {
           value: value,
           trailingComma: keepGoing,
           arena: self.arena
-        )
+        ),
+        allocator: self.nodeListAllocator
       )
     } while keepGoing != nil
 
-    return RawDocumentationAttributeArgumentListSyntax(elements: arguments, arena: self.arena)
+    return RawDocumentationAttributeArgumentListSyntax(elements: arguments.build(), arena: self.arena)
   }
 }
 
