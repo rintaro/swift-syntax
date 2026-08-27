@@ -1,19 +1,19 @@
 # SwiftParser performance work — 2026-08
 
-Branch `perf-parser-2026-woc`, 43 commits off `main` (`a3cd836bf`).
+Branch `perf-parser-2026-woc`, 46 commits off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.35× faster on a 177 KB source file and 2.21× on a 317 KB
+**Parsing is 2.58× faster on a 177 KB source file and 2.42× on a 317 KB
 declaration-heavy one**, with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.899 ms | 2.086 ms | **−57.4%** (2.35×) |
-| concatenated parser sources (317 KB) | 8.323 ms | 3.761 ms | **−54.8%** (2.21×) |
+| `MinimalCollections.swift.input` (177 KB) | 4.764 ms | 1.849 ms | **−61.2%** (2.58×) |
+| concatenated parser sources (317 KB) | 8.134 ms | 3.364 ms | **−58.6%** (2.42×) |
 
 Repeated runs of this pair vary by a couple of percent, so read these as about
-2.3× and about 2.2×.
+2.6× and about 2.4×.
 
 Interleaved A/B, 16 rounds, minimum per rev, both ends rebuilt from source.
 
@@ -73,15 +73,15 @@ the grouping itself is by symbol name and therefore approximate.
 
 | cluster | main | branch | change |
 |---|---|---|---|
-| Unicode decode / classify | 0.363 ms | 0.011 ms | **−97%** |
-| TokenSpec / spec sets | 0.225 | 0.016 | **−93%** |
-| Trivia lexing | 0.567 | 0.071 | **−88%** |
-| Keyword recognition | 0.529 | 0.076 | **−86%** |
-| Identifier lexing | 0.369 | 0.140 | **−62%** |
-| Arena / allocation | 0.340 | 0.229 | **−33%** |
-| Lexer dispatch | 0.569 | 0.396 | −30% |
-| Reference counting | 0.174 | 0.129 | −26% |
-| **whole parse** | **4.899** | **2.086** | **−57%** |
+| Unicode decode / classify | 0.337 ms | 0.011 ms | **−97%** |
+| TokenSpec / spec sets | 0.213 | 0.016 | **−92%** |
+| Trivia lexing | 0.561 | 0.062 | **−89%** |
+| Keyword recognition | 0.503 | 0.078 | **−84%** |
+| Reference counting | 0.160 | 0.047 | **−71%** |
+| Identifier lexing | 0.374 | 0.121 | **−68%** |
+| Arena / allocation | 0.326 | 0.197 | **−40%** |
+| Lexer dispatch | 0.569 | 0.386 | −32% |
+| **whole parse** | **4.764** | **1.849** | **−61%** |
 
 Lexer dispatch is the least improved and is now the largest cluster, which is
 the honest summary of where this branch got to: the work each token costs has
@@ -96,7 +96,7 @@ been cut hard, and what is left is the state machine that walks them.
 | `Lexer.Cursor.StateStack` | 41 / 48 | **8 / 8** |
 | `Lexer.Lexeme` | 121 / 128 | **72 / 72** |
 | `Lexer.LexemeSequence` | 320 / 320 | **128 / 128** |
-| `Parser` | 456 / 456 | **344 / 344** |
+| `Parser` | 456 / 456 | **352 / 352** |
 | `Parser.Lookahead` | 472 / 472 | **224 / 224** |
 
 `Lexer.LexemeSequence` and `Parser.Lookahead` are also now **trivially
@@ -362,7 +362,8 @@ the compiler retained and released around every token. `__shared` does not help,
 because a non-consuming parameter is already guaranteed; the obligation comes
 from where the value came from, not from the convention. Passing it as
 `Unmanaged`, which is trivial and promises nothing that has to be kept, removes
-the pair, and reference counting over a parse falls from **8.1% to 5.4%**.
+the pair, and reference counting over a parse falls from **8.1% to 5.4%**. The
+collections work below later took it to 1.7%.
 
 Two things worth keeping from this. `unowned(unsafe)` does not mean "no reference
 counting"; it means the *storage* does no counting, and the moment such a
@@ -400,6 +401,60 @@ nothing about, so it passes nothing and keeps the default.
 Slabs stay powers of two, doubled up from the default rather than computed. A slab
 at twice the source was tried first and rejected: it saves no measurable time and
 doubles what is wasted, from 4.7% of the memory a parse takes to 10.8%.
+
+### Collections without an Array
+
+| | |
+|---|---|
+| `d7ca43ec1` Gather a labeled expression list without an Array | **−2.1% / −2.4%** |
+| `4d63b3595` Build every syntax collection without an Array | **−10.2% / −8.7%** |
+
+The largest single change on the branch, and the one that took the longest to
+see, because the cost was not in the collection's initializer but in what the
+parser handed it. Every collection was built from an `Array`, which the
+initializer copied into the arena and then let go.
+
+Counting only the collections that hold anything, over 400 of the parser's own
+sources, **60% hold a single element and 94% hold three or fewer**. So each was a
+heap allocation, a reference count and a free to carry one or two pointers, and a
+parse of the declaration-heavy input built **8,388** of them. It was also
+concentrated: `labeledExprList` alone is a third.
+
+CodeGeneration emits one initializer per collection, taking a
+`RawSyntaxNodeList`, and the `Array` one is *gone* rather than joined, so nothing
+can quietly go back to allocating. Nothing outside SwiftParser was using it — 84
+call sites in the parser and three in tests.
+
+The parser gathers into a `RawSyntaxNodeListBuilder` at 53 sites, in memory a
+`RawSyntaxNodeListAllocator` owns for the length of the parse. Deliberately not
+the syntax arena, whose memory lives as long as the tree: what is gathered is
+read once, when the collection is built, so putting it there would leave a buffer
+per collection alive for as long as anything holds the tree.
+
+Twenty-five sites still start from an `Array` — a literal handful of elements, or
+nodes gathered while recovering from a parse error. Two spellings serve them and
+both name the array at the call site, so a hot one cannot hide:
+`withRawSyntaxNodeList` borrows the array's storage for the length of the call,
+and `RawSyntaxNodeListAllocator.list(_:)` copies where the list must outlive the
+expression.
+
+Three things worth keeping.
+
+**Both types have to be trivially copyable**, which is why the builder takes the
+allocator as an argument to `append` rather than holding it: one stored class
+reference makes every copy of the builder retain and every destroy release. A
+small vector holding an `Array` for its overflow case has the same problem — it is
+`POD false` even for the 60% of collections holding one element — where overflow
+into memory the parser already owns is `POD true` at the same size.
+
+**`initializeElement(at:to:)` does not come down to a store** for a generic
+element. Writing through the buffer's base address instead was worth 0.5% of a
+parse, which is the difference between this landing at 1.6% and at 2.1%.
+
+**What it did to the profile** is the striking part. Reference counting over a
+parse went from 8.1% to **1.7%**, and `malloc`/`free` from 4.3% to **0.6%**. The
+arena was always meant to keep a parse away from the allocator; the arrays were
+what kept taking it back there.
 
 ### Cleanups and tests
 
@@ -650,50 +705,50 @@ was caught by a compiler warning, the second by another. Anything named after an
 
 ## What is left
 
-Measured on the declaration-heavy input at the branch head, 3.76 ms:
+Measured on the declaration-heavy input at the branch head, 3.36 ms:
 
 | | |
 |---|---|
-| `nextToken` (with the trivia fast path inlined into it) | ~8% |
-| `lexNormal` | ~7% |
-| `lexIdentifier` (with the identifier scan inlined into it) | ~7% |
-| `lexTriviaByScanning` | ~6% |
-| reference counting | 5.4% |
-| generated `Raw*Syntax` initializers | ~4% |
-| `malloc` / `free` | ~3% |
-| `memset` | 2.0% |
+| `nextToken` | 8.6% |
+| `lexIdentifier` (with the identifier scan inlined into it) | 8.6% |
+| `lexNormal` | 8.3% |
+| `lexTriviaByScanning` | 7.0% |
+| `BumpPtrAllocator.allocate<A>` | 5.5% |
+| generated `Raw*Syntax` initializers | ~3.5% |
+| `memset` | 2.4% |
+| reference counting | **1.7%** |
+| `malloc` / `free` | **0.6%** |
 
-By cluster: lexer scanning about a third, node construction ~13%, arena and
-allocation under 8% since the slab commit, reference counting 5%.
+**It is a lexer now.** Reference counting and heap traffic, which between them
+were 12.4% before the collections work, are 2.3% together. What is left is
+overwhelmingly the cost of looking at bytes: the four lexer functions above are a
+third of the parse on their own, and each has already had a pass.
 
-Three things learned while arriving at those numbers, each of which changes what
-is worth trying next.
+That changes what is worth trying, and mostly it argues for stopping. The
+remaining items, in the order I would look at them:
 
-**`<deduplicated_symbol>` was 4% of the profile under a name that says nothing.**
-It is the compiler's merged-function suffix `Tm`: the generated `Raw*Syntax`
-initializers have identical bodies for a given layout shape and get folded into
-one, along with small accessors. So node construction is ~13%, not the ~4% listed
-here before, and per-name attribution in that region is unreliable, because the
-name shown is arbitrary among the folded set.
+- **`memset` at 2.4% and the generated initializers at ~3.5%.** The layout buffer
+  is zeroed and then filled. Removing the zeroing is real work removed rather than
+  moved, and it is a CodeGeneration change, so it is the largest well-defined thing
+  left.
+- **`BumpPtrAllocator.allocate<A>` at 5.5%.** Do not expect this to yield: forcing
+  it inline moved 0.203 ms out of it and 0.206 ms into its callers, because the
+  bump *is* the work. It comes down by allocating fewer nodes, not by making one
+  cheaper, and after the slab and collection commits there is no obvious source of
+  surplus allocations left.
+- **The four lexer functions.** No local win stands out. `lexNormal`'s dispatch is
+  already a jump table, `nextToken` is the orchestrator with two fast paths inlined
+  into it, and the trivia and identifier scans have each been rewritten once. What
+  would move these is a different shape — lexing more than one token at a time, or
+  not re-deriving per-token facts — not another local change.
 
-**Allocation cannot be made cheaper, only rarer.** `BumpPtrAllocator`'s frames
-looked like 5% of call overhead, but forcing the generic `allocate` inline moved
-0.203 ms out of it and 0.206 ms into `RawSyntaxArena.intern` and
-`allocateRawSyntaxBuffer` — the immediate callers, which then stopped being
-inlined themselves. The bump *is* the work: an align, a compare, an add and a
-store per node. That is also why `0c23ecf96` attacks the number of slabs rather
-than the cost of using one, and it is the reading to carry into the remaining
-`malloc` time.
-
-**Reference counting is the largest thing nobody has taken apart.** 37% of what
-remains is inside those merged node initializers, and looking at it means looking
-at CodeGeneration rather than the lexer. The same is true of `memset`, which is
-those initializers zeroing layout buffers before filling them: removing it is real
-work removed rather than moved, and it is a template change.
-
-Beyond that, `lexNormal` is already a jump table with its cost spread across the
-case arms, and `nextToken` is the orchestrator with two fast paths inlined into
-it. Neither has an obvious local win left.
+Two findings from this branch are worth carrying into whatever comes next.
+`<deduplicated_symbol>` in a profile is not one function: it is the compiler's
+merged-function suffix, so identical generated initializers fold together and the
+name shown is arbitrary among them. And where a small function lands decides
+whether a change is worth anything, in both directions — `@inline(__always)` was
+the difference between 1% and 3.7% for the trivia fast path, and its absence hid a
+14% regression behind an `@inlinable` that looked free.
 
 ### One loose end
 
