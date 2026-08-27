@@ -43,12 +43,20 @@ each change against its own parent, on the two performance inputs.
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [ ] | P1 | Make the allocator and parsing arena `final` — `5806dcec2` | 4 | **−6.1% / −6.3%** |
+| [x] | P1 | Make the allocator and parsing arena `final` — `5806dcec2` | 4 | **neutral** on `main`: +0.6%/+0.1%, and −0.2%/−0.1% at its own base. The report's −6% is wrong. |
 | [ ] | P2 | ASCII fast path when advancing over a scalar — `817307a17` | 13 | **−12.1% / −10.8%** |
 | [ ] | P3 | Combine a token diagnostic only when there is one — `f43212b5b` | 12 | −1.5% / −1.5% |
 | [ ] | P4 | Size a parsing arena's slabs for the source — `0c23ecf96` | 48 | −2.0% / −1.0% |
 
-Four unrelated changes worth about 20% between them. Reviewable in minutes each.
+Reviewable in minutes each. **The "about 20% between them" I first claimed rests
+on per-commit figures that predate the interleaved two-build protocol, and the
+first one measured did not reproduce.** Measure each against `main` before
+believing it; that is what these PRs are for.
+
+`perf-parser-01-arena-final` is built and verified. It is a correctness/style
+change rather than a performance one: `BumpPtrAllocator` and
+`ParsingRawSyntaxArena` are not meant to be subclassed. Worth posting on that
+basis or dropping, but not as a performance PR.
 
 ### Group 2 — the lexer's cursor (chained: same struct, same test)
 

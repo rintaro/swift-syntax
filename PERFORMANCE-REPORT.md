@@ -186,14 +186,24 @@ that happens once per call. It now peeks first.
 
 | | |
 |---|---|
-| `5806dcec2` Make the allocator and the parsing arena `final` | **−6.1% / −6.3%** |
+| `5806dcec2` Make the allocator and the parsing arena `final` | ~~−6.1% / −6.3%~~ **wrong; neutral** |
 | `d4f3d94e4` Reserve room for the incremental parse lookahead ranges | −2.7% / −2.7% |
 | `e8acf42b2` Only record lookahead ranges when someone will read them | −1.7% / −1.9% |
 | `aad644153` Refer to the lexer state allocator without owning it | **−4.0% / −3.6%** |
 
-Two words of `final` were worth 6%: every allocation was a vtable call on a
-non-final `public` class, so the bump — a pointer compare and an add — could not
-be inlined. `e8acf42b2` changes observable behaviour: `Parser.lookaheadRanges`
+**The 6% attributed to `final` here is wrong.** Re-measured at its own base under
+the interleaved two-build protocol, `5806dcec2` is −0.19% / −0.06% — neutral. The
+original figure came from the early sequential build-then-measure era that the
+methodology notes below warn about, and I never re-measured it when the protocol
+changed. Treat every per-commit figure from before the state stack commits as
+unverified for the same reason: the ones from `91e26dc86` onward were measured
+with two builds interleaved, the earlier ones may not have been.
+
+The reasoning that went with the wrong number — that every allocation was a vtable
+call on a non-final `public` class, so the bump could not be inlined — is also
+wrong in its second half: `allocate` was not `@inlinable` until `7b2b378a4`, so
+devirtualizing it could not have enabled inlining across the module boundary
+anyway. `e8acf42b2` changes observable behaviour: `Parser.lookaheadRanges`
 is `public internal(set)`, so a caller that drives a `Parser` directly and then
 reads it now finds it empty unless it asks for the ranges.
 
