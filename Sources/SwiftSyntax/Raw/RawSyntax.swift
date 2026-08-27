@@ -112,7 +112,7 @@ internal struct RawSyntaxData: Sendable {
     ) {
       self.tokenKind = tokenKind
       self.wholeText = wholeText
-      precondition(textRange.upperBound <= UInt32.max, "a token cannot be 4 GB long")
+      // Converting to `UInt32` is the bounds check. See `Layout.init`.
       self.textLowerBound = UInt32(textRange.lowerBound)
       self.textUpperBound = UInt32(textRange.upperBound)
       self.presence = presence
@@ -191,9 +191,31 @@ internal struct RawSyntaxData: Sendable {
       return Int(self.byteLengthStorage)
     }
 
+    var byteLength32: UInt32 {
+      return self.byteLengthStorage
+    }
+
+    var descendantCount32: UInt32 {
+      return self.descendantCountStorage
+    }
+
     /// Number of nodes in this subtree, excluding this node.
     var descendantCount: Int {
       return Int(self.descendantCountStorage)
+    }
+
+    init(
+      kind: SyntaxKind,
+      layout: RawSyntaxBuffer,
+      byteLength: UInt32,
+      descendantCount: UInt32,
+      recursiveFlags: RecursiveRawSyntaxFlags
+    ) {
+      self.kind = kind
+      self.layout = layout
+      self.recursiveFlags = recursiveFlags
+      self.byteLengthStorage = byteLength
+      self.descendantCountStorage = descendantCount
     }
 
     init(
@@ -203,8 +225,10 @@ internal struct RawSyntaxData: Sendable {
       descendantCount: Int,
       recursiveFlags: RecursiveRawSyntaxFlags
     ) {
-      precondition(byteLength <= UInt32.max, "a source file cannot be 4 GB long")
-      precondition(descendantCount <= UInt32.max, "a syntax tree cannot have 4 billion nodes")
+      // No bounds check: converting to `UInt32` is already one, and a source
+      // file of 4 GB traps rather than truncates. Spelling it out again grew
+      // this enough that `makeLayout` stopped being inlined into the generated
+      // initializers, which cost 0.17 ms of a parse.
       self.kind = kind
       self.layout = layout
       self.recursiveFlags = recursiveFlags
@@ -313,6 +337,32 @@ extension RawSyntax {
       return recursiveFlags
     case .layout(let layoutView):
       return layoutView.recursiveFlags
+    }
+  }
+
+  /// ``totalNodes`` and ``byteLength`` as they are stored, for
+  /// ``makeLayout(kind:uninitializedCount:isMaximumNestingLevelOverflow:arena:initializingWith:)``,
+  /// which sums both over every child of every node it builds — 300,000 times in
+  /// parsing the performance test's declaration-heavy input. Going through the
+  /// `Int` forms converts on each one.
+  var totalNodes32: UInt32 {
+    switch rawData.payload {
+    case .parsedToken(_),
+      .materializedToken(_):
+      return 1
+    case .layout(let dat):
+      return dat.descendantCount32 + 1
+    }
+  }
+
+  var byteLength32: UInt32 {
+    switch rawData.payload {
+    case .parsedToken(let dat):
+      return dat.presence == .present ? UInt32(dat.wholeText.count) : 0
+    case .materializedToken(let dat):
+      return dat.pointee.presence == .present ? dat.pointee.byteLength : 0
+    case .layout(let dat):
+      return dat.byteLength32
     }
   }
 
@@ -806,6 +856,28 @@ extension RawSyntax {
   ///   - layout: Layout buffer of the children.
   ///   - byteLength: Computed total byte length of this node.
   ///   - descendantCount: Total number of the descendant nodes in `layout`.
+  /// The counts as they are stored, for
+  /// ``makeLayout(kind:uninitializedCount:isMaximumNestingLevelOverflow:arena:initializingWith:)``,
+  /// which has summed them narrow.
+  fileprivate static func layout(
+    kind: SyntaxKind,
+    layout: RawSyntaxBuffer,
+    byteLength: UInt32,
+    descendantCount: UInt32,
+    recursiveFlags: RecursiveRawSyntaxFlags,
+    arena: __shared RawSyntaxArena
+  ) -> RawSyntax {
+    validateLayout(layout: layout, as: kind)
+    let payload = RawSyntaxData.Layout(
+      kind: kind,
+      layout: layout,
+      byteLength: byteLength,
+      descendantCount: descendantCount,
+      recursiveFlags: recursiveFlags
+    )
+    return RawSyntax(arena: arena, payload: .layout(payload))
+  }
+
   fileprivate static func layout(
     kind: SyntaxKind,
     layout: RawSyntaxBuffer,
@@ -832,6 +904,12 @@ extension RawSyntax {
   ///   - kind: Syntax kind.
   ///   - count: Number of children.
   ///   - initializer: A closure that initializes elements.
+  /// - Important: `@inline(__always)` because this is how every layout node in
+  ///   a tree is built, and the generated initializers are its only callers.
+  ///   Narrowing the fields of `Layout` grew this enough that the compiler
+  ///   stopped inlining it, which cost 0.19 ms of a parse — more than the
+  ///   narrowing saved anywhere else.
+  @inline(__always)
   public static func makeLayout(
     kind: SyntaxKind,
     uninitializedCount count: Int,
@@ -844,15 +922,15 @@ extension RawSyntax {
     initializer(layoutBuffer)
 
     // Calculate the "byte width".
-    var byteLength = 0
-    var descendantCount = 0
+    var byteLength: UInt32 = 0
+    var descendantCount: UInt32 = 0
     var recursiveFlags = RecursiveRawSyntaxFlags()
     if kind.hasError {
       recursiveFlags.insert(.hasError)
     }
     for case let node? in layoutBuffer {
-      byteLength += node.byteLength
-      descendantCount += node.totalNodes
+      byteLength += node.byteLength32
+      descendantCount += node.totalNodes32
       recursiveFlags.insert(node.recursiveFlags)
       arena.addChild(node.arenaReference)
     }
