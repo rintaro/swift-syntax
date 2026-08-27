@@ -6,6 +6,14 @@ did and why.
 
 Hashes are as of writing and will change when the squashes are built.
 
+Each PR is built on a branch named `perf-parser-NN-<slug>`, cut from `main` with
+`--no-track`. The names have to be flat: the remote already carries a branch
+called `perf`, so `perf/NN-slug` is rejected as a directory/file conflict.
+
+The differential corpus is `/Users/rintaro/Repositories/swift-syntax-mono/swift-syntax`
+(749 files) rather than this working copy, which moves under the comparison every
+time a branch is checked out and reported false differences six times.
+
 ## Before anything is posted
 
 **Squash.** Five places where the branch's history is exploratory and the
@@ -20,7 +28,7 @@ intermediate states should not ship.
       regression that the next commit fixes; the first alone is a regression.
 - [ ] `d64f96239` + `c2a9dffe8` + `916c0b86b` + `7524ff0b4` + `3077fc191` → one
       commit. The last two reshape what the first three wrote.
-- [ ] `79bc75d3d` + `50044b0fe` + `e3ff94452` → one commit. The middle one adds a
+- [x] `79bc75d3d` + `50044b0fe` + `e3ff94452` → one commit. The middle one adds a
       `continuesAnIdentifier` to `Cursor.swift` that the last one deletes, moving
       the classification to `CharacterInfo.swift` where it ends up.
 
@@ -34,6 +42,11 @@ is a working document that cites branch-local hashes and my own measurement
 mistakes; it is not something the project should carry. Keep it to draw PR
 descriptions from.
 
+## Progress
+
+Built, verified and measured against `main`: P1, P2, P3, P10, P14, P15 — six of
+21. Each is one commit on its own branch, none pushed.
+
 ## The pull requests
 
 Sizes are hand-written lines, with generated lines in brackets. Percentages are
@@ -44,19 +57,22 @@ each change against its own parent, on the two performance inputs.
 | | | contents | lines | measured |
 |---|---|---|---|---|
 | [x] | P1 | Make the allocator and parsing arena `final` — `5806dcec2` | 4 | **neutral** on `main`: +0.6%/+0.1%, and −0.2%/−0.1% at its own base. The report's −6% is wrong. |
-| [ ] | P2 | ASCII fast path when advancing over a scalar — `817307a17` | 13 | **−12.1% / −10.8%** |
-| [ ] | P3 | Combine a token diagnostic only when there is one — `f43212b5b` | 12 | −1.5% / −1.5% |
+| [x] | P2 | ASCII fast path when advancing over a scalar — `817307a17` | 13 | **−11.3% / −10.6%** vs `main` |
+| [x] | P3 | Combine a token diagnostic only when there is one — `f43212b5b` | 12 | −0.5% / −0.5% vs `main`, indistinguishable from noise; 1.0% / 1.0% on the full branch |
 | [ ] | P4 | Size a parsing arena's slabs for the source — `0c23ecf96` | 48 | −2.0% / −1.0% |
 
 Reviewable in minutes each. **The "about 20% between them" I first claimed rests
-on per-commit figures that predate the interleaved two-build protocol, and the
-first one measured did not reproduce.** Measure each against `main` before
-believing it; that is what these PRs are for.
+on per-commit figures that predate the interleaved two-build protocol.** Two of
+the three measured so far did not reproduce: P1 is neutral and P3 is half a
+percent. P2 alone carries the group.
 
-`perf-parser-01-arena-final` is built and verified. It is a correctness/style
-change rather than a performance one: `BumpPtrAllocator` and
-`ParsingRawSyntaxArena` are not meant to be subclassed. Worth posting on that
+P1 is a correctness/style change rather than a performance one: `BumpPtrAllocator`
+and `ParsingRawSyntaxArena` are not meant to be subclassed. Worth posting on that
 basis or dropping, but not as a performance PR.
+
+P3 is worth posting for what it is — a saving of a fixed 0.02–0.04 ms, which is
+1% of a fast parse and half a percent of `main`'s — with the number stated
+against both bases rather than only the flattering one.
 
 ### Group 2 — the lexer's cursor (chained: same struct, same test)
 
@@ -75,7 +91,7 @@ the linked list turns that latent use-after-free into a live one.
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [ ] | P10 | Cache the resolved keyword on `Lexeme`, reuse `lexIdentifier`'s lookup — `265f0b27e`, `eb71d5311` | 79 | **−10.3/−9.8**, then −2.0/−1.2 |
+| [x] | P10 | Cache the resolved keyword on `Lexeme`, reuse `lexIdentifier`'s lookup — *squash of 2* | 79 | **−6.5% / −6.6%** vs `main`, against **−10.3/−9.8** claimed at its own base |
 | [ ] | P11 | Match hand-written spec sets on the keyword — *squash of 5* | ~700 *mechanical* | −9.8/−7.8, −0.4/−1.2, −2.5/−2.3 |
 | [ ] | P12 | Generate spec set initializers the same way — `eca3c7bef`, `2ac6a490b` | 150 [2,645] | −0.3% / −0.3% |
 | [ ] | P13 | Don't declare attribute names as keywords — `41a10b37b` | 250 [108] | neutral |
@@ -87,13 +103,19 @@ the rest of this group.
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [ ] | P14 | Trivia: decide before consuming, then the fast path — `4b95810fa`, `ab06261c3`, `db190d73c`, `cfd6a9383` | 133 | **−9.8/−11.4**, **−5.0/−3.7**, +0.3/−1.1 |
-| [ ] | P15 | Identifier scanning and one character classification — *squash of 3* | ~170 | −1.9/−1.0, −1.2/−2.2 |
+| [x] | P14 | Trivia: decide before consuming, then the fast path — *squash of 4* | 133 | **−9.1%/−10.3% and −10.5%/−10.9%** vs `main`, two builds per input |
+| [x] | P15 | Identifier scanning and one character classification — *squash of 3* | 96 | **−10.3% / −9.3%** vs `main`, against −3.1/−3.2 claimed across its own bases |
 
-Verified: P14 cherry-picks onto `main` cleanly. P15 conflicts with P14 only
-because both insert an `extension UInt8` at the same point, and that disappears
-once P15 is squashed to its end state, where the classification lives in
-`CharacterInfo.swift`.
+P14 cherry-picks onto `main` cleanly. P15 does not: `50044b0fe` expects the
+`extension UInt8` block that P14 introduces, and `main` has no
+`advanceOverIdentifierContinuationCharacters` at all — `lexIdentifier` inlines
+`advance(while:)` there. So P15's end state was built directly on `main` rather
+than cherry-picked, and each of its three pieces checked byte-for-byte against
+the branch tip.
+
+Both measured far larger against `main` than against their own bases, for the
+reason in the notes below: each is a proportion of the scanning work, and the
+scanning work is a larger share of a slow parse.
 
 ### Group 5 — needs a decision before posting
 
@@ -136,7 +158,8 @@ automatically. They want saying in prose.
 
 ## Suggested order
 
-1. Group 1, in any order. Cheap to review, ~20% between them, buys confidence.
+1. Group 1, in any order. Cheap to review; P2 is the only one of the four worth
+   a performance claim.
 2. Groups 2, 3, 4 and 7 in parallel — 2 and 3 touch different files, 4 is
    independent of both, 7 is a different module.
 3. Group 5 once the two questions above are settled.
@@ -172,6 +195,10 @@ cumulative numbers.
   the trivia fast path; its absence hid a 14% regression behind an `@inlinable`
   that looked free.
 - Narrowing a field and then adding it up in `Int` gives the space back in time.
+- A change worth a *proportion* of some phase measures larger against `main` than
+  against a fast base, and a change worth a *fixed quantity* measures smaller.
+  P14 and P15 each roughly tripled against `main`; P3 halved. Neither direction is
+  a measurement error, and the base has to be named with the number.
 - `<deduplicated_symbol>` in a profile is not one function. Diff profiles by
   cluster, not by symbol: inlining decisions move between builds and symbol-level
   diffs attribute that motion to the wrong place.
