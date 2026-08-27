@@ -1,16 +1,16 @@
 # SwiftParser performance work — 2026-08
 
-Branch `perf-parser-2026-woc`, 38 commits off `main` (`a3cd836bf`).
+Branch `perf-parser-2026-woc`, 41 commits off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.28× faster on a 177 KB source file and 2.17× on a 317 KB
+**Parsing is 2.32× faster on a 177 KB source file and 2.19× on a 317 KB
 declaration-heavy one**, with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.912 ms | 2.154 ms | **−56.1%** (2.28×) |
-| concatenated parser sources (317 KB) | 8.393 ms | 3.876 ms | **−53.8%** (2.17×) |
+| `MinimalCollections.swift.input` (177 KB) | 4.899 ms | 2.115 ms | **−56.8%** (2.32×) |
+| concatenated parser sources (317 KB) | 8.394 ms | 3.825 ms | **−54.4%** (2.19×) |
 
 Repeated runs of this pair vary by a few percent; treat it as roughly 2× and
 1.9×.
@@ -336,6 +336,43 @@ the answer is the argument. `@inlinable` on the initializer measures the same as
 testing at the call sites, but it is plain public API rather than SPI and has
 exactly three callers, so the test went to the callers.
 
+### Reference counting
+
+| | |
+|---|---|
+| `d3952537f` Hand the lexer its state allocator without retaining it per token | **−1.7% / −1.5%** |
+| `9a9c7095c` Work out what a state transition amounts to, then apply it | neutral |
+
+`aad644153`, further up, made `LexemeSequence` hold the allocator
+`unowned(unsafe)` so that copying one to start a `Lookahead` neither retains nor
+releases, and that was worth 4%. Passing it to `nextToken` gave part of it back,
+which took a while to notice:
+
+```
+bl <swift_retain>
+bl Cursor.nextToken(sourceBufferStart:stateAllocator:)
+bl <swift_release>
+```
+
+A parameter is guaranteed, which obliges the *caller* to keep the referent alive
+for the call, and an `unowned(unsafe)` reference carries no such guarantee — so
+the compiler retained and released around every token. `__shared` does not help,
+because a non-consuming parameter is already guaranteed; the obligation comes
+from where the value came from, not from the convention. Passing it as
+`Unmanaged`, which is trivial and promises nothing that has to be kept, removes
+the pair, and reference counting over a parse falls from **8.1% to 5.4%**.
+
+Two things worth keeping from this. `unowned(unsafe)` does not mean "no reference
+counting"; it means the *storage* does no counting, and the moment such a
+reference meets a call boundary the counting comes back. And the same trap is
+still present one level down, at the `Array` the interning cache lives in: a
+class property of `Array` type retains its buffer when read and checks uniqueness
+when appended to. That one stays, because it happens per state transition — 1,200
+times against 86,000 tokens — and does not register in the profile.
+
+`9a9c7095c` is a cleanup that fell out of it, and measures neutral for the same
+reason.
+
 ### Cleanups and tests
 
 | | |
@@ -573,20 +610,49 @@ was caught by a compiler warning, the second by another. Anything named after an
 
 ## What is left
 
-Unexamined, roughly by size:
+Measured on the declaration-heavy input at the branch head, 3.83 ms:
 
-- **Lexer dispatch, ~15%.** `nextToken` / `lexNormal` / `LexemeSequence.next` —
-  the state machine itself. The dispatch switch is already a jump table and
-  `Lexer.Result` is too cold for its size to matter, so what is left here is the
-  state machine's structure rather than anything local.
-- **Arena allocation, ~12%.** `memset` traces to the generated `Raw*Syntax`
-  constructors initializing layout buffers, which is real work. Slab sizing
-  unexamined.
-- **`Raw*Syntax` node construction, ~4%.**
-- **ARC, ~5%.**
+| | |
+|---|---|
+| `nextToken` (with the trivia fast path inlined into it) | 8.0% |
+| `lexNormal` | 7.4% |
+| `lexIdentifier` (with the identifier scan inlined into it) | 6.9% |
+| `lexTriviaByScanning` | 5.8% |
+| generated `Raw*Syntax` initializers | ~4% |
+| reference counting | 5.4% |
+| `malloc` / `free` | 4.3% |
+| `memset` | 2.0% |
 
-The cheap structural wins are done. Roughly 45% of the remaining profile is
-diffuse parser logic with no single hot spot.
+By cluster: lexer scanning 33%, node construction ~13%, arena 8%, reference
+counting 5%.
+
+Three things learned while arriving at those numbers, each of which changes what
+is worth trying next.
+
+**`<deduplicated_symbol>` was 4% of the profile under a name that says nothing.**
+It is the compiler's merged-function suffix `Tm`: the generated `Raw*Syntax`
+initializers have identical bodies for a given layout shape and get folded into
+one, along with small accessors. So node construction is ~13%, not the ~4% listed
+here before, and per-name attribution in that region is unreliable, because the
+name shown is arbitrary among the folded set.
+
+**Allocation cannot be made cheaper, only rarer.** `BumpPtrAllocator`'s frames
+looked like 5% of call overhead, but forcing the generic `allocate` inline moved
+0.203 ms out of it and 0.206 ms into `RawSyntaxArena.intern` and
+`allocateRawSyntaxBuffer` — the immediate callers, which then stopped being
+inlined themselves. The bump *is* the work: an align, a compare, an add and a
+store per node.
+
+**26% of the `malloc` time is `startNewSlab`.** The parsing arena starts at 4 KB
+and doubles only every 128 slabs, so filling a few MB takes hundreds of small
+mallocs. This is the one cheap experiment left that nobody has run: a larger
+initial slab, or a shorter doubling interval. It needs watching memory as well as
+time, since the risk is over-allocating for small files.
+
+Beyond that, `lexNormal` at 7.4% is already a jump table with its cost spread
+across the case arms, and `nextToken` at 8.0% is the orchestrator with two fast
+paths inlined into it. The remaining reference counting is 37% inside those merged
+node initializers and would want looking at there rather than in the lexer.
 
 ### One loose end
 
