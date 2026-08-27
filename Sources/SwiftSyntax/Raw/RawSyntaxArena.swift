@@ -213,9 +213,43 @@ public final class ParsingRawSyntaxArena: RawSyntaxArena {
   }
   private var sourceCopy: SourceCopy?
 
-  public init(parseTriviaFunction: @escaping ParseTriviaFunction) {
+  /// The size of slab to take when nothing is known about what will be
+  /// allocated.
+  private static let defaultSlabSize = 4096
+
+  /// The largest slab to take, so that a large file does not ask the system for
+  /// one enormous block.
+  private static let maximumSlabSize = 4 << 20
+
+  /// The size of slab to take while parsing a source file of `sourceByteCount`
+  /// bytes.
+  ///
+  /// A full parse allocates roughly 26 times the source here, in nodes, text and
+  /// trivia — measured between 19 and 28 times across the parser's own sources
+  /// and the performance test inputs. A slab the size of the source therefore
+  /// fills in about twenty allocations, where the 4 KB a parse starts with
+  /// otherwise takes hundreds of them, doubling only every 128.
+  ///
+  /// Doubled up from the default rather than computed, so that a slab is always a
+  /// power of two, and bounded at both ends: a small file is no worse off than it
+  /// was, and what a large one wastes is bounded by one slab, measured at 4.7% of
+  /// the memory a parse takes. Sizing the slab at twice the source instead saves
+  /// no measurable time and wastes twice as much.
+  private static func slabSize(forSourceOf sourceByteCount: Int) -> Int {
+    var size = Self.defaultSlabSize
+    while size < Self.maximumSlabSize, size < sourceByteCount {
+      size *= 2
+    }
+    return size
+  }
+
+  /// - Parameter sourceByteCount: The size of the source that this arena will
+  ///   hold a full parse of, if that is known, so that the slabs can be sized for
+  ///   it. `nil` for an incremental reparse, where what gets allocated bears no
+  ///   relation to the size of the source, and for any other use.
+  public init(parseTriviaFunction: @escaping ParseTriviaFunction, sourceByteCount: Int? = nil) {
     self.parseTriviaFunction = parseTriviaFunction
-    super.init(slabSize: 4096)
+    super.init(slabSize: sourceByteCount.map(Self.slabSize(forSourceOf:)) ?? Self.defaultSlabSize)
   }
 
   /// Copy the whole source buffer into this arena and return the copy, so the

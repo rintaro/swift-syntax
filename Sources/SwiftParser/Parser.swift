@@ -252,7 +252,15 @@ public struct Parser {
     languageFeatures: LanguageFeatures,
     collectsLookaheadRanges: Bool
   ) {
-    self.arena = arena ?? ParsingRawSyntaxArena(parseTriviaFunction: TriviaParser.parseTrivia)
+    // A full parse allocates in proportion to the source, so the arena can size
+    // its slabs for it. An incremental reparse allocates for what it re-lexes,
+    // which the size of the source says nothing about.
+    self.arena =
+      arena
+      ?? ParsingRawSyntaxArena(
+        parseTriviaFunction: TriviaParser.parseTrivia,
+        sourceByteCount: parseTransition == nil ? input.count : nil
+      )
     self.collectsLookaheadRanges = collectsLookaheadRanges
 
     var input = input
