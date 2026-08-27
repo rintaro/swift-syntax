@@ -47,6 +47,25 @@ public enum StringLiteralKind: Equatable {
 }
 
 extension UInt8 {
+  /// Whether this byte is an ASCII character that can appear in an identifier
+  /// anywhere but its first position.
+  ///
+  /// Spells out what `isAsciiIdentifierContinue` accepts so that a byte is
+  /// classified inline, rather than through a closure the optimizer has to call
+  /// for each one.
+  fileprivate var continuesAnIdentifier: Bool {
+    switch self {
+    case UInt8(ascii: "0")...UInt8(ascii: "9"),
+      UInt8(ascii: "A")...UInt8(ascii: "Z"),
+      UInt8(ascii: "a")...UInt8(ascii: "z"),
+      UInt8(ascii: "_"),
+      UInt8(ascii: "$"):
+      return true
+    default:
+      return false
+    }
+  }
+
   /// Whether this byte can only begin a token, and so is never trivia nor the
   /// start of any.
   ///
@@ -745,12 +764,20 @@ extension Lexer.Cursor.Position {
   }
 
   /// Advance the cursor position by `n` bytes. The offset must be valid.
+  ///
+  /// - Important: `@inline(__always)` because
+  ///   `advanceOverIdentifierContinuationCharacters` calls this once per
+  ///   identifier, where left out of line it costs more than the bytes it moves
+  ///   over.
+  @inline(__always)
   func advanced(by n: Int) -> Self {
     precondition(n > 0)
     precondition(n <= self.input.count)
-    var input = self.input.dropFirst(n - 1)
-    let c = input.removeFirst()
-    return .init(input: UnsafeBufferPointer(rebasing: input), previous: c)
+    let base = self.input.baseAddress!
+    return .init(
+      input: UnsafeBufferPointer(start: base + n, count: self.input.count - n),
+      previous: base[n - 1]
+    )
   }
 }
 
@@ -833,24 +860,28 @@ extension Lexer.Cursor {
 
   /// Advance the cursor past every character that can continue an identifier.
   ///
-  /// This spells out the ASCII characters that `isAsciiIdentifierContinue`
-  /// accepts so that they are classified inline, rather than through a closure
-  /// that the optimizer has to call for each byte.
+  /// Roughly half the bytes of a source file pass through here, so the run is
+  /// counted over the buffer and the position moved once at the end of it.
+  /// Taking the bytes one at a time means a bounds check to look at each and,
+  /// to consume it, a second one plus storing `previous` and rebasing the
+  /// buffer, none of which anything needs until the run ends.
   mutating func advanceOverIdentifierContinuationCharacters() {
-    while let byte = self.peek() {
-      switch byte {
-      case UInt8(ascii: "0")...UInt8(ascii: "9"),
-        UInt8(ascii: "A")...UInt8(ascii: "Z"),
-        UInt8(ascii: "a")...UInt8(ascii: "z"),
-        UInt8(ascii: "_"),
-        UInt8(ascii: "$"):
-        _ = self.advance()
-      case 0..<0x80:
+    while true {
+      let bytes = self.input
+      var count = 0
+      while count < bytes.count, bytes[count].continuesAnIdentifier {
+        count += 1
+      }
+      if count > 0 {
+        self.position = self.position.advanced(by: count)
+      }
+
+      // Whatever stopped the run either ends the identifier or begins a scalar
+      // outside ASCII, which has to be decoded to find out which.
+      guard let byte = self.peek(), byte >= 0x80,
+        self.advance(if: { $0.isValidIdentifierContinuationCodePoint })
+      else {
         return
-      default:
-        guard self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) else {
-          return
-        }
       }
     }
   }
