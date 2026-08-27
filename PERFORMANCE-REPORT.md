@@ -1,19 +1,19 @@
 # SwiftParser performance work — 2026-08
 
-Branch `perf-parser-2026-woc`, 41 commits off `main` (`a3cd836bf`).
+Branch `perf-parser-2026-woc`, 43 commits off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.32× faster on a 177 KB source file and 2.19× on a 317 KB
+**Parsing is 2.35× faster on a 177 KB source file and 2.21× on a 317 KB
 declaration-heavy one**, with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.899 ms | 2.115 ms | **−56.8%** (2.32×) |
-| concatenated parser sources (317 KB) | 8.394 ms | 3.825 ms | **−54.4%** (2.19×) |
+| `MinimalCollections.swift.input` (177 KB) | 4.899 ms | 2.086 ms | **−57.4%** (2.35×) |
+| concatenated parser sources (317 KB) | 8.323 ms | 3.761 ms | **−54.8%** (2.21×) |
 
-Repeated runs of this pair vary by a few percent; treat it as roughly 2× and
-1.9×.
+Repeated runs of this pair vary by a couple of percent, so read these as about
+2.3× and about 2.2×.
 
 Interleaved A/B, 16 rounds, minimum per rev, both ends rebuilt from source.
 
@@ -66,26 +66,26 @@ and every discard into a release.
 
 ## Where the time went
 
-Self time normalized to absolute cost per parse (shares alone are misleading
-when the total halves).
+Self time on the 177 KB input, normalized to absolute cost per parse, because
+shares alone mislead when the total more than halves. Both columns are profiled
+at the same time with the same grouping, so they are comparable to each other;
+the grouping itself is by symbol name and therefore approximate.
 
-| cluster | main | now | change |
+| cluster | main | branch | change |
 |---|---|---|---|
-| Unicode decode / classify | 0.317 ms | 0.016 ms | **−95%** |
-| TokenSpec / spec sets | 0.543 | 0.080 | **−85%** |
-| Keyword recognition | 0.555 | 0.123 | **−78%** |
-| Struct copy value-witness | 0.259 | 0.063 | **−76%** |
-| Trivia lexing | 0.567 | 0.234 | **−59%** |
-| Identifier lexing | 0.323 | 0.135 | **−58%** |
-| Lexer dispatch | 0.544 | 0.403 | −26% |
-| ARC | 0.137 | 0.126 | −8% |
-| Arena / allocation | 0.333 | 0.318 | −4% |
-| **whole parse** | **4.813** | **2.600** | **−46%** |
+| Unicode decode / classify | 0.363 ms | 0.011 ms | **−97%** |
+| TokenSpec / spec sets | 0.225 | 0.016 | **−93%** |
+| Trivia lexing | 0.567 | 0.071 | **−88%** |
+| Keyword recognition | 0.529 | 0.076 | **−86%** |
+| Identifier lexing | 0.369 | 0.140 | **−62%** |
+| Arena / allocation | 0.340 | 0.229 | **−33%** |
+| Lexer dispatch | 0.569 | 0.396 | −30% |
+| Reference counting | 0.174 | 0.129 | −26% |
+| **whole parse** | **4.899** | **2.086** | **−57%** |
 
-Arena allocation looks untouched here because this table predates two of the
-three arena commits; its share rose only because everything else shrank. The
-table also predates the three state stack commits, which took another 1.4% off
-the whole parse.
+Lexer dispatch is the least improved and is now the largest cluster, which is
+the honest summary of where this branch got to: the work each token costs has
+been cut hard, and what is left is the state machine that walks them.
 
 ### Struct sizes
 
@@ -259,8 +259,8 @@ answers **83%** of the calls.
 `@inline(__always)` is the whole of it. Left alone the compiler keeps the split
 function out of line, which puts a call *in front of* the scan rather than in
 place of it, and the profile shows both frames — 3.7% becomes 1%. The same
-lesson as the allocator two sections up, from the other direction: what matters
-is not whether the fast path is small but whether it reaches the caller.
+lesson `7b2b378a4` teaches from the other direction: what matters is not whether
+the fast path is small but whether it reaches the caller.
 
 Runs of indentation are a fifth of what still reaches the scan, and taking those
 too is tempting, but it needs a loop, and a loop grows the fast path past what
@@ -287,8 +287,10 @@ once took 1.75 ns per byte to 1.52.
 
 `Position.advanced(by:)` then became a call per identifier rather than per
 incremental reparse, and left out of line it cost 0.019 ms of the 0.036 ms saved,
-so it wants `@inline(__always)` — the third time on this branch that where a
-small function lands decided whether the change was worth anything.
+so it wants `@inline(__always)`. Where a small function lands decides whether
+several of the changes on this branch were worth anything at all, in both
+directions: see `db190d73c` above and `7b2b378a4` below for it paying, and the
+generic `allocate` in *What is left* for it not.
 
 Two things measured *worse* and were dropped. A bit-per-byte-value mask in place
 of the ranges: 0.231 ms against 0.229, because the ranges are already four
@@ -373,6 +375,32 @@ times against 86,000 tokens — and does not register in the profile.
 `9a9c7095c` is a cleanup that fell out of it, and measures neutral for the same
 reason.
 
+### Arena slabs
+
+| | |
+|---|---|
+| `0c23ecf96` Size a parsing arena's slabs for the source it will hold | **−2.0% / −1.0%** |
+
+A parse allocated in slabs of 4 KB that double only every 128 of them, so filling
+the 8.5 MB that parsing the 317 KB input takes asked the system for memory some
+500 times, and a quarter of the branch's remaining `malloc` time was
+`startNewSlab`.
+
+What made this decidable was measuring the ratio first: a full parse allocates
+**roughly 26 times the source** in nodes, text and trivia, and it is remarkably
+stable — between 19 and 28 times across six files from 3.6 KB to 317 KB. So the
+source size is a good estimate of what to ask for, and a slab that size brings a
+parse down to about twenty allocations.
+
+The size goes to the arena's initializer rather than being discovered later,
+because only the caller knows whether the arena is about to hold a full parse. An
+incremental reparse allocates for what it re-lexes, which the source size says
+nothing about, so it passes nothing and keeps the default.
+
+Slabs stay powers of two, doubled up from the default rather than computed. A slab
+at twice the source was tried first and rejected: it saves no measurable time and
+doubles what is wasted, from 4.7% of the memory a parse takes to 10.8%.
+
 ### Cleanups and tests
 
 | | |
@@ -421,7 +449,8 @@ init?(lexeme: Lexer.Lexeme, languageFeatures: Parser.LanguageFeatures) {
 }
 ```
 
-Beyond removing all 55 pairs across the 62 spec sets, this makes the precedence
+Beyond removing those pairs from all 117 spec sets — 62 generated and 55
+written by hand — this makes the precedence
 between the halves one readable line rather than something implied by which
 switch was written first — the thing that had `@available(*, deprecated,
 message:)` silently swallowed — and puts the keyword unwrap inside the keyword
@@ -440,10 +469,14 @@ No commit changes the parsed output. The main instrument was a differential
 harness: parse every Swift file in the repository with and without the change
 and compare a fingerprint of the tree including trivia, the error status, and
 round-trip fidelity. **Identical for every commit** — 1,400+ files under the
-list the harness used for the earlier commits, 2,987 for the state stack ones.
-Files the commit itself edits are compared separately against frozen copies of
-their pre-change contents, since otherwise a content change reads as a parser
-change; that trap caught me three times.
+list the harness used for the earliest commits, 2,987 from the state stack
+commits onward.
+
+The corpus contains the files being edited, so a dump taken before an edit and
+compared after it reports the edited file as a difference. That caught me four
+times, and the fix is to take both dumps as a pair each time rather than reuse an
+earlier one. It is worth knowing what it looks like: exactly the files you touched
+differ, which reads alarmingly like a real regression.
 
 Where the file-based corpus could not reach, targeted raw-byte corpora were
 added:
@@ -505,7 +538,7 @@ Recorded so they are not re-attempted.
 | **Skip the lookahead tracker when nobody reads it** | **+5.3% / +5.0%** | See below. The work it would skip is only worth 0.9% / 0.5%, and a null test in `advance()` / `peek()` costs ten times that. |
 | Lookup table for `lexNormal`'s dispatch | — | Already a jump table. The disassembly bounds-checks the byte, indexes a table and does an indirect branch; there is nothing to replace. |
 | Shrink `Lexer.Result` (104 bytes, larger than `Lexeme`) | ceiling 0.8% | It never escapes, so its sensitivity is 0.01%/byte. Its bulk is `StateTransition?` at 60 bytes, from `pushRegexLexemes` carrying a `RegexLiteralLexemes.Builder` by value; getting it out means threading the state allocator through the regex path for under a percent. |
-| Lookup table for `testCharacterInfo` | **0.83×** | The compiler already lowers that switch to a bitmask test. The cost was call overhead, not the switch body. |
+| Lookup table for `testCharacterInfo` | **0.83×** | The cost was call overhead, not the switch body. Note that `e3ff94452` later found the *form* of that switch does matter: listing each value lowers to a jump table where ranges lower to comparisons, worth 0.5%. So the switch is cheap, but not because the compiler reduces any spelling of it to the same thing. |
 | Convert *all* remaining spec sets to switches | **+3%** | Not jump tables, as first claimed — de-hoisting. Fixed by hoisting the field reads by hand, then it was −2.5%. |
 | `TokenSpec.Matcher.fixedText` (from `private/parse-attrkeywords`) | **+1.4% / +2.4%** | Grows `TokenSpec` from 5 to 24 bytes; it is built on nearly every parser decision. |
 | `final` on `RawSyntaxArena`'s nine members | no gain | `ParsingRawSyntaxArena` being final already lets WMO devirtualize. |
@@ -560,7 +593,8 @@ which incremental reuse depends on and a green test suite does not check.
 
 ## Methodology notes
 
-Three mistakes shaped the process, all worth carrying forward.
+Four things shaped the process — three mistakes and one technique — all worth
+carrying forward.
 
 **Sequential build-then-measure drifts.** Early per-commit figures were wrong —
 one commit measured *slower* than its parent on re-test. Everything here is
@@ -598,6 +632,12 @@ incremental-reuse and trivially-copyable properties survive a full green suite
 while being broken. And a regression test is not finished until it has been
 seen to fail — both new assertions were validated that way.
 
+One more, about tooling rather than measurement: a scripted edit that replaced
+every occurrence of its pattern, re-run on a file it had already changed, grew
+`RawSyntaxArena.swift` to 453,608 lines and left a build spinning on it. What let
+it get that far was that the build check reported success from a stale binary.
+Scripted edits want asserting on a single match and replacing once.
+
 One trap appeared three times, on both sides of the colon. In a `switch` over
 `Keyword?`, `case .none` matches nil and `case .some` matches every keyword, so
 `default` becomes unreachable. In a `switch` used as the expression of a `Self?`
@@ -610,21 +650,21 @@ was caught by a compiler warning, the second by another. Anything named after an
 
 ## What is left
 
-Measured on the declaration-heavy input at the branch head, 3.83 ms:
+Measured on the declaration-heavy input at the branch head, 3.76 ms:
 
 | | |
 |---|---|
-| `nextToken` (with the trivia fast path inlined into it) | 8.0% |
-| `lexNormal` | 7.4% |
-| `lexIdentifier` (with the identifier scan inlined into it) | 6.9% |
-| `lexTriviaByScanning` | 5.8% |
-| generated `Raw*Syntax` initializers | ~4% |
+| `nextToken` (with the trivia fast path inlined into it) | ~8% |
+| `lexNormal` | ~7% |
+| `lexIdentifier` (with the identifier scan inlined into it) | ~7% |
+| `lexTriviaByScanning` | ~6% |
 | reference counting | 5.4% |
-| `malloc` / `free` | 4.3% |
+| generated `Raw*Syntax` initializers | ~4% |
+| `malloc` / `free` | ~3% |
 | `memset` | 2.0% |
 
-By cluster: lexer scanning 33%, node construction ~13%, arena 8%, reference
-counting 5%.
+By cluster: lexer scanning about a third, node construction ~13%, arena and
+allocation under 8% since the slab commit, reference counting 5%.
 
 Three things learned while arriving at those numbers, each of which changes what
 is worth trying next.
@@ -641,18 +681,19 @@ looked like 5% of call overhead, but forcing the generic `allocate` inline moved
 0.203 ms out of it and 0.206 ms into `RawSyntaxArena.intern` and
 `allocateRawSyntaxBuffer` — the immediate callers, which then stopped being
 inlined themselves. The bump *is* the work: an align, a compare, an add and a
-store per node.
+store per node. That is also why `0c23ecf96` attacks the number of slabs rather
+than the cost of using one, and it is the reading to carry into the remaining
+`malloc` time.
 
-**26% of the `malloc` time is `startNewSlab`.** The parsing arena starts at 4 KB
-and doubles only every 128 slabs, so filling a few MB takes hundreds of small
-mallocs. This is the one cheap experiment left that nobody has run: a larger
-initial slab, or a shorter doubling interval. It needs watching memory as well as
-time, since the risk is over-allocating for small files.
+**Reference counting is the largest thing nobody has taken apart.** 37% of what
+remains is inside those merged node initializers, and looking at it means looking
+at CodeGeneration rather than the lexer. The same is true of `memset`, which is
+those initializers zeroing layout buffers before filling them: removing it is real
+work removed rather than moved, and it is a template change.
 
-Beyond that, `lexNormal` at 7.4% is already a jump table with its cost spread
-across the case arms, and `nextToken` at 8.0% is the orchestrator with two fast
-paths inlined into it. The remaining reference counting is 37% inside those merged
-node initializers and would want looking at there rather than in the lexer.
+Beyond that, `lexNormal` is already a jump table with its cost spread across the
+case arms, and `nextToken` is the orchestrator with two fast paths inlined into
+it. Neither has an obvious local win left.
 
 ### One loose end
 
