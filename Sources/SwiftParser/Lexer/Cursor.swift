@@ -47,25 +47,6 @@ public enum StringLiteralKind: Equatable {
 }
 
 extension UInt8 {
-  /// Whether this byte is an ASCII character that can appear in an identifier
-  /// anywhere but its first position.
-  ///
-  /// Spells out what `isAsciiIdentifierContinue` accepts so that a byte is
-  /// classified inline, rather than through a closure the optimizer has to call
-  /// for each one.
-  fileprivate var continuesAnIdentifier: Bool {
-    switch self {
-    case UInt8(ascii: "0")...UInt8(ascii: "9"),
-      UInt8(ascii: "A")...UInt8(ascii: "Z"),
-      UInt8(ascii: "a")...UInt8(ascii: "z"),
-      UInt8(ascii: "_"),
-      UInt8(ascii: "$"):
-      return true
-    default:
-      return false
-    }
-  }
-
   /// Whether this byte can only begin a token, and so is never trivia nor the
   /// start of any.
   ///
@@ -869,7 +850,7 @@ extension Lexer.Cursor {
     while true {
       let bytes = self.input
       var count = 0
-      while count < bytes.count, bytes[count].continuesAnIdentifier {
+      while count < bytes.count, bytes[count].isAsciiIdentifierContinue {
         count += 1
       }
       if count > 0 {
