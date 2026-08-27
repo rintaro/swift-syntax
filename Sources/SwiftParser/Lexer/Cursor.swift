@@ -46,6 +46,24 @@ public enum StringLiteralKind: Equatable {
   case singleQuote
 }
 
+extension UInt8 {
+  /// Whether this byte can only begin a token, and so is never trivia nor the
+  /// start of any.
+  ///
+  /// True of the printable ASCII characters other than the three that begin a
+  /// comment or a conflict marker. A byte outside that range is whitespace, a
+  /// control character, or part of a multi-byte scalar, each of which the lexer
+  /// can take as trivia.
+  fileprivate var beginsOnlyAToken: Bool {
+    switch self {
+    case UInt8(ascii: "!")...UInt8(ascii: "~"):
+      return self != UInt8(ascii: "/") && self != UInt8(ascii: "<") && self != UInt8(ascii: ">")
+    default:
+      return false
+    }
+  }
+}
+
 extension Lexer.Cursor {
   /// Because the lexer lexes tokens lazily it doesn't carry any state in its
   /// current call stack. Instead, we model the lexer state by an explicit state
@@ -1306,7 +1324,25 @@ extension Lexer.Cursor {
     let error: LexingDiagnostic?
   }
 
+  /// - Important: `@inline(__always)` so that the fast path lands in the caller.
+  ///   Left to itself the compiler keeps this out of line, which puts a call in
+  ///   front of the scan rather than in place of it.
+  @inline(__always)
   fileprivate mutating func lexTrivia(mode: TriviaLexingMode) -> TriviaResult {
+    // Three quarters of the calls over the parser's own sources are made where
+    // the next byte begins a token, so there is no trivia to lex at all. Answer
+    // those here: the loop below dispatches on the byte through an indirect
+    // branch, and this keeps them out of a call as well.
+    //
+    // `escapedNewlineInMultiLineStringLiteral` starts at a backslash, which
+    // begins a token everywhere else, so it cannot take this path.
+    if mode != .escapedNewlineInMultiLineStringLiteral, let byte = self.peek(), byte.beginsOnlyAToken {
+      return TriviaResult(newlinePresence: .absent, error: nil)
+    }
+    return self.lexTriviaByScanning(mode: mode)
+  }
+
+  private mutating func lexTriviaByScanning(mode: TriviaLexingMode) -> TriviaResult {
     var newlinePresence = NewlinePresence.absent
     var error: LexingDiagnostic? = nil
     if mode == .escapedNewlineInMultiLineStringLiteral {
