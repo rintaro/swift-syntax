@@ -1,16 +1,16 @@
 # SwiftParser performance work — 2026-08
 
-Branch `perf-parser-2026-woc`, 34 commits off `main` (`a3cd836bf`).
+Branch `perf-parser-2026-woc`, 38 commits off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.26× faster on a 177 KB source file and 2.13× on a 317 KB
+**Parsing is 2.28× faster on a 177 KB source file and 2.17× on a 317 KB
 declaration-heavy one**, with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.903 ms | 2.169 ms | **−55.8%** (2.26×) |
-| concatenated parser sources (317 KB) | 8.317 ms | 3.900 ms | **−53.1%** (2.13×) |
+| `MinimalCollections.swift.input` (177 KB) | 4.912 ms | 2.154 ms | **−56.1%** (2.28×) |
+| concatenated parser sources (317 KB) | 8.393 ms | 3.876 ms | **−53.8%** (2.17×) |
 
 Repeated runs of this pair vary by a few percent; treat it as roughly 2× and
 1.9×.
@@ -270,6 +270,38 @@ Both were verified against the scan directly rather than only through the
 corpus: for every byte value, and then for every *pair* of byte values, in each
 of the three lexing modes, the fast path agrees on consumed length, newline
 presence and error — 196,608 combinations.
+
+### Identifier bytes
+
+| | |
+|---|---|
+| `50044b0fe` Count an identifier's continuation bytes before moving the cursor | **−1.2% / −2.2%** |
+| `e3ff94452` Classify a byte and a scalar from one set of character ranges | neutral |
+
+`advanceOverIdentifierContinuationCharacters` is the widest funnel in the lexer:
+**roughly half of every byte in a source file passes through it** — 152,134 of
+317,218 across 19,487 calls averaging 7.8 bytes. It took them one at a time, and
+each byte cost a bounds check to look at, a second one to consume it, a store of
+`previous` and a rebase of the buffer. Counting the run and moving the position
+once took 1.75 ns per byte to 1.52.
+
+`Position.advanced(by:)` then became a call per identifier rather than per
+incremental reparse, and left out of line it cost 0.019 ms of the 0.036 ms saved,
+so it wants `@inline(__always)` — the third time on this branch that where a
+small function lands decided whether the change was worth anything.
+
+Two things measured *worse* and were dropped. A bit-per-byte-value mask in place
+of the ranges: 0.231 ms against 0.229, because the ranges are already four
+compares and the mask trades them for a shift, an index and a test. And listing
+each of the 64 values in `testCharacterInfo`, which is what it did before
+`e3ff94452`: enumerated values lower to a jump table where ranges lower to
+compares, worth 0.5% on the collections input.
+
+That last one is why the consolidation is free. The lexer had been spelling out
+what `isAsciiIdentifierContinue` accepts, so one classification was written
+twice in two files with nothing tying them together; it now lives on `UInt8` in
+`CharacterInfo.swift` with the scalar's deferring to it, because a scalar outside
+ASCII belongs to none of these sets and one inside it is that byte.
 
 ### Crossing the module boundary
 
