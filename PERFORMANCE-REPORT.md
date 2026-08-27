@@ -243,7 +243,7 @@ allocate — which is exactly what the list changes.
 | | |
 |---|---|
 | `db190d73c` Answer a request for trivia where there is none without scanning | **−5.0% / −3.7%** |
-| `c3c045555` Take a single space in the trivia fast path | +0.3% / −1.1% |
+| `cfd6a9383` Take a single space in the trivia fast path | +0.3% / −1.1% |
 
 `lexTrivia` runs twice per token and was the largest single function left. What
 the profile did not say is what those calls *do*: instrumenting them showed
