@@ -1,19 +1,25 @@
 # SwiftParser performance work — 2026-08
 
-Branch `perf-parser-2026-woc`, 46 commits off `main` (`a3cd836bf`).
+Branch `perf-parser-2026-woc`, 50 commits off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.58× faster on a 177 KB source file and 2.42× on a 317 KB
-declaration-heavy one**, with no change to the parsed output.
+**Parsing is 2.56× faster on a 177 KB source file and 2.40× on a 317 KB
+declaration-heavy one, and the tree it produces is a quarter smaller**, with no
+change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.764 ms | 1.849 ms | **−61.2%** (2.58×) |
-| concatenated parser sources (317 KB) | 8.134 ms | 3.364 ms | **−58.6%** (2.42×) |
+| `MinimalCollections.swift.input` (177 KB) | 4.738 ms | 1.849 ms | **−61.0%** (2.56×) |
+| concatenated parser sources (317 KB) | 8.073 ms | 3.359 ms | **−58.4%** (2.40×) |
 
 Repeated runs of this pair vary by a couple of percent, so read these as about
 2.6× and about 2.4×.
+
+| tree memory | main | branch |
+|---|---|---|
+| `MinimalCollections.swift.input` | 4.70 MB, 26.4× the source | 3.51 MB, **19.8×** |
+| concatenated parser sources | 8.52 MB, 26.8× the source | 6.35 MB, **20.0×** |
 
 Interleaved A/B, 16 rounds, minimum per rev, both ends rebuilt from source.
 
@@ -97,6 +103,8 @@ been cut hard, and what is left is the state machine that walks them.
 | `Lexer.Lexeme` | 121 / 128 | **72 / 72** |
 | `Lexer.LexemeSequence` | 320 / 320 | **128 / 128** |
 | `Parser` | 456 / 456 | **352 / 352** |
+| `RawSyntaxData` | 64 / 64 | **40 / 40** |
+| `RawSyntaxData.Payload` | 52 / 56 | **32 / 32** |
 | `Parser.Lookahead` | 472 / 472 | **224 / 224** |
 
 `Lexer.LexemeSequence` and `Parser.Lookahead` are also now **trivially
@@ -456,6 +464,89 @@ parse went from 8.1% to **1.7%**, and `malloc`/`free` from 4.3% to **0.6%**. The
 arena was always meant to keep a parse away from the allocator; the arrays were
 what kept taking it back there.
 
+### Making the tree smaller
+
+| | |
+|---|---|
+| `77a7fc600` Hold a materialized token's fields behind a pointer | 64 → 56 bytes a node |
+| `ffa99ce81` Size a raw syntax node's fields for a file rather than an address space | 56 → **40** |
+| `43ad5af60` Sum a layout's byte length and node count without converting | recovers 1.4% of parse time |
+
+The only work here aimed at memory rather than speed, and it started from a
+complaint that 26 times the size of the source is a lot to hold a file in.
+Measuring where it goes says that it is nearly all one thing:
+
+| | 317 KB input | share |
+|---|---|---|
+| `RawSyntaxData`, 90,245 nodes | 5.78 MB | **67.8%** |
+| layout buffers | 2.42 MB | 28.5% |
+| token text | 0.32 MB | 3.7% |
+| trivia pieces | 0 | 0% — parsed lazily |
+
+So a node's size is the whole question, and it was 64 bytes. `RawSyntaxData` is a
+payload plus an arena reference, and the payload is an enum of three cases, so
+every node paid for the largest:
+
+| | before | after |
+|---|---|---|
+| `.parsedToken` | 44 | 32 |
+| `.layout` | 41 | 28 |
+| `.materializedToken` | **52** | 8, held behind a pointer |
+| `Payload` | 52/56 | **32** |
+| `RawSyntaxData` | 64 | **40** |
+
+Three changes, each worth about a third of it.
+
+**The largest case is the one a parse barely makes.** A parse produces
+`parsedToken`, which defers trivia; it materializes only what it synthesizes — 6
+tokens in the declaration-heavy input and none at all in the collections one. So
+`materializedToken`'s fields went behind an `ArenaAllocatedPointer`, which costs
+an indirection on error recovery and on programmatically built trees, and nothing
+on a parse.
+
+**Four fields were sized for an address space rather than a file.** A parsed
+token's `textRange` was two `Int` offsets into a single token's text; a layout's
+byte length and descendant count were `Int`s measuring one file. None needs more
+than 32 bits.
+
+**Field order was worth as much as the narrowing.** Both `wholeText` and `layout`
+are 16 bytes wide and sat behind a one-byte kind, which Swift pads by seven
+because it lays a struct out in declaration order. Narrowing alone got the
+payload to 37; reordering took it to exactly 32. That is the same finding as
+`0c3ccd94b` at the top of this branch, on the other side of the library.
+
+Two things worth knowing before repeating any of it.
+
+**Shrinking one case buys nothing.** `textRange` alone would have left `layout` at
+41 setting the payload size, and the node would have stayed 56. An enum is as
+large as its largest case, so this only pays when every case moves. That is why
+`RawSyntaxData.Payload` is now tracked in the memory layout test: it is the number
+that governs.
+
+**Narrowing a field and then adding it up in `Int` gives the space back in time.**
+`makeLayout` sums both counters over every child of every node it builds — 302,982
+child slots per parse — and reading them through their `Int` accessors converted
+on each end of every add. That was **1.4% of a parse**, nearly all of the 2% the
+narrowing appeared to cost. Summing narrow leaves 0.5%.
+
+Finding that took three attempts, and the two wrong answers are as instructive as
+the right one. It was not the boxing's indirection: the input that slowed most
+creates no materialized tokens. It was not the node ceasing to be 64 bytes:
+padding it back to 64 measured *worse*. What hid it was diffing profiles **by
+symbol**, because the narrowing moved `makeLayout` in and out of its callers, and
+a 0.19 ms frame appearing from nowhere looks like a cause. `@inline(__always)` on
+it changed nothing, which should have been the clue. Diffing **by cluster** found
+it at once: node building accounted for 0.057 ms of a 0.058 ms regression, with
+everything else flat and allocation slightly improved.
+
+What remains of the 0.5% is the one conversion still in that loop: a parsed
+token's length comes from `wholeText.count`, an `Int` because `SyntaxText` stores
+an `Int` count. Narrowing that would remove it and would shrink `SyntaxText`
+everywhere else it appears, but it is public API. It would *not* shrink the node
+further: `parsedToken` would come to 26 bytes, which alignment rounds back to 32.
+A 24-byte payload needs every case within 23, and that one cannot get there
+without packing the token diagnostic into spare bits.
+
 ### Cleanups and tests
 
 | | |
@@ -718,6 +809,11 @@ Measured on the declaration-heavy input at the branch head, 3.36 ms:
 | `memset` | 2.4% |
 | reference counting | **1.7%** |
 | `malloc` / `free` | **0.6%** |
+
+A tree is 20 times the size of its source, from 26.8 — see *Making the tree
+smaller*. Two thirds of what is left is `RawSyntaxData` at 40 bytes a node, and
+the payload is exactly 32, so the next step down the enum allows is 24, which
+needs every case within 23 bytes.
 
 **It is a lexer now.** Reference counting and heap traffic, which between them
 were 12.4% before the collections work, are 2.3% together. What is left is
