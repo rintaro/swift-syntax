@@ -260,7 +260,13 @@ extension Lexer.Cursor {
       }
     }
 
-    mutating func perform(stateTransition: Lexer.StateTransition, stateAllocator: Lexer.StateAllocator) {
+    mutating func perform(
+      stateTransition: Lexer.StateTransition,
+      stateAllocator: Unmanaged<Lexer.StateAllocator>
+    ) {
+      // Unwrapped here rather than by the caller, because a transition happens
+      // for a small fraction of the tokens that are lexed.
+      let stateAllocator = stateAllocator.takeUnretainedValue()
       switch stateTransition {
       case .push(let newState):
         self.setTop(to: newState, above: self.top, stateAllocator: stateAllocator)
@@ -352,7 +358,7 @@ extension Lexer {
       stateStack.currentState
     }
 
-    mutating func perform(stateTransition: Lexer.StateTransition, stateAllocator: Lexer.StateAllocator) {
+    mutating func perform(stateTransition: Lexer.StateTransition, stateAllocator: Unmanaged<Lexer.StateAllocator>) {
       self.stateStack.perform(stateTransition: stateTransition, stateAllocator: stateAllocator)
     }
 
@@ -506,7 +512,10 @@ extension Lexer.Cursor.Position {
 // MARK: - Entry point
 
 extension Lexer.Cursor {
-  mutating func nextToken(sourceBufferStart: UnsafePointer<UInt8>?, stateAllocator: Lexer.StateAllocator) -> Lexer.Lexeme {
+  mutating func nextToken(
+    sourceBufferStart: UnsafePointer<UInt8>?,
+    stateAllocator: Unmanaged<Lexer.StateAllocator>
+  ) -> Lexer.Lexeme {
     let cursor = self
     // Leading trivia.
     let leadingTriviaStart = self

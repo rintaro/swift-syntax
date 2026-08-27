@@ -69,14 +69,20 @@ extension Lexer {
     /// The memory footprint of not freeing past lexer states is negligible. It's
     /// usually less than 0.1% of the memory allocated by the syntax arena.
     ///
-    /// This is `unowned(unsafe)` for the same reasons ``lookaheadTracker`` is a
-    /// pointer: a copy has to keep using the same allocator, and holding it
-    /// strongly would make ``LexemeSequence`` non-trivial, so that copying one
-    /// to create a ``Lookahead`` would retain it and destroying that
-    /// ``Lookahead`` would release it. Whoever creates the sequence keeps the
-    /// allocator alive for at least as long as the sequence and anything copied
-    /// from it.
-    unowned(unsafe) let lexerStateAllocator: Lexer.StateAllocator
+    /// Held unmanaged for the same reason ``lookaheadTracker`` is a pointer: a
+    /// copy has to keep using the same allocator, and holding it strongly would
+    /// make ``LexemeSequence`` non-trivial, so that copying one to create a
+    /// ``Lookahead`` would retain it and destroying that ``Lookahead`` would
+    /// release it. Whoever creates the sequence keeps the allocator alive for at
+    /// least as long as the sequence and anything copied from it.
+    ///
+    /// `Unmanaged` rather than `unowned(unsafe)` because the allocator is handed
+    /// to ``Lexer/Cursor/nextToken(sourceBufferStart:stateAllocator:)`` for every
+    /// token. A parameter is guaranteed, which obliges the caller to keep the
+    /// referent alive for the call, and an `unowned(unsafe)` reference carries no
+    /// such guarantee, so the compiler retained it and released it around every
+    /// one. `Unmanaged` is a trivial type and makes no such promise to keep.
+    let lexerStateAllocator: Unmanaged<Lexer.StateAllocator>
 
     /// The offset of the trailing trivia end of `nextToken` relative to the source buffer’s start.
     var offsetToNextTokenEnd: Int {
@@ -94,7 +100,7 @@ extension Lexer {
       sourceBufferStart: UnsafePointer<UInt8>?,
       cursor: Lexer.Cursor,
       lookaheadTracker: UnsafeMutablePointer<LookaheadTracker>,
-      stateAllocator: Lexer.StateAllocator
+      stateAllocator: Unmanaged<Lexer.StateAllocator>
     ) {
       self.sourceBufferStart = sourceBufferStart
       self.cursor = cursor
@@ -209,7 +215,7 @@ extension Lexer {
       sourceBufferStart: input.baseAddress,
       cursor: cursor,
       lookaheadTracker: lookaheadTracker,
-      stateAllocator: stateAllocator
+      stateAllocator: .passUnretained(stateAllocator)
     )
   }
 }
