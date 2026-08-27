@@ -42,7 +42,10 @@ internal struct RawSyntaxData: Sendable {
     /// - Important: A raw syntax node for a parsed token must always be allocated in a `ParsingRawSyntaxArena` so we can
     ///   parse the trivia in the token.
     case parsedToken(ParsedToken)
-    case materializedToken(MaterializedToken)
+    /// Held behind a pointer: it is the largest of these three, and an enum is as
+    /// large as its largest case, so every node in the tree would pay for it. See
+    /// `RawSyntaxArena.intern(_:)`.
+    case materializedToken(ArenaAllocatedPointer<MaterializedToken>)
     case layout(Layout)
   }
 
@@ -295,8 +298,8 @@ extension RawSyntax {
         return 0
       }
     case .materializedToken(let dat):
-      if dat.presence == .present {
-        return Int(dat.byteLength)
+      if dat.pointee.presence == .present {
+        return Int(dat.pointee.byteLength)
       } else {
         return 0
       }
@@ -403,12 +406,12 @@ extension RawSyntax {
         try body(dat.wholeText, /*isEphemeral*/ false)
       }
     case .materializedToken(let dat):
-      if dat.presence == .present {
-        for p in dat.leadingTrivia {
+      if dat.pointee.presence == .present {
+        for p in dat.pointee.leadingTrivia {
           try p.withSyntaxText(body: body)
         }
-        try body(dat.tokenText, /*isEphemeral*/ false)
-        for p in dat.trailingTrivia {
+        try body(dat.pointee.tokenText, /*isEphemeral*/ false)
+        for p in dat.pointee.trailingTrivia {
           try p.withSyntaxText(body: body)
         }
       }
@@ -452,10 +455,10 @@ extension RawSyntax: TextOutputStreamable, CustomStringConvertible {
         String(syntaxText: dat.wholeText).write(to: &target)
       }
     case .materializedToken(let dat):
-      if dat.presence == .present {
-        for p in dat.leadingTrivia { p.write(to: &target) }
-        String(syntaxText: dat.tokenText).write(to: &target)
-        for p in dat.trailingTrivia { p.write(to: &target) }
+      if dat.pointee.presence == .present {
+        for p in dat.pointee.leadingTrivia { p.write(to: &target) }
+        String(syntaxText: dat.pointee.tokenText).write(to: &target)
+        for p in dat.pointee.trailingTrivia { p.write(to: &target) }
       }
     case .layout(let dat):
       for case let child? in dat.layout {
@@ -637,7 +640,7 @@ extension RawSyntax {
       tokenDiagnostic: tokenDiagnostic
     )
     precondition(kind != .keyword || Keyword(text) != nil, "If kind is keyword, the text must be a known token kind")
-    return RawSyntax(arena: arena, payload: .materializedToken(payload))
+    return RawSyntax(arena: arena, payload: .materializedToken(ArenaAllocatedPointer(arena.intern(payload))))
   }
 
   /// Factory method to create a materialized token node.
@@ -895,10 +898,10 @@ extension RawSyntax: CustomDebugStringConvertible {
       target.write(" textRange=\(dat.textRange.description)")
     case .materializedToken(let dat):
       target.write(".materializedToken(")
-      target.write(String(describing: dat.tokenKind))
-      target.write(" text=\(dat.tokenText.debugDescription)")
-      target.write(" numLeadingTrivia=\(dat.numLeadingTrivia)")
-      target.write(" byteLength=\(dat.byteLength)")
+      target.write(String(describing: dat.pointee.tokenKind))
+      target.write(" text=\(dat.pointee.tokenText.debugDescription)")
+      target.write(" numLeadingTrivia=\(dat.pointee.numLeadingTrivia)")
+      target.write(" byteLength=\(dat.pointee.byteLength)")
       break
     case .layout(let dat):
       target.write(".layout(")

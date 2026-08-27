@@ -818,9 +818,9 @@ fileprivate extension RawSyntax {
     case .parsedToken(let dat):
       position = dat.wholeText.forEachEndOfLine(position: position, body: body)
     case .materializedToken(let dat):
-      position = dat.leadingTrivia.forEachEndOfLine(position: position, body: body)
-      position = dat.tokenText.forEachEndOfLine(position: position, body: body)
-      position = dat.trailingTrivia.forEachEndOfLine(position: position, body: body)
+      position = dat.pointee.leadingTrivia.forEachEndOfLine(position: position, body: body)
+      position = dat.pointee.tokenText.forEachEndOfLine(position: position, body: body)
+      position = dat.pointee.trailingTrivia.forEachEndOfLine(position: position, body: body)
     case .layout(let dat):
       // Handle '#sourceLocation' directive.
       if dat.kind == .poundSourceLocation {

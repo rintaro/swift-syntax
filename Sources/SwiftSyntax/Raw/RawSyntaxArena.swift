@@ -137,6 +137,18 @@ public class RawSyntaxArena {
     }
   }
 
+  /// Copies a materialized token's fields to the memory this arena manages, and
+  /// returns the pointer to the destination.
+  ///
+  /// Held behind a pointer because it is the largest of the three shapes a
+  /// `RawSyntaxData` takes, and every node pays for the largest. Parsing does not
+  /// produce these at all beyond missing and synthesized tokens.
+  func intern(_ value: RawSyntaxData.MaterializedToken) -> UnsafePointer<RawSyntaxData.MaterializedToken> {
+    let allocated = allocator.allocate(RawSyntaxData.MaterializedToken.self, count: 1).baseAddress!
+    allocated.initialize(to: value)
+    return UnsafePointer(allocated)
+  }
+
   /// Copies a `RawSyntaxData` to the memory this arena manages, and returns the
   /// pointer to the destination.
   func intern(_ value: RawSyntaxData) -> UnsafePointer<RawSyntaxData> {
