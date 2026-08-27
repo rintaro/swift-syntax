@@ -1,16 +1,16 @@
 # SwiftParser performance work — 2026-08
 
-Branch `perf-parser-2026-woc`, 31 commits off `main` (`a3cd836bf`).
+Branch `perf-parser-2026-woc`, 34 commits off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.15× faster on a 177 KB source file and 2.05× on a 317 KB
+**Parsing is 2.26× faster on a 177 KB source file and 2.13× on a 317 KB
 declaration-heavy one**, with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.916 ms | 2.284 ms | **−53.5%** (2.15×) |
-| concatenated parser sources (317 KB) | 8.384 ms | 4.095 ms | **−51.2%** (2.05×) |
+| `MinimalCollections.swift.input` (177 KB) | 4.903 ms | 2.169 ms | **−55.8%** (2.26×) |
+| concatenated parser sources (317 KB) | 8.317 ms | 3.900 ms | **−53.1%** (2.13×) |
 
 Repeated runs of this pair vary by a few percent; treat it as roughly 2× and
 1.9×.
@@ -237,6 +237,39 @@ allocates, which is why the collections input keeps 66 of its 135 nodes.
 `perform` call, so it died at the end of that statement while the cursor lived
 on. Nothing read freed memory only because pushing onto an empty stack did not
 allocate — which is exactly what the list changes.
+
+### Trivia, a second time
+
+| | |
+|---|---|
+| `db190d73c` Answer a request for trivia where there is none without scanning | **−5.0% / −3.7%** |
+| `c3c045555` Take a single space in the trivia fast path | +0.3% / −1.1% |
+
+`lexTrivia` runs twice per token and was the largest single function left. What
+the profile did not say is what those calls *do*: instrumenting them showed
+**three quarters consume nothing at all** — the byte in front of the cursor
+begins a token, and the scan takes one turn of its loop to discover that — and a
+further sixth consume a single space.
+
+The bytes the scan stops at turn out to be exactly the printable ASCII
+characters other than the three that begin a comment or a conflict marker, which
+is four comparisons and no table. Together with taking one space, the fast path
+answers **83%** of the calls.
+
+`@inline(__always)` is the whole of it. Left alone the compiler keeps the split
+function out of line, which puts a call *in front of* the scan rather than in
+place of it, and the profile shows both frames — 3.7% becomes 1%. The same
+lesson as the allocator two sections up, from the other direction: what matters
+is not whether the fast path is small but whether it reaches the caller.
+
+Runs of indentation are a fifth of what still reaches the scan, and taking those
+too is tempting, but it needs a loop, and a loop grows the fast path past what
+gets inlined. The single space is an `if` for that reason.
+
+Both were verified against the scan directly rather than only through the
+corpus: for every byte value, and then for every *pair* of byte values, in each
+of the three lexing modes, the fast path agrees on consumed length, newline
+presence and error — 196,608 combinations.
 
 ### Crossing the module boundary
 
