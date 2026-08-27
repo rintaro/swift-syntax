@@ -56,6 +56,11 @@ extension Lexer {
     @_spi(Testing)
     public var diagnostic: TokenDiagnostic?
 
+    /// If this lexeme's text is spelled like a keyword, that keyword, otherwise
+    /// `nil`. Resolved once by the lexer so that matching a lexeme against
+    /// several ``TokenSpec`` does not recompute it from the text each time.
+    var keyword: Keyword?
+
     var start: UnsafePointer<UInt8>
 
     var leadingTriviaByteLength: Int
@@ -80,6 +85,7 @@ extension Lexer {
       tokenKind: RawTokenKind,
       flags: Flags,
       diagnostic: TokenDiagnostic?,
+      keyword: Keyword?,
       start: UnsafePointer<UInt8>,
       leadingTriviaLength: Int,
       textLength: Int,
@@ -89,6 +95,7 @@ extension Lexer {
       self.rawTokenKind = tokenKind
       self.flags = flags
       self.diagnostic = diagnostic
+      self.keyword = keyword
       self.start = start
       self.leadingTriviaByteLength = leadingTriviaLength
       self.textByteLength = textLength

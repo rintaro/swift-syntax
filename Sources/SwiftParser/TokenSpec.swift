@@ -32,12 +32,7 @@ struct PrepareForKeywordMatch {
   @inline(__always)
   init(_ lexeme: Lexer.Lexeme) {
     self.rawTokenKind = lexeme.rawTokenKind
-    switch lexeme.rawTokenKind {
-    case .keyword, .identifier:
-      keyword = Keyword(lexeme.tokenText)
-    default:
-      keyword = nil
-    }
+    self.keyword = lexeme.keyword
     self.isAtStartOfLine = lexeme.isAtStartOfLine
   }
 }
@@ -137,7 +132,7 @@ public struct TokenSpec: Sendable {
   static func ~= (kind: TokenSpec, lexeme: Lexer.Lexeme) -> Bool {
     return kind.matches(
       rawTokenKind: lexeme.rawTokenKind,
-      keyword: Keyword(lexeme.tokenText),
+      keyword: lexeme.keyword,
       atStartOfLine: lexeme.isAtStartOfLine
     )
   }
