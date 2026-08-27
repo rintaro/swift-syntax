@@ -227,11 +227,37 @@ extension Lexer.Cursor {
 
     /// Make `state` the top of the stack, with the chain starting at `next`
     /// below it.
-    private mutating func setTop(
-      to state: State,
-      above next: UnsafePointer<Node>?,
-      stateAllocator: Lexer.StateAllocator
+    mutating func perform(
+      stateTransition: Lexer.StateTransition,
+      stateAllocator: Unmanaged<Lexer.StateAllocator>
     ) {
+      // Unwrapped here rather than by the caller, because a transition happens
+      // for a small fraction of the tokens that are lexed.
+      let stateAllocator = stateAllocator.takeUnretainedValue()
+
+      // Every transition but a pop amounts to putting a state on top of some
+      // suffix of the stack, so the switch works out which, and the node for it
+      // is built once below.
+      let state: State
+      let next: UnsafePointer<Node>?
+      switch stateTransition {
+      case .push(let newState):
+        state = newState
+        next = self.top
+      case .pushRegexLexemes(let index, let lexemes):
+        state = .inRegexLiteral(
+          lexemes: lexemes.allocate(in: stateAllocator.allocator),
+          index: index
+        )
+        next = self.top
+      case .replace(let newState):
+        state = newState
+        next = self.top?.pointee.next
+      case .pop:
+        self.top = self.top?.pointee.next
+        return
+      }
+
       // A node standing on the empty stack is determined entirely by its state,
       // so one built earlier in the parse describes this stack just as well. See
       // `StateAllocator.nodesOnEmptyStack`.
@@ -257,29 +283,6 @@ extension Lexer.Cursor {
         stateAllocator.nodesOnEmptyStack.count < Lexer.StateAllocator.nodesOnEmptyStackLimit
       {
         stateAllocator.nodesOnEmptyStack.append(UnsafePointer(node))
-      }
-    }
-
-    mutating func perform(
-      stateTransition: Lexer.StateTransition,
-      stateAllocator: Unmanaged<Lexer.StateAllocator>
-    ) {
-      // Unwrapped here rather than by the caller, because a transition happens
-      // for a small fraction of the tokens that are lexed.
-      let stateAllocator = stateAllocator.takeUnretainedValue()
-      switch stateTransition {
-      case .push(let newState):
-        self.setTop(to: newState, above: self.top, stateAllocator: stateAllocator)
-      case .pushRegexLexemes(let index, let lexemes):
-        self.setTop(
-          to: .inRegexLiteral(lexemes: lexemes.allocate(in: stateAllocator.allocator), index: index),
-          above: self.top,
-          stateAllocator: stateAllocator
-        )
-      case .replace(let newState):
-        self.setTop(to: newState, above: self.top?.pointee.next, stateAllocator: stateAllocator)
-      case .pop:
-        self.top = self.top?.pointee.next
       }
     }
 
