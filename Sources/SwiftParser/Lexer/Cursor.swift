@@ -717,9 +717,7 @@ extension Lexer.Cursor {
 
   /// Returns the text from `self` to `other`.
   func text(upTo other: Lexer.Cursor) -> SyntaxText {
-    let count = other.input.baseAddress! - self.input.baseAddress!
-    precondition(count >= 0)
-    return SyntaxText(baseAddress: self.input.baseAddress, count: count)
+    self.position.text(upTo: other.position)
   }
 }
 
@@ -736,6 +734,13 @@ extension Lexer.Cursor.Position {
     self.previous = c
     self.input = UnsafeBufferPointer(rebasing: input)
     return c
+  }
+
+  /// Returns the text from `self` to `other`.
+  func text(upTo other: Self) -> SyntaxText {
+    let count = other.input.baseAddress! - self.input.baseAddress!
+    precondition(count >= 0)
+    return SyntaxText(baseAddress: self.input.baseAddress, count: count)
   }
 
   /// Peek at the byte `offset` bytes ahead without advancing, or `nil` if the
@@ -1620,7 +1625,7 @@ extension Lexer.Cursor {
       let oConsumed = self.advance(matching: "o")  // Consume 'o'
       precondition(zeroConsumed && oConsumed)
       if let peeked = self.peek(), peeked < UInt8(ascii: "0") || peeked > UInt8(ascii: "7") {
-        let errorPos = self
+        let errorPos = self.position
         self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
         return Lexer.Result(
           .integerLiteral,
@@ -1630,7 +1635,7 @@ extension Lexer.Cursor {
 
       self.advance(while: { ($0 >= "0" && $0 <= "7") || $0 == "_" })
 
-      let tmp = self
+      let tmp = self.position
       if self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
         let errorPos = tmp
         self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
@@ -1649,7 +1654,7 @@ extension Lexer.Cursor {
       let bConsumed = self.advance(matching: "b")  // Consume 'b'
       precondition(zeroConsumed && bConsumed)
       if self.is(notAt: "0", "1") {
-        let errorPos = self
+        let errorPos = self.position
         self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
         return Lexer.Result(
           .integerLiteral,
@@ -1659,7 +1664,7 @@ extension Lexer.Cursor {
 
       self.advance(while: { $0 == "0" || $0 == "1" || $0 == "_" })
 
-      let tmp = self
+      let tmp = self.position
       if self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
         let errorPos = tmp
         self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
@@ -1693,7 +1698,7 @@ extension Lexer.Cursor {
     } else if self.isAtEndOfFile || self.is(notAt: "e", "E") {
       // Floating literals must have '.', 'e', or 'E' after digits.  If it is
       // something else, then this is the end of the token.
-      let tmp = self
+      let tmp = self.position
       if self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
         let errorPos = tmp
         self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
@@ -1720,7 +1725,7 @@ extension Lexer.Cursor {
         // There are 3 cases to diagnose if the exponent starts with a non-digit:
         // identifier (invalid character), underscore (invalid first character),
         // non-identifier (empty exponent)
-        let tmp = self
+        let tmp = self.position
         var errorKind: TokenDiagnostic.Kind
         if self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
           if tmp.is(at: "_") {
@@ -1742,7 +1747,7 @@ extension Lexer.Cursor {
 
       self.advance(while: { $0.isDigit || $0 == "_" })
 
-      let tmp = self
+      let tmp = self.position
       if self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
         let errorPos = tmp
         self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
@@ -1769,7 +1774,7 @@ extension Lexer.Cursor {
 
     guard Unicode.Scalar(peeked).isHexDigit else {
       if Unicode.Scalar(peeked).isValidIdentifierContinuationCodePoint {
-        let errorPos = self
+        let errorPos = self.position
         self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
         return Lexer.Result(
           .integerLiteral,
@@ -1783,7 +1788,7 @@ extension Lexer.Cursor {
     self.advance(while: { $0.isHexDigit || $0 == "_" })
 
     if self.isAtEndOfFile || self.is(notAt: ".", "p", "P") {
-      let tmp = self
+      let tmp = self.position
       if self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
         let errorPos = tmp
         self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
@@ -1848,7 +1853,7 @@ extension Lexer.Cursor {
       // There are 3 cases to diagnose if the exponent starts with a non-digit:
       // identifier (invalid character), underscore (invalid first character),
       // non-identifier (empty exponent)
-      let tmp = self
+      let tmp = self.position
       let errorKind: TokenDiagnostic.Kind
       if self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
         if tmp.is(at: "_") {
@@ -1869,7 +1874,7 @@ extension Lexer.Cursor {
 
     self.advance(while: { $0.isDigit || $0 == "_" })
 
-    let tmp = self
+    let tmp = self.position
     if self.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
       let errorPos = tmp
       self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
@@ -2070,12 +2075,12 @@ extension Lexer.Cursor {
     let quoteConsumed = self.advance(matching: "{")
     precondition(quoteConsumed)
 
-    let digitStart = self
+    let digitStart = self.position
     self.advance(while: { $0.isHexDigit })
 
     let digitText = SyntaxText(
       baseAddress: digitStart.pointer,
-      count: digitStart.distance(to: self)
+      count: digitStart.distance(to: self.position)
     )
 
     guard self.advance(matching: "}") else {
@@ -2098,7 +2103,7 @@ extension Lexer.Cursor {
   }
 
   private mutating func maybeConsumeNewlineEscape() -> Bool {
-    var tmp = self
+    var tmp = self.position
     while true {
       switch tmp.advance() {
       case " ", "\t":
@@ -2107,7 +2112,7 @@ extension Lexer.Cursor {
         _ = tmp.advance(if: { $0 == "\n" })
         fallthrough
       case "\n":
-        self = tmp
+        self.position = tmp
         return true
       case 0:
         return false
@@ -2339,14 +2344,14 @@ extension Lexer.Cursor {
 extension Lexer.Cursor {
   /// lexIdentifier - Match [a-zA-Z_][a-zA-Z_$0-9]*
   mutating func lexIdentifier() -> Lexer.Result {
-    let tokStart = self
+    let tokStart = self.position
     let didStart = self.advance(if: { $0.isValidIdentifierStartCodePoint })
     precondition(didStart, "Unexpected start")
 
     // Lex [a-zA-Z_$0-9[[:XID_Continue:]]]*
     self.advanceOverIdentifierContinuationCharacters()
 
-    let text = tokStart.text(upTo: self)
+    let text = tokStart.text(upTo: self.position)
     let keyword = Keyword(text)
     if let keyword, keyword.isLexerClassified {
       return Lexer.Result.keyword(keyword)
@@ -2385,7 +2390,7 @@ extension Lexer.Cursor {
       if ch == nil || ch == "`" || ch == "\n" || ch == "\r" {
         break
       }
-      let position = self
+      let position = self.position
       guard let scalar = self.advanceValidatingUTF8Character() else {
         error = LexingDiagnostic(.invalidUtf8, position: position)
         continue
@@ -2604,7 +2609,7 @@ extension Lexer.Cursor {
   }
 
   mutating func lexDollarIdentifier() -> Lexer.Result {
-    let tokStart = self
+    let tokStart = self.position
     let dollarConsumed = self.advance(matching: "$")
     precondition(dollarConsumed)
 
@@ -2713,7 +2718,7 @@ extension Lexer.Cursor {
       !(self.peekScalar()?.isValidIdentifierStartCodePoint ?? false)
         && !(self.peekScalar()?.isOperatorStartCodePoint ?? false)
     )
-    let start = self
+    let start = self.position
     var tmp = self
     if tmp.advance(if: { $0.isValidIdentifierContinuationCodePoint }) {
       // If this is a valid identifier continuation, but not a valid identifier
