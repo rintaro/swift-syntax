@@ -182,6 +182,14 @@ through two closures for every character it merely *looked at*. A byte below
 out to start a token — paying a 48-byte save per trivia character for a rewind
 that happens once per call. It now peeks first.
 
+A reviewer of the first of those asked whether the scalar read could move to
+`Lexer.Cursor.Position`, so that a caller reading a scalar without committing to
+it copies a position rather than a whole cursor. It can: `Position` already has
+`advance()` — the cursor's forwards to it — so the move needs only a
+`Position.peek(at:)`, after which the cursor's version is a one-line forward and
+its callers are untouched. Worth about 1% on source that contains multi-byte
+scalars, and nothing on source that does not.
+
 ### Arena and allocation
 
 | | |
@@ -777,6 +785,17 @@ noise above and no benchmark input to argue about. That is what established that
 `nextToken`'s snapshots are already elided, after a timing run had put the same
 question at +0.2% — a number too small to conclude anything from.
 
+**A flat measurement on an input that never runs the code says nothing.** The
+scalar-read move above first measured neutral, and that was read as evidence that
+the copy had been free all along. Counters said otherwise: over the two
+performance inputs, `advance(if:)` is called 135,706 and 218,230 times and takes
+its cursor-copying path **zero** times, and `peekScalar` is never called at all.
+Both inputs are pure ASCII, and the ASCII fast path exists precisely to avoid
+that code. The result was not weak evidence of no effect; it was no evidence.
+Re-measured on a 321 KB input that is 60% non-ASCII bytes — which runs the path
+40,600 times — the change is worth about 1%. Before concluding that a change does
+nothing, count how often the code it changes executes.
+
 **A right measurement with a wrong explanation is worse than no measurement**,
 because the explanation guides the next decision. The 3% spec-set regression was
 attributed to jump-table size; the real cause was de-hoisting field reads. That
@@ -793,6 +812,14 @@ every occurrence of its pattern, re-run on a file it had already changed, grew
 `RawSyntaxArena.swift` to 453,608 lines and left a build spinning on it. What let
 it get that far was that the build check reported success from a stale binary.
 Scripted edits want asserting on a single match and replacing once.
+
+The measurement set now carries a third input for this reason:
+`nonascii_heavy.swift.input`, 321 KB of Swift whose identifiers, string literals
+and doc comments are largely CJK, emoji and combining marks. It parses without
+errors and round-trips, so it measures the multi-byte scalar paths rather than
+error recovery. None of the figures in this report change because of it — every
+one of them is a proportion of work the ASCII inputs do perform — but it is the
+input that would have caught the mistake above.
 
 One trap appeared three times, on both sides of the colon. In a `switch` over
 `Keyword?`, `case .none` matches nil and `case .some` matches every keyword, so

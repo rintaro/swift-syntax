@@ -156,6 +156,11 @@ Both measured far larger against `main` than against their own bases, for the
 reason in the notes below: each is a proportion of the scanning work, and the
 scanning work is a larger share of a slow parse.
 
+`dfd8fc3e7` moves the scalar read to `Lexer.Cursor.Position`, which came out of
+review of P2 rather than off the branch, and wants its own PR. It is independent
+of everything else here: 30 lines in one file, worth about 1% on non-ASCII source
+and nothing on ASCII.
+
 ### Group 5 — needs a decision before posting
 
 | | | contents | lines | measured |
@@ -233,6 +238,10 @@ cumulative numbers.
   both directions. `@inline(__always)` was the difference between 1% and 3.7% for
   the trivia fast path; its absence hid a 14% regression behind an `@inlinable`
   that looked free.
+- Count how often the changed code runs before believing a flat measurement. The
+  scalar-read move measured neutral because both performance inputs are pure
+  ASCII and take that path zero times out of 135,706 and 218,230 calls — no
+  evidence rather than weak evidence. On a 60% non-ASCII input it is worth 1%.
 - Narrowing a field and then adding it up in `Int` gives the space back in time.
 - A change worth a *proportion* of some phase measures larger against `main` than
   against a fast base, and a change worth a *fixed quantity* measures smaller.
