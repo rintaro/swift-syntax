@@ -345,8 +345,12 @@ extension Lexer {
     /// for this lexeme.
     let trailingTriviaLexingMode: Lexer.Cursor.TriviaLexingMode?
 
-    /// If `tokenKind` is `.keyword`, the kind of keyword produced, otherwise
-    /// `nil`.
+    /// The keyword that the lexed text spells, or `nil` if it spells none.
+    ///
+    /// Set for a `.keyword`, and for an `.identifier` whose text spells a
+    /// keyword that the lexer leaves for the parser to classify from context.
+    /// Resolved here because `lexIdentifier` has to look the text up anyway to
+    /// find out which of the two it produced.
     let keywordKind: Keyword?
     /// Indicates whether the end of the lexed token text contains a newline.
     let trailingNewlinePresence: Lexer.Cursor.NewlinePresence
@@ -400,6 +404,20 @@ extension Lexer {
         stateTransition: nil,
         trailingTriviaLexingMode: nil,
         keywordKind: kind,
+        trailingNewlinePresence: .absent
+      )
+    }
+
+    /// Produce a lexer result for an identifier whose text spells `keyword`, a
+    /// keyword the lexer leaves for the parser to classify from context.
+    static func identifier(spelling keyword: Keyword?) -> Self {
+      Self(
+        .identifier,
+        flags: [],
+        error: nil,
+        stateTransition: nil,
+        trailingTriviaLexingMode: nil,
+        keywordKind: keyword,
         trailingNewlinePresence: .absent
       )
     }
@@ -504,6 +522,7 @@ extension Lexer.Cursor {
       tokenKind: result.tokenKind,
       flags: flags,
       diagnostic: diagnostic,
+      keyword: result.keywordKind,
       start: leadingTriviaStart.pointer,
       leadingTriviaLength: leadingTriviaStart.distance(to: textStart),
       textLength: textStart.distance(to: trailingTriviaStart),
@@ -511,7 +530,9 @@ extension Lexer.Cursor {
       cursor: cursor
     )
     self.previousTokenKind = result.tokenKind
-    self.previousKeyword = result.keywordKind
+    // `keywordKind` is also set for an identifier that spells a keyword, which
+    // this is not about: see the property's doc comment.
+    self.previousKeyword = result.tokenKind == .keyword ? result.keywordKind : nil
 
     return lexeme
   }
@@ -2069,12 +2090,16 @@ extension Lexer.Cursor {
     self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
 
     let text = tokStart.text(upTo: self)
-    if let keyword = Keyword(text), keyword.isLexerClassified {
+    let keyword = Keyword(text)
+    if let keyword, keyword.isLexerClassified {
       return Lexer.Result.keyword(keyword)
     } else if text == "_" {
       return Lexer.Result(.wildcard)
     } else {
-      return Lexer.Result(.identifier)
+      // A keyword the lexer does not classify is an identifier that the parser
+      // matches against a `TokenSpec` by keyword, so hand the lookup on rather
+      // than have the text looked up a second time.
+      return Lexer.Result.identifier(spelling: keyword)
     }
   }
 
