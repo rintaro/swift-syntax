@@ -644,7 +644,7 @@ extension Lexer.Cursor {
 
   /// Same as `advanceValidatingUTF8Character` but without advancing the cursor.
   func peekScalar() -> Unicode.Scalar? {
-    var tmp = self
+    var tmp = self.position
     return tmp.advanceValidatingUTF8Character()
   }
 
@@ -756,6 +756,30 @@ extension Lexer.Cursor.Position {
     return c
   }
 
+  /// Peek at the byte `offset` bytes ahead without advancing, or `nil` if the
+  /// input does not reach that far.
+  func peek(at offset: Int = 0) -> UInt8? {
+    precondition(offset >= 0)
+    guard offset < self.input.count else {
+      return nil
+    }
+    return self.input[offset]
+  }
+
+  /// Read a single UTF-8 scalar, which may span multiple bytes.
+  /// Returns `nil` if
+  ///  - The position is at the end of the buffer or reaches the end of the
+  ///    buffer while reading the character
+  ///  - The position is currently placed at an invalid UTF-8 byte sequence. In
+  ///    that case bytes are consumed until we reach the next start of a UTF-8
+  ///    character.
+  ///
+  /// Reading a scalar needs a position and nothing else, so a caller that reads
+  /// one without committing to it copies a position rather than a whole cursor.
+  mutating func advanceValidatingUTF8Character() -> Unicode.Scalar? {
+    return Unicode.Scalar.lexing(advance: { self.advance() }, peek: { self.peek(at: 0) })
+  }
+
   /// Advance the cursor position by `n` bytes. The offset must be valid.
   ///
   /// - Important: `@inline(__always)` because
@@ -833,13 +857,13 @@ extension Lexer.Cursor {
       return true
     }
 
-    var tmp = self
+    var tmp = self.position
     guard let c = tmp.advanceValidatingUTF8Character() else {
       return false
     }
 
     if predicate(c) {
-      self = tmp
+      self.position = tmp
       return true
     } else {
       return false
@@ -990,15 +1014,10 @@ extension Lexer.Cursor {
     return true
   }
 
-  /// Read a single UTF-8 scalar, which may span multiple bytes.
-  /// Returns `nil` if
-  ///  - The cursor is at the end of the buffer or reaches the end of the buffer
-  ///    while reading the character
-  ///  - The cursor is currently placed at an invalid UTF-8 byte sequence. In
-  ///    that case bytes are consumed until we reach the next start of a UTF-8
-  ///    character.
+  /// Read a single UTF-8 scalar, which may span multiple bytes. See
+  /// `Position.advanceValidatingUTF8Character`.
   mutating func advanceValidatingUTF8Character() -> Unicode.Scalar? {
-    return Unicode.Scalar.lexing(advance: { self.advance() }, peek: { self.peek(at: 0) })
+    return self.position.advanceValidatingUTF8Character()
   }
 }
 
