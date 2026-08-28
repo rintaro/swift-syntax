@@ -44,9 +44,9 @@ descriptions from.
 
 ## Progress
 
-Built, verified and measured against `main`: P1, P2, P3, P4, P10, P14, P15 —
-seven of 21, and all of Group 1. Each is one commit on its own branch, none
-pushed.
+Built, verified and measured against `main`: P1, P2, P3, P4, P5+P6, P7, P10,
+P14, P15 — ten of 21, all of Group 1 and the front of Group 2. One commit each
+except P5+P6, which is two. None pushed.
 
 ## The pull requests
 
@@ -90,14 +90,41 @@ to P16. Resolve by taking P4's side without it.
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [ ] | P5 | Track the memory layout of the lexer and parser types — `e93ebdd4c`, with `main`'s values | ~150 | — |
-| [ ] | P6 | Shrink `Lexer.Cursor` — `0c3ccd94b`, `14d54bd0a`, `1a39c55bc` | 114 | −2.9/−3.4, −1.1/−1.8, −4.2/−3.9 |
-| [ ] | P7 | Keep the state allocator alive across the cursor — `91e26dc86` | 71 | neutral (latent bug) |
+| [x] | P5+P6 | Track the memory layout, then shrink `Lexer.Cursor` — `e93ebdd4c` in its consolidated form, then a squash of `0c3ccd94b`, `14d54bd0a`, `1a39c55bc` | 150 + 114 | **−11.1%/−11.7%** and **−10.9%/−10.8%** vs `main`, two builds per input |
+| [x] | P7 | Keep the state allocator alive across the cursor — `91e26dc86` | 71 | neutral, as expected: the parse benchmark never reaches this code |
 | [ ] | P8 | State stack as a shared linked list — *squash of 4* | ~250 | −1.9% / −1.9%, then +0.6% for interning |
 | [ ] | P9 | Hand the lexer its allocator without retaining it — *squash of 3* | ~150 | −4.0/−3.6, then −1.7/−1.5 |
 
-P5 first so that P6, P8, P18–P21 each update one tracked number. P7 before P8:
-the linked list turns that latent use-after-free into a live one.
+P5 and P6 went out as one PR of two commits: the tracked numbers land with
+`main`'s values, then one squashed commit moves all of them. Two findings from
+building it.
+
+Take `MemoryLayout.swift` from the branch tip, not from `e93ebdd4c`. The tip's
+form — which `c331d96de`, a P9 commit, left behind — keeps both layout
+dictionaries in that one file, so P5 becomes two new files and 150 added lines
+that touch neither `Cursor.swift` nor `Parser.swift`. `e93ebdd4c`'s own form
+scatters the dictionaries into those two hot files and makes both import the
+`Testing` SPI. The consolidated form builds on `main` with none of P9.
+
+`testLookaheadTypesAreTrivial` cannot land as written: on `main`,
+`Lexer.LexemeSequence` and `Parser.Lookahead` are *not* trivially copyable, since
+P9 is what makes them so. It became `testCopyingLookaheadTypes`, recording all
+four values as data the way the sizes are recorded, so P9 flips two `false`s to
+`true` and its benefit shows up as a diff.
+
+P7 before P8 still holds: the linked list turns that latent use-after-free into a
+live one. But P6 and P7 conflict with each other, textually and in both
+directions — `0c3ccd94b` and `1a39c55bc` each change one line in
+`StringLiteralRepresentedLiteralValue.swift`, and P7's added
+`withExtendedLifetime` scope re-indents both of those lines. Verified by
+cherry-picking P6 onto P7. There is no semantic disagreement; whichever lands
+second is a two-line fixup for its author.
+
+P7 also needs a check of its own. The parse benchmark never reaches
+`representedLiteralValue`, and neither does the corpus tree comparison, so
+timing and the tree fingerprint both say nothing about it. What covers it is a
+digest of every literal's represented value: identical across 749 files and
+24,328 represented literals.
 
 ### Group 3 — keyword identity
 
