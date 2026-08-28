@@ -44,8 +44,9 @@ descriptions from.
 
 ## Progress
 
-Built, verified and measured against `main`: P1, P2, P3, P10, P14, P15 — six of
-21. Each is one commit on its own branch, none pushed.
+Built, verified and measured against `main`: P1, P2, P3, P4, P10, P14, P15 —
+seven of 21, and all of Group 1. Each is one commit on its own branch, none
+pushed.
 
 ## The pull requests
 
@@ -59,12 +60,12 @@ each change against its own parent, on the two performance inputs.
 | [x] | P1 | Make the allocator and parsing arena `final` — `5806dcec2` | 4 | **neutral** on `main`: +0.6%/+0.1%, and −0.2%/−0.1% at its own base. The report's −6% is wrong. |
 | [x] | P2 | ASCII fast path when advancing over a scalar — `817307a17` | 13 | **−11.3% / −10.6%** vs `main` |
 | [x] | P3 | Combine a token diagnostic only when there is one — `f43212b5b` | 12 | −0.5% / −0.5% vs `main`, indistinguishable from noise; 1.0% / 1.0% on the full branch |
-| [ ] | P4 | Size a parsing arena's slabs for the source — `0c23ecf96` | 48 | −2.0% / −1.0% |
+| [x] | P4 | Size a parsing arena's slabs for the source — `0c23ecf96` | 48 | **−0.5% / −0.4%** vs `main`, against −2.0/−1.0 at its own base. Slab allocations 412→18 and 519→17; waste up to 4.4% |
 
 Reviewable in minutes each. **The "about 20% between them" I first claimed rests
-on per-commit figures that predate the interleaved two-build protocol.** Two of
-the three measured so far did not reproduce: P1 is neutral and P3 is half a
-percent. P2 alone carries the group.
+on per-commit figures that predate the interleaved two-build protocol.** Three of
+the four did not reproduce: P1 is neutral, and P3 and P4 are half a percent each.
+P2 alone carries the group, at −11.3%/−10.6%.
 
 P1 is a correctness/style change rather than a performance one: `BumpPtrAllocator`
 and `ParsingRawSyntaxArena` are not meant to be subclassed. Worth posting on that
@@ -73,6 +74,17 @@ basis or dropping, but not as a performance PR.
 P3 is worth posting for what it is — a saving of a fixed 0.02–0.04 ms, which is
 1% of a fast parse and half a percent of `main`'s — with the number stated
 against both bases rather than only the flattering one.
+
+P4 likewise. Its mechanism is much larger than its timing: a parse stops asking
+the system for memory hundreds of times, 412 slab allocations falling to 18 on the
+collections input and 519 to 17 on the declaration-heavy one, and 15,751 to 5,310
+across 400 of the parser's own sources. That is worth half a percent of wall clock
+and costs up to 4.4% of the memory a parse takes, so post it as an allocation
+change with the memory cost stated, not as a performance one. The branch's 4.7%
+was re-measured at 4.4% on this base, in the message and in the doc comment.
+
+P4's cherry-pick conflicts on one line, `collectsLookaheadRanges`, which belongs
+to P16. Resolve by taking P4's side without it.
 
 ### Group 2 — the lexer's cursor (chained: same struct, same test)
 
@@ -197,8 +209,12 @@ cumulative numbers.
 - Narrowing a field and then adding it up in `Int` gives the space back in time.
 - A change worth a *proportion* of some phase measures larger against `main` than
   against a fast base, and a change worth a *fixed quantity* measures smaller.
-  P14 and P15 each roughly tripled against `main`; P3 halved. Neither direction is
-  a measurement error, and the base has to be named with the number.
+  P14 and P15 each roughly tripled against `main`; P3 halved and P4 fell to a
+  fifth. Neither direction is a measurement error, and the base has to be named
+  with the number.
+- A mechanism can be much larger than its timing. P4 removes 95% of a parse's slab
+  allocations for half a percent of wall clock. Measure the mechanism too, or there
+  is nothing to say about a change whose time saving is within noise.
 - `<deduplicated_symbol>` in a profile is not one function. Diff profiles by
   cluster, not by symbol: inlining decisions move between builds and symbol-level
   diffs attribute that motion to the wrong place.
