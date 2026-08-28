@@ -20,6 +20,7 @@ add_swift_syntax_library(SwiftParser
   IsValidIdentifier.swift
   Lookahead.swift
   LoopProgressCondition.swift
+  MemoryLayout.swift
   Modifiers.swift
   Names.swift
   Nominals.swift
