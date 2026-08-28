@@ -731,8 +731,19 @@ extension Lexer.Cursor {
   /// If the current character matches `predicate`, consume it and return `true`.
   /// Otherwise, this is a no-op and returns `false`.
   mutating func advance(if predicate: (Unicode.Scalar) -> Bool) -> Bool {
-    guard !self.isAtEndOfFile else {
+    guard let byte = self.peek() else {
       return false
+    }
+
+    // An ASCII byte is a scalar on its own, so it needs no decoding, and the
+    // cursor does not have to be copied in order to be restored when the
+    // predicate rejects it.
+    if byte < 0x80 {
+      guard predicate(Unicode.Scalar(byte)) else {
+        return false
+      }
+      _ = self.advance()
+      return true
     }
 
     var tmp = self
