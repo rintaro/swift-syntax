@@ -776,6 +776,18 @@ extension Lexer.Cursor.Position {
   ///
   /// Reading a scalar needs a position and nothing else, so a caller that reads
   /// one without committing to it copies a position rather than a whole cursor.
+  /// - Important: `@inline(__always)` because `advance(if:)` calls this for
+  ///   every character it looks at. Out of line, the position is passed by
+  ///   address, so reading one byte becomes a pair of loads and three stores
+  ///   rather than register arithmetic. Inlined, the caller keeps the position
+  ///   in registers. Worth about 1% of parsing ASCII source and 3% of parsing
+  ///   source with multi-byte scalars in it.
+  ///
+  ///   For the same reason `Unicode.Scalar.lexing` must stay inlinable as a
+  ///   whole: outlining its multi-byte half stops this from being a leaf
+  ///   function, and the frame it then has to set up is paid on every character,
+  ///   ASCII included.
+  @inline(__always)
   mutating func advanceValidatingUTF8Character() -> Unicode.Scalar? {
     return Unicode.Scalar.lexing(advance: { self.advance() }, peek: { self.peek(at: 0) })
   }
@@ -842,19 +854,8 @@ extension Lexer.Cursor {
   /// If the current character matches `predicate`, consume it and return `true`.
   /// Otherwise, this is a no-op and returns `false`.
   mutating func advance(if predicate: (Unicode.Scalar) -> Bool) -> Bool {
-    guard let byte = self.peek() else {
+    guard !self.isAtEndOfFile else {
       return false
-    }
-
-    // An ASCII byte is a scalar on its own, so it needs no decoding, and the
-    // cursor does not have to be copied in order to be restored when the
-    // predicate rejects it.
-    if byte < 0x80 {
-      guard predicate(Unicode.Scalar(byte)) else {
-        return false
-      }
-      _ = self.advance()
-      return true
     }
 
     var tmp = self.position
