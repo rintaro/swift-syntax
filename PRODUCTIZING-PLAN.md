@@ -48,6 +48,10 @@ Built, verified and measured against `main`: P1, P2, P3, P4, P5+P6, P7, P10,
 P14, P15 — ten of 21, all of Group 1 and the front of Group 2. One commit each
 except P5+P6, which is two. None pushed.
 
+The integration branch has since grown a sixth cluster that did not come off the
+original branch at all — the Cursor/Position split, described below. It is a PR
+in its own right and has to follow P14 and P15.
+
 ## The pull requests
 
 Sizes are hand-written lines, with generated lines in brackets. Percentages are
@@ -156,10 +160,30 @@ Both measured far larger against `main` than against their own bases, for the
 reason in the notes below: each is a proportion of the scanning work, and the
 scanning work is a larger share of a slow parse.
 
-`dfd8fc3e7` moves the scalar read to `Lexer.Cursor.Position`, which came out of
-review of P2 rather than off the branch, and wants its own PR. It is independent
-of everything else here: 30 lines in one file, worth about 1% on non-ASCII source
-and nothing on ASCII.
+### The Cursor/Position split — a PR of its own, cascaded after P14 and P15
+
+Five commits, all off the back of review of P2 rather than off the original
+branch: `dfd8fc3e7` moves the scalar read to `Lexer.Cursor.Position`,
+`a64eedc09` deletes P2's ASCII fast path in favour of inlining that read,
+`b2ec11378` drops a redundant end-of-file check, `f97d79e48` moves the
+byte-scanning functions down to `Position` behind cursor forwarders, and
+`b193016db` converts twenty snapshots from cursors to positions.
+
+**Order matters here and the plan has to say so.** `a64eedc09` deletes the very
+change P2 introduces, and that is only correct downstream of P14 and P15:
+`advance(if:)` is called 135,706 and 218,230 times per parse on `main` against
+29,939 and 46,609 once the trivia fast path and the identifier byte scan divert
+the traffic, a drop of 78%. Measured on `main`, P2's fast path is worth 12% and
+the inlining alternative only 7%, so P2 must land as it stands and this PR must
+come after P14/P15, not instead of P2.
+
+Worth about 1.1% / 0.3% / 3.4% on the three inputs at the end of the branch. No
+cursor API became dead, which is checkable by renaming the forwarders and
+building.
+
+`scratch-main-inline` holds `08c7d9c98`, the same idea applied to `main` alone:
+worth 6.5% on non-ASCII source against the fast path's 4.0%, and a candidate for
+its own small PR if the non-ASCII case is worth chasing separately.
 
 ### Group 5 — needs a decision before posting
 
@@ -238,6 +262,15 @@ cumulative numbers.
   both directions. `@inline(__always)` was the difference between 1% and 3.7% for
   the trivia fast path; its absence hid a 14% regression behind an `@inlinable`
   that looked free.
+- Where a small function is inlined can matter more than what it does. A
+  hand-written ASCII fast path turned out to exist only because the function
+  under it was not inlined; and splitting that function so only its cheap half
+  inlines cost 5%, because the caller stopped being a leaf and set up a frame on
+  every character. `nm` answers whether something was inlined; `objdump
+  --disassemble-symbols` and a search for `stp x29, x30` answers whether the
+  caller is still a leaf.
+- A special case earns its keep at one call volume and not another, and the code
+  around it does not say which. Measure the volume, not just the time.
 - Count how often the changed code runs before believing a flat measurement. The
   scalar-read move measured neutral because both performance inputs are pure
   ASCII and take that path zero times out of 135,706 and 218,230 calls — no

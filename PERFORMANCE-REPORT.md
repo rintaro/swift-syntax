@@ -182,13 +182,80 @@ through two closures for every character it merely *looked at*. A byte below
 out to start a token — paying a 48-byte save per trivia character for a rewind
 that happens once per call. It now peeks first.
 
-A reviewer of the first of those asked whether the scalar read could move to
+#### Bytes belong to the position, not the cursor
+
+A reviewer of the ASCII fast path asked whether the scalar read could move to
 `Lexer.Cursor.Position`, so that a caller reading a scalar without committing to
 it copies a position rather than a whole cursor. It can: `Position` already has
 `advance()` — the cursor's forwards to it — so the move needs only a
 `Position.peek(at:)`, after which the cursor's version is a one-line forward and
 its callers are untouched. Worth about 1% on source that contains multi-byte
 scalars, and nothing on source that does not.
+
+That question turned out to reach further than the one call site, and the rest of
+this section is what came of it.
+
+| | |
+|---|---|
+| `dfd8fc3e7` Read a UTF-8 scalar from a position rather than a whole cursor | ~1% on non-ASCII source |
+| `a64eedc09` Inline the scalar read rather than special-casing ASCII | −1.1% / −0.3% / −3.4% |
+| `b2ec11378` Drop the end-of-file check that `advance(if:)` does not need | neutral |
+| `f97d79e48` Scan bytes on Position rather than on Cursor | neutral |
+| `b193016db` Remember positions, not cursors, where only bytes are read | neutral to −1% |
+
+Three inputs from here on: the two ASCII ones and
+`nonascii_heavy.swift.input`.
+
+**The ASCII fast path was compensating for a missed inlining decision.**
+`Unicode.Scalar.lexing` opens with the same `curByte < 0x80` test the fast path
+performs by hand, so the special case was never saving the decode. What it was
+working around is that `Position.advanceValidatingUTF8Character` was not inlined:
+out of line, the position is passed by address, so reading one byte is a pair of
+loads and three stores rather than register arithmetic. Marking that method
+`@inline(__always)` and deleting the fast path is faster than the fast path was —
+1.1%, 0.3% and 3.4% on the three inputs — and twelve lines shorter.
+
+**`lexing` has to stay inlinable as a whole.** Outlining its multi-byte half so
+that only the single-byte case is inlined sounds strictly better and measures 5%
+slower on non-ASCII source and about 1% slower on ASCII source. The
+disassembly says why: with a call in it, the caller stops being a leaf function
+and sets up a frame on *every* character, ASCII included. 22 instructions with
+the split against 69 without it, and the 69 contain no `bl` and no `stp x29`.
+
+**This does not mean the fast path was a mistake.** On `main` it is worth 12%,
+and neither alternative comes close there: the attribute alone measures *+2%*
+because `advance(if:)` still copies an 88-byte cursor and now inlines that copy
+too, and the full position-based version gets 7%. The fast path only became
+removable because `4b95810fa` and `50044b0fe` took the traffic away from it —
+`advance(if:)` is called 135,706 and 218,230 times per parse on `main` against
+29,939 and 46,609 here, a drop of 78%. A special case earns its keep at one
+volume and not at another, and nothing about the code around it says which.
+
+With the scalar read down on `Position`, the rest followed: the `is(offset:at:)`
+family and every `advance` function that reads bytes rather than tokens moved
+there too, with the cursor keeping one-line forwarders so no call site changed,
+and twenty snapshots that existed to anchor a diagnostic or hold a rewind point
+became positions instead of whole cursors. A cursor carries the state stack and
+the previous token's kind; a position is 24 bytes of pointer, count and
+look-behind byte. Keeping the two apart is what stops a byte-level function from
+copying token-level state, which is the mistake `advance(if:)` was making.
+
+Twenty-five snapshots still copy a cursor, and four cursor-level APIs are what
+hold them there: `starts(with:)`, the `peekBack`/`isLeftBound`/`isRightBound`
+trio, and the `slashPosition` and `start` parameters of
+`advanceToEndOfSlashStarComment` and `tryLexConflictMarker`. Moving those was
+judged not to be worth it: four of the twenty-five are `nextToken`'s, which the
+instruction counts show are already elided, and the rest are per-literal or
+per-error rather than per-byte.
+
+Nothing became dead API. Renaming every cursor-level member that now forwards to
+a position, and building, reports all of them still in use — 94 call sites for
+the `is` family, 76 for `peek`, 208 across the `advance` overloads, 12 for
+`text(upTo:)`, 8 each for `advanceValidatingUTF8Character` and
+`advanceToEndOfLine`, and 28 for the `LexingDiagnostic` initializer that takes a
+whole cursor. The split is about which type the work is *written against*, not
+about removing entry points: token-level code still asks a cursor for a byte, and
+the cursor still asks its position.
 
 ### Arena and allocation
 
@@ -784,6 +851,15 @@ memory operations and frame size answers it outright, with none of the layout
 noise above and no benchmark input to argue about. That is what established that
 `nextToken`'s snapshots are already elided, after a timing run had put the same
 question at +0.2% — a number too small to conclude anything from.
+
+**Where a function is inlined decides more than what it contains.** Two of the
+larger findings here were inlining decisions rather than algorithmic ones: a
+hand-written fast path that existed only because the function under it was not
+inlined, and a plausible-looking split of that function that cost 5% because it
+stopped its caller from being a leaf. `nm` on the built archive answers the
+first question — if the symbol is there with callers, it was not inlined — and
+`objdump --disassemble-symbols` answers the second: look for `stp x29, x30`,
+which a leaf function does not need.
 
 **A flat measurement on an input that never runs the code says nothing.** The
 scalar-read move above first measured neutral, and that was read as evidence that
