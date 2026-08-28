@@ -854,10 +854,9 @@ extension Lexer.Cursor {
   /// If the current character matches `predicate`, consume it and return `true`.
   /// Otherwise, this is a no-op and returns `false`.
   mutating func advance(if predicate: (Unicode.Scalar) -> Bool) -> Bool {
-    guard !self.isAtEndOfFile else {
-      return false
-    }
-
+    // Reading a scalar at the end of the input yields `nil`, because the
+    // `advance()` it is built on does, so this needs no end-of-file check of
+    // its own.
     var tmp = self.position
     guard let c = tmp.advanceValidatingUTF8Character() else {
       return false
