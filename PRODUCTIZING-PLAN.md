@@ -1,6 +1,6 @@
 # Productizing `perf-parser-2026-woc`
 
-Splitting the branch into reviewable pull requests. Parsing is 2.5 to 2.8 times
+Splitting the branch into reviewable pull requests. Parsing is 2.5 to 2.9 times
 faster across three inputs and the tree is 42% smaller; see PERFORMANCE-REPORT.md
 for what each change did and why.
 

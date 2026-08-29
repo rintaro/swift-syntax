@@ -4,14 +4,14 @@ Branch `perf-parser-2026-woc`, off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.5 to 2.8 times faster, and the tree it produces is 42% smaller**,
+**Parsing is 2.5 to 2.9 times faster, and the tree it produces is 42% smaller**,
 with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.906 ms | 1.759 ms | **2.79×** |
-| concatenated generated sources (468 KB) | 11.977 ms | 4.639 ms | **2.58×** |
-| `nonascii_heavy.swift.input` (321 KB) | 7.998 ms | 3.171 ms | **2.52×** |
+| `MinimalCollections.swift.input` (177 KB) | 4.916 ms | 1.719 ms | **2.86×** |
+| concatenated generated sources (468 KB) | 11.987 ms | 4.143 ms | **2.89×** |
+| `nonascii_heavy.swift.input` (321 KB) | 7.989 ms | 3.163 ms | **2.53×** |
 
 | tree memory | main | branch | |
 |---|---|---|---|
@@ -20,7 +20,9 @@ with no change to the parsed output.
 | `nonascii_heavy.swift.input` | 26.87× | **15.31×** | −43.0% |
 
 Interleaved A/B, 20 rounds, two independent builds per side, medians and
-minimums agreeing to within 0.02×. Tree memory is what the arena's allocations
+minimums agreeing to within 0.03×. The memory figures are from before
+`970d1a7ac`, which changes only how fast bytes are scanned: it produces trees
+byte for byte identical over the 749 file corpus, so it allocates identically. Tree memory is what the arena's allocations
 actually advance its bump pointer by, padding included — not
 `totalByteSizeAllocated`, which ignores the padding between allocations and
 understates the branch by about 1.3× of the source.
