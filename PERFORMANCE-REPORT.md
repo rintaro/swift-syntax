@@ -632,6 +632,62 @@ further: `parsedToken` would come to 26 bytes, which alignment rounds back to 32
 A 24-byte payload needs every case within 23, and that one cannot get there
 without packing the token diagnostic into spare bits.
 
+#### Tail allocation, which settles the question differently
+
+The paragraph above was right that a payload enum cannot shrink past its largest
+case, and wrong that this was the end of it: the enum only has to exist if every
+node stores the same shape. `64487d0b4` makes a node a one-word header —
+which of four shapes it has, and the arena that owns it — followed by that
+shape's fields and then whatever is variable about it.
+
+| | |
+|---|---|
+| `RawSyntaxData` (the header) | 8 bytes, tag in the reference's spare bits |
+| `.smolParsedToken` fields | **4** |
+| `.layout` fields | 15/16 |
+| `.parsedToken` fields | 20 |
+| `.materializedToken` fields | 52/56, inline again |
+
+A layout node is now 24 bytes plus its children *in place*, where it was 40 plus a
+separately allocated `8n` buffer, so `makeLayout` writes the children where they
+will live and 49,406 allocations per parse of the 317 KB input disappear. A
+materialized token stops being boxed, because a node is sized for its own shape
+rather than the largest. A parsed token's text is copied into the node, so
+`internSourceBuffer` and the arena's copy of the whole source go away — reverting
+`1f6c6234f` without reintroducing what it fixed, since the per-token copy is now
+part of an allocation the node was making anyway.
+
+**Most tokens do not need twenty bytes of fields.** 99% of them — over the corpus
+and both inputs — are present, carry no diagnostic and are shorter than 256
+bytes, so presence and the absent diagnostic can be implied by the shape and the
+three lengths fit in a byte apiece. That is `.smolParsedToken`, four bytes.
+
+| | consumed, 317 KB input |
+|---|---|
+| before | 20.90× source |
+| header and children in the tail | 18.41× |
+| token text in the tail as well | 15.97× |
+| four-byte units for short text | **15.36×** |
+
+Two measurement notes, one of which corrects everything above it in this section.
+
+**`totalByteSizeAllocated` is not the footprint.** It sums *requested* bytes and
+ignores the padding the bump allocator inserts to align the next allocation.
+Every figure in this section before this paragraph is that number; the real
+consumption is about 0.9× of source higher before this change and 1.3× after,
+because a token node is 12 or 28 bytes plus its text and almost never a multiple
+of eight. The table above is consumption, measured by accumulating what each
+allocation actually advances the bump pointer by.
+
+**Copying a token's text a word at a time is worth three points of parse time**
+over `memcpy`, which spends longer choosing how to copy eight bytes than it does
+copying them: a short token becomes one unaligned load and one store. It reads up
+to seven bytes past the token, so it is only done where those bytes are inside the
+buffer being lexed — hence `setSourceBuffer`. Every safe variant that handles the
+tail exactly measured no better than `memcpy`; the speed is in *not* branching.
+Short texts move in four-byte units, which costs about a point of time and returns
+0.6× of source.
+
 ### Cleanups and tests
 
 | | |

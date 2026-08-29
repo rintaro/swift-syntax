@@ -202,6 +202,29 @@ its own small PR if the non-ASCII case is worth chasing separately.
 The largest win on the branch. P19 is one transformation repeated; its size is
 call sites, not ideas.
 
+### Tail allocated nodes — a PR of its own, after Group 7
+
+`64487d0b4` makes a node a one-word header followed by its own shape's fields and
+then its children or its text, which supersedes the question Group 7 was
+answering. It is 744 insertions over seven files, one commit, and it cannot be
+split without reconstructing intermediate states in a style the final one
+replaced — the two attempts at that would each have shipped something either
+broken or memory-regressing.
+
+Worth **6.2% / 4.9%** of parse time and takes the tree from 20.90× the source to
+15.36×, counting allocator padding. It reverts `1f6c6234f`'s whole-source copy
+without reintroducing the per-token allocation that made `748dde4ff` slow, since
+the text now lands in an allocation the node was making anyway.
+
+It must follow Group 7: `77a7fc600` and `ffa99ce81` shrink the payload enum this
+change deletes, and their commit messages explain the layout reasoning it builds
+on. Landing them in the other order would leave the earlier two looking pointless.
+
+Needs saying in the PR: it removes `RawSyntaxData.Payload`, the stored form of a
+layout node's fields, and `RawSyntax.rawData` from the `@_spi(RawSyntax)` surface,
+and it adds a deliberate bounded over-read, checked under AddressSanitizer over an
+exactly-sized-allocation sweep now in `testParseBufferEOFEdgeCases`.
+
 ### Group 7 — tree memory (chained, SwiftSyntax only)
 
 | | | contents | lines | effect |
@@ -262,6 +285,13 @@ cumulative numbers.
   both directions. `@inline(__always)` was the difference between 1% and 3.7% for
   the trivia fast path; its absence hid a 14% regression behind an `@inlinable`
   that looked free.
+- Measure the footprint, not the request. `totalByteSizeAllocated` sums requested
+  bytes and ignores the padding the allocator inserts to align the next
+  allocation, which here is 1.3× of the source — about 7% of the tree. Accumulate
+  what each allocation advances the bump pointer by instead.
+- An enum payload cannot shrink past its largest case, but the enum only has to
+  exist if every node stores the same shape. Tail allocation asks the question
+  differently and got 27% where narrowing fields got single digits.
 - Where a small function is inlined can matter more than what it does. A
   hand-written ASCII fast path turned out to exist only because the function
   under it was not inlined; and splitting that function so only its cheap half
