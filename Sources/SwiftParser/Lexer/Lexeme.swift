@@ -61,8 +61,6 @@ extension Lexer {
     /// several ``TokenSpec`` does not recompute it from the text each time.
     var keyword: Keyword?
 
-    var start: UnsafePointer<UInt8>
-
     var leadingTriviaByteLength: Int
 
     var textByteLength: Int
@@ -72,6 +70,15 @@ extension Lexer {
     /// The cursor that produces this lexeme by calling `nextToken` on it.
     /// Used if the token needs to be re-lexed in a different lexer state.
     var cursor: Lexer.Cursor
+
+    /// Where this lexeme's text begins, including its leading trivia.
+    ///
+    /// The cursor a lexeme carries is the one `nextToken` was called on, which
+    /// is positioned there, so this is not stored: eight bytes of a lexeme that
+    /// the cursor beside them already answers.
+    var start: UnsafePointer<UInt8> {
+      self.cursor.position.pointer
+    }
 
     var isAtStartOfLine: Bool {
       return self.flags.contains(.isAtStartOfLine)
@@ -86,7 +93,6 @@ extension Lexer {
       flags: Flags,
       diagnostic: TokenDiagnostic?,
       keyword: Keyword?,
-      start: UnsafePointer<UInt8>,
       leadingTriviaLength: Int,
       textLength: Int,
       trailingTriviaLength: Int,
@@ -96,7 +102,6 @@ extension Lexer {
       self.flags = flags
       self.diagnostic = diagnostic
       self.keyword = keyword
-      self.start = start
       self.leadingTriviaByteLength = leadingTriviaLength
       self.textByteLength = textLength
       self.trailingTriviaByteLength = trailingTriviaLength

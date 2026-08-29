@@ -602,7 +602,6 @@ extension Lexer.Cursor {
       flags: flags,
       diagnostic: diagnostic,
       keyword: result.keywordKind,
-      start: leadingTriviaStart.pointer,
       leadingTriviaLength: leadingTriviaStart.distance(to: textStart),
       textLength: textStart.distance(to: trailingTriviaStart),
       trailingTriviaLength: trailingTriviaStart.distance(to: self),
