@@ -15,10 +15,10 @@ extension RawSyntax {
   /// The token's payload must be a token, otherwise this traps.
   @_spi(RawSyntax)
   public var tokenView: RawSyntaxTokenView? {
-    switch raw.payload {
-    case .parsedToken, .materializedToken:
+    switch raw.header {
+    case .smolParsedToken, .parsedToken, .materializedToken:
       return RawSyntaxTokenView(raw: self)
-    case .layout(_):
+    case .layout:
       return nil
     }
   }
@@ -31,10 +31,10 @@ public struct RawSyntaxTokenView: Sendable {
 
   fileprivate init(raw: RawSyntax) {
     self.raw = raw
-    switch raw.payload {
-    case .parsedToken, .materializedToken:
+    switch raw.header {
+    case .smolParsedToken, .parsedToken, .materializedToken:
       break
-    case .layout(_):
+    case .layout:
       preconditionFailure("RawSyntax must be a token")
     }
   }
@@ -42,12 +42,14 @@ public struct RawSyntaxTokenView: Sendable {
   /// Token kind of this node.
   @_spi(RawSyntax)
   public var rawKind: RawTokenKind {
-    switch raw.rawData.payload {
-    case .materializedToken(let dat):
-      return dat.pointee.tokenKind
-    case .parsedToken(let dat):
-      return dat.tokenKind
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return raw.smolParsedToken.pointee.tokenKind
+    case .parsedToken:
+      return raw.parsedToken.pointee.tokenKind
+    case .materializedToken:
+      return raw.materializedToken.pointee.tokenKind
+    case .layout:
       preconditionFailure("'tokenKind' is not available for non-token node")
     }
   }
@@ -55,12 +57,14 @@ public struct RawSyntaxTokenView: Sendable {
   /// Token text of this node.
   @_spi(RawSyntax)
   public var rawText: SyntaxText {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return dat.tokenText
-    case .materializedToken(let dat):
-      return dat.pointee.tokenText
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return raw.smolParsedToken.pointee.tokenText(base: raw.smolParsedTokenTextBase)
+    case .parsedToken:
+      return raw.parsedToken.pointee.tokenText(base: raw.parsedTokenTextBase)
+    case .materializedToken:
+      return raw.materializedToken.pointee.tokenText
+    case .layout:
       preconditionFailure("'rawText' is not available for non-token node")
     }
   }
@@ -68,12 +72,14 @@ public struct RawSyntaxTokenView: Sendable {
   /// The UTF-8 byte length of the leading trivia.
   @_spi(RawSyntax)
   public var leadingTriviaByteLength: Int {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return dat.leadingTriviaText.count
-    case .materializedToken(let dat):
-      return dat.pointee.leadingTrivia.reduce(0) { $0 + $1.byteLength }
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return raw.smolParsedToken.pointee.leadingTriviaText(base: raw.smolParsedTokenTextBase).count
+    case .parsedToken:
+      return raw.parsedToken.pointee.leadingTriviaText(base: raw.parsedTokenTextBase).count
+    case .materializedToken:
+      return raw.materializedToken.pointee.leadingTrivia.reduce(0) { $0 + $1.byteLength }
+    case .layout:
       preconditionFailure("'leadingTriviaByteLength' is not available for non-token node")
     }
   }
@@ -81,36 +87,54 @@ public struct RawSyntaxTokenView: Sendable {
   /// The UTF-8 byte length of the trailing trivia.
   @_spi(RawSyntax)
   public var trailingTriviaByteLength: Int {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return dat.trailingTriviaText.count
-    case .materializedToken(let dat):
-      return dat.pointee.trailingTrivia.reduce(0) { $0 + $1.byteLength }
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return raw.smolParsedToken.pointee.trailingTriviaText(base: raw.smolParsedTokenTextBase).count
+    case .parsedToken:
+      return raw.parsedToken.pointee.trailingTriviaText(base: raw.parsedTokenTextBase).count
+    case .materializedToken:
+      return raw.materializedToken.pointee.trailingTrivia.reduce(0) { $0 + $1.byteLength }
+    case .layout:
       preconditionFailure("'trailingTriviaByteLength' is not available for non-token node")
     }
   }
 
   @_spi(RawSyntax)
   public var leadingRawTriviaPieces: [RawTriviaPiece] {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return raw.arenaReference.parseTrivia(source: dat.leadingTriviaText, position: .leading)
-    case .materializedToken(let dat):
-      return Array(dat.pointee.leadingTrivia)
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return raw.arenaReference.parseTrivia(
+        source: raw.smolParsedToken.pointee.leadingTriviaText(base: raw.smolParsedTokenTextBase),
+        position: .leading
+      )
+    case .parsedToken:
+      return raw.arenaReference.parseTrivia(
+        source: raw.parsedToken.pointee.leadingTriviaText(base: raw.parsedTokenTextBase),
+        position: .leading
+      )
+    case .materializedToken:
+      return Array(raw.materializedToken.pointee.leadingTrivia)
+    case .layout:
       preconditionFailure("'leadingRawTriviaPieces' is called on non-token raw syntax")
     }
   }
 
   @_spi(RawSyntax)
   public var trailingRawTriviaPieces: [RawTriviaPiece] {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return raw.arenaReference.parseTrivia(source: dat.trailingTriviaText, position: .trailing)
-    case .materializedToken(let dat):
-      return Array(dat.pointee.trailingTrivia)
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return raw.arenaReference.parseTrivia(
+        source: raw.smolParsedToken.pointee.trailingTriviaText(base: raw.smolParsedTokenTextBase),
+        position: .trailing
+      )
+    case .parsedToken:
+      return raw.arenaReference.parseTrivia(
+        source: raw.parsedToken.pointee.trailingTriviaText(base: raw.parsedTokenTextBase),
+        position: .trailing
+      )
+    case .materializedToken:
+      return Array(raw.materializedToken.pointee.trailingTrivia)
+    case .layout:
       preconditionFailure("'trailingRawTriviaPieces' is called on non-token raw syntax")
     }
   }
@@ -130,13 +154,16 @@ public struct RawSyntaxTokenView: Sendable {
   /// Run `body` with text of the leading trivia and return its result.
   @_spi(RawSyntax)
   public func leadingTrivia<T>(_ body: (SyntaxText) -> T) -> T {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return body(dat.leadingTriviaText)
-    case .materializedToken(let dat):
-      var leadingTriviaStr = Trivia(pieces: dat.pointee.leadingTrivia.map(TriviaPiece.init)).description
+    switch raw.header {
+    case .smolParsedToken:
+      return body(raw.smolParsedToken.pointee.leadingTriviaText(base: raw.smolParsedTokenTextBase))
+    case .parsedToken:
+      return body(raw.parsedToken.pointee.leadingTriviaText(base: raw.parsedTokenTextBase))
+    case .materializedToken:
+      var leadingTriviaStr = Trivia(pieces: raw.materializedToken.pointee.leadingTrivia.map(TriviaPiece.init))
+        .description
       return leadingTriviaStr.withSyntaxText(body)
-    case .layout(_):
+    case .layout:
       preconditionFailure("'leadingTrivia' is called on non-token raw syntax")
     }
   }
@@ -144,13 +171,16 @@ public struct RawSyntaxTokenView: Sendable {
   /// Run `body` with text of the leading trivia and return its result.
   @_spi(RawSyntax)
   public func trailingTrivia<T>(_ body: (SyntaxText) -> T) -> T {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return body(dat.trailingTriviaText)
-    case .materializedToken(let dat):
-      var trailingTriviaStr = Trivia(pieces: dat.pointee.trailingTrivia.map(TriviaPiece.init)).description
+    switch raw.header {
+    case .smolParsedToken:
+      return body(raw.smolParsedToken.pointee.trailingTriviaText(base: raw.smolParsedTokenTextBase))
+    case .parsedToken:
+      return body(raw.parsedToken.pointee.trailingTriviaText(base: raw.parsedTokenTextBase))
+    case .materializedToken:
+      var trailingTriviaStr = Trivia(pieces: raw.materializedToken.pointee.trailingTrivia.map(TriviaPiece.init))
+        .description
       return trailingTriviaStr.withSyntaxText(body)
-    case .layout(_):
+    case .layout:
       preconditionFailure("'trailingTrivia' is called on non-token raw syntax")
     }
   }
@@ -173,8 +203,8 @@ public struct RawSyntaxTokenView: Sendable {
   @_spi(RawSyntax)
   public func withKind(_ newValue: TokenKind, arena: RawSyntaxArena) -> RawSyntax {
     arena.addChild(self.raw.arenaReference)
-    switch raw.rawData.payload {
-    case .parsedToken(_):
+    switch raw.header {
+    case .smolParsedToken, .parsedToken:
       // The wholeText can't be continuous anymore. Make a materialized token.
       return .makeMaterializedToken(
         kind: newValue,
@@ -184,47 +214,91 @@ public struct RawSyntaxTokenView: Sendable {
         tokenDiagnostic: tokenDiagnostic,
         arena: arena
       )
-    case .materializedToken(let payload):
+    case .materializedToken:
       let decomposed = newValue.decomposeToRaw()
       let rawKind = decomposed.rawKind
       let text: SyntaxText = (decomposed.string.map({ arena.intern($0) }) ?? decomposed.rawKind.defaultText ?? "")
       // Mutate a copy. This returns a modified token and leaves the one it was
       // called on alone, and with the fields behind a pointer, writing through it
       // would instead change that token for every node holding it.
-      var materialized = payload.pointee
+      var materialized = raw.materializedToken.pointee
       materialized.tokenKind = rawKind
       materialized.tokenText = text
-      return RawSyntax(arena: arena, payload: .materializedToken(ArenaAllocatedPointer(arena.intern(materialized))))
+      return RawSyntax(arena: arena, materializedToken: materialized)
     default:
       preconditionFailure("'withKind()' is called on non-token raw syntax")
     }
   }
 
   /// Returns a ``RawSyntax`` node with the presence changed to `newValue`.
-  @_spi(RawSyntax)
-  public func withPresence(_ newValue: SourcePresence, arena: RawSyntaxArena) -> RawSyntax {
-    arena.addChild(self.raw.arenaReference)
-    switch raw.rawData.payload {
-    case .parsedToken(var payload):
-      if arena == self.raw.arenaReference {
-        payload.presence = newValue
-        return RawSyntax(arena: arena, payload: .parsedToken(payload))
-      }
-      // If the modified token is allocated in a different arena, it might have
-      // a different or no `parseTrivia` function. We thus cannot use a
-      // `parsedToken` anymore.
+  /// A parsed token like this one, with `presence` and `tokenDiagnostic` as
+  /// given, allocated in `arena`.
+  ///
+  /// Where `arena` is not the one this token lives in, the result has to be a
+  /// materialized token: a parsed token keeps its trivia unparsed and asks its
+  /// arena to parse it on demand, so it can only live in a
+  /// `ParsingRawSyntaxArena`, and another one's function may differ or be
+  /// absent. Copying the text into the node settles who owns the bytes, not who
+  /// parses them.
+  private func rebuiltParsedToken(
+    tokenKind: RawTokenKind,
+    wholeText: SyntaxText,
+    textRange: Range<SyntaxText.Index>,
+    presence: SourcePresence,
+    tokenDiagnostic: TokenDiagnostic?,
+    arena: RawSyntaxArena
+  ) -> RawSyntax {
+    guard arena == self.raw.arenaReference else {
       return .makeMaterializedToken(
         kind: formKind(),
         leadingTrivia: formLeadingTrivia(),
         trailingTrivia: formTrailingTrivia(),
-        presence: newValue,
+        presence: presence,
         tokenDiagnostic: tokenDiagnostic,
         arena: arena
       )
-    case .materializedToken(let payload):
-      var materialized = payload.pointee
+    }
+    return RawSyntax(
+      arena: arena,
+      parsedToken: RawSyntaxData.ParsedToken(
+        tokenKind: tokenKind,
+        wholeTextLength: wholeText.count,
+        textRange: textRange,
+        presence: presence,
+        tokenDiagnostic: tokenDiagnostic
+      ),
+      wholeText: wholeText
+    )
+  }
+
+  @_spi(RawSyntax)
+  public func withPresence(_ newValue: SourcePresence, arena: RawSyntaxArena) -> RawSyntax {
+    arena.addChild(self.raw.arenaReference)
+    switch raw.header {
+    case .smolParsedToken:
+      let fields = raw.smolParsedToken.pointee
+      return rebuiltParsedToken(
+        tokenKind: fields.tokenKind,
+        wholeText: fields.wholeText(base: raw.smolParsedTokenTextBase),
+        textRange: fields.textRange,
+        presence: newValue,
+        tokenDiagnostic: nil,
+        arena: arena
+      )
+    case .parsedToken:
+      let fields = raw.parsedToken.pointee
+      return rebuiltParsedToken(
+        tokenKind: fields.tokenKind,
+        wholeText: fields.wholeText(base: raw.parsedTokenTextBase),
+        textRange: fields.textRange,
+        presence: newValue,
+        tokenDiagnostic: fields.tokenDiagnostic,
+        arena: arena
+      )
+    case .materializedToken:
+      var materialized = raw.materializedToken.pointee
       materialized.presence = newValue
-      return RawSyntax(arena: arena, payload: .materializedToken(ArenaAllocatedPointer(arena.intern(materialized))))
+      return RawSyntax(arena: arena, materializedToken: materialized)
     default:
       preconditionFailure("'withKind()' is called on non-token raw syntax")
     }
@@ -234,12 +308,14 @@ public struct RawSyntaxTokenView: Sendable {
   /// is a token node.
   @_spi(RawSyntax)
   public var textByteLength: Int {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return dat.tokenText.count
-    case .materializedToken(let dat):
-      return dat.pointee.tokenText.count
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return raw.smolParsedToken.pointee.tokenText(base: raw.smolParsedTokenTextBase).count
+    case .parsedToken:
+      return raw.parsedToken.pointee.tokenText(base: raw.parsedTokenTextBase).count
+    case .materializedToken:
+      return raw.materializedToken.pointee.tokenText.count
+    case .layout:
       preconditionFailure("'textByteLength' is not available for non-token node")
     }
   }
@@ -251,36 +327,51 @@ public struct RawSyntaxTokenView: Sendable {
 
   @_spi(RawSyntax)
   public func formKind() -> TokenKind {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return TokenKind.fromRaw(kind: dat.tokenKind, text: String(syntaxText: dat.tokenText))
-    case .materializedToken(let dat):
-      return TokenKind.fromRaw(kind: dat.pointee.tokenKind, text: String(syntaxText: dat.pointee.tokenText))
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return TokenKind.fromRaw(
+        kind: raw.smolParsedToken.pointee.tokenKind,
+        text: String(syntaxText: raw.smolParsedToken.pointee.tokenText(base: raw.smolParsedTokenTextBase))
+      )
+    case .parsedToken:
+      return TokenKind.fromRaw(
+        kind: raw.parsedToken.pointee.tokenKind,
+        text: String(syntaxText: raw.parsedToken.pointee.tokenText(base: raw.parsedTokenTextBase))
+      )
+    case .materializedToken:
+      return TokenKind.fromRaw(
+        kind: raw.materializedToken.pointee.tokenKind,
+        text: String(syntaxText: raw.materializedToken.pointee.tokenText)
+      )
+    case .layout:
       preconditionFailure("'formKind' is not available for non-token node")
     }
   }
 
   @_spi(RawSyntax)
   public var presence: SourcePresence {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return dat.presence
-    case .materializedToken(let dat):
-      return dat.pointee.presence
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return .present
+    case .parsedToken:
+      return raw.parsedToken.pointee.presence
+    case .materializedToken:
+      return raw.materializedToken.pointee.presence
+    case .layout:
       preconditionFailure("'presence' is not available for non-token node")
     }
   }
 
   @_spi(RawSyntax)
   public var tokenDiagnostic: TokenDiagnostic? {
-    switch raw.rawData.payload {
-    case .parsedToken(let dat):
-      return dat.tokenDiagnostic
-    case .materializedToken(let dat):
-      return dat.pointee.tokenDiagnostic
-    case .layout(_):
+    switch raw.header {
+    case .smolParsedToken:
+      return nil
+    case .parsedToken:
+      return raw.parsedToken.pointee.tokenDiagnostic
+    case .materializedToken:
+      return raw.materializedToken.pointee.tokenDiagnostic
+    case .layout:
       preconditionFailure("'tokenDiagnostic' is not available for non-token node")
     }
   }
@@ -288,27 +379,31 @@ public struct RawSyntaxTokenView: Sendable {
   @_spi(RawSyntax)
   public func withTokenDiagnostic(tokenDiagnostic: TokenDiagnostic?, arena: RawSyntaxArena) -> RawTokenSyntax {
     arena.addChild(self.raw.arenaReference)
-    switch raw.rawData.payload {
-    case .parsedToken(var dat):
-      if arena == self.raw.arenaReference {
-        dat.tokenDiagnostic = tokenDiagnostic
-        return RawSyntax(arena: arena, payload: .parsedToken(dat)).cast(RawTokenSyntax.self)
-      }
-      // If the modified token is allocated in a different arena, it might have
-      // a different or no `parseTrivia` function. We thus cannot use a
-      // `parsedToken` anymore.
-      return RawSyntax.makeMaterializedToken(
-        kind: formKind(),
-        leadingTrivia: formLeadingTrivia(),
-        trailingTrivia: formTrailingTrivia(),
-        presence: presence,
+    switch raw.header {
+    case .smolParsedToken:
+      let fields = raw.smolParsedToken.pointee
+      return rebuiltParsedToken(
+        tokenKind: fields.tokenKind,
+        wholeText: fields.wholeText(base: raw.smolParsedTokenTextBase),
+        textRange: fields.textRange,
+        presence: .present,
         tokenDiagnostic: tokenDiagnostic,
         arena: arena
       ).cast(RawTokenSyntax.self)
-    case .materializedToken(let dat):
-      var materialized = dat.pointee
+    case .parsedToken:
+      let fields = raw.parsedToken.pointee
+      return rebuiltParsedToken(
+        tokenKind: fields.tokenKind,
+        wholeText: fields.wholeText(base: raw.parsedTokenTextBase),
+        textRange: fields.textRange,
+        presence: fields.presence,
+        tokenDiagnostic: tokenDiagnostic,
+        arena: arena
+      ).cast(RawTokenSyntax.self)
+    case .materializedToken:
+      var materialized = raw.materializedToken.pointee
       materialized.tokenDiagnostic = tokenDiagnostic
-      return RawSyntax(arena: arena, payload: .materializedToken(ArenaAllocatedPointer(arena.intern(materialized))))
+      return RawSyntax(arena: arena, materializedToken: materialized)
         .cast(RawTokenSyntax.self)
     default:
       preconditionFailure("'withTokenDiagnostic' is not available for non-token node")

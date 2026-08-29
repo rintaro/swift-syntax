@@ -26,11 +26,11 @@ final class MemoryLayoutTest: XCTestCase {
     /// limits in any way.
     /// If this fails, just update the numbers.
     let expected: [String: SyntaxMemoryLayout.Value] = [
-      "RawSyntaxData.Layout": .init(size: 28, stride: 32, alignment: 8),
-      "RawSyntaxData.Payload": .init(size: 32, stride: 32, alignment: 8),
-      "RawSyntaxData.ParsedToken": .init(size: 32, stride: 32, alignment: 8),
+      "RawSyntaxData": .init(size: 8, stride: 8, alignment: 8),
+      "RawSyntaxData.SmolParsedToken": .init(size: 4, stride: 4, alignment: 1),
+      "RawSyntaxData.ParsedToken": .init(size: 20, stride: 20, alignment: 4),
       "RawSyntaxData.MaterializedToken": .init(size: 52, stride: 56, alignment: 8),
-      "RawSyntaxData": .init(size: 40, stride: 40, alignment: 8),
+      "RawSyntaxData.Layout": .init(size: 15, stride: 16, alignment: 4),
       "RawSyntax?": .init(size: 8, stride: 8, alignment: 8),
 
       "Syntax": .init(size: 16, stride: 16, alignment: 8),

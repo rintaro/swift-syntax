@@ -15,8 +15,8 @@ extension RawSyntax {
   /// The token's payload must be a layout, otherwise this traps.
   @_spi(RawSyntax)
   public var layoutView: RawSyntaxLayoutView? {
-    switch raw.payload {
-    case .parsedToken, .materializedToken:
+    switch raw.header {
+    case .smolParsedToken, .parsedToken, .materializedToken:
       return nil
     case .layout:
       return RawSyntaxLayoutView(raw: self)
@@ -31,26 +31,16 @@ public struct RawSyntaxLayoutView {
 
   fileprivate init(raw: RawSyntax) {
     self.raw = raw
-    switch raw.payload {
-    case .parsedToken, .materializedToken:
+    switch raw.header {
+    case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("RawSyntax must be a layout")
-    case .layout(_):
+    case .layout:
       break
     }
   }
 
-  private var layoutData: RawSyntaxData.Layout {
-    switch raw.rawData.payload {
-    case .parsedToken(_),
-      .materializedToken(_):
-      preconditionFailure("RawSyntax must be a layout")
-    case .layout(let dat):
-      return dat
-    }
-  }
-
   var recursiveFlags: RecursiveRawSyntaxFlags {
-    return layoutData.recursiveFlags
+    return raw.layout.pointee.recursiveFlags
   }
 
   /// Creates a new node of the same kind but with children replaced by `elements`.
@@ -180,6 +170,6 @@ public struct RawSyntaxLayoutView {
   /// Child nodes.
   @_spi(RawSyntax)
   public var children: RawSyntaxBuffer {
-    layoutData.layout
+    raw.tailAllocatedChildren
   }
 }

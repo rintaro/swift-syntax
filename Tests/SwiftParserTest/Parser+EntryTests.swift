@@ -51,6 +51,12 @@ class EntryTests: ParserTestCase {
         file: file,
         line: line
       )
+      // Reading the trivia parses it from the token's text, which is a second
+      // way into the same bytes.
+      for token in tree.tokens(viewMode: .all) {
+        _ = token.leadingTrivia
+        _ = token.trailingTrivia
+      }
     }
 
     assertRoundTrips(Array("".utf8))  // empty input
@@ -64,6 +70,25 @@ class EntryTests: ParserTestCase {
     assertRoundTrips(Array("bar".utf8) + [0xF0])  // lone UTF-8 lead byte at EOF
     assertRoundTrips(Array("#if X".utf8))  // directive at EOF
     assertRoundTrips(Array("a".utf8) + [0x00] + Array("b".utf8))  // embedded NUL
+
+    // A token's text is copied into its node a word at a time, which reads up to
+    // seven bytes past the end of a short token, so how much of the buffer is
+    // left over matters. Sweep every length up to forty over a few shapes of
+    // token, so the last token in the source ends at every offset within a word.
+    // Under AddressSanitizer, reading past the exactly sized allocation fails
+    // here rather than somewhere unrelated later.
+    let shapes = [
+      "let abcdefghijklmnopqrstuvwxyz0123456789",
+      String(repeating: "a", count: 40),
+      String(repeating: ".", count: 40),
+      "// a comment with some padding in it here",
+      "\"a string literal with some padding\" + x",
+    ]
+    for shape in shapes {
+      for length in 0...40 {
+        assertRoundTrips(Array(shape.utf8.prefix(length)))
+      }
+    }
   }
 
   func testSyntaxParse() throws {

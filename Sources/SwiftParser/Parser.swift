@@ -270,13 +270,7 @@ public struct Parser {
     self.collectsLookaheadRanges = collectsLookaheadRanges
 
     var input = input
-    if parseTransition == nil {
-      // Full parse: copy the whole source into the arena and lex over that copy,
-      // so parsed tokens point into arena-owned memory and need no per-token
-      // interning.
-      input = self.arena.internSourceBuffer(input)
-      self.sourceBufferOwner = nil
-    } else if copySource {
+    if copySource {
       // Incremental reparse over a buffer that will not outlive this
       // initializer: keep a parser-owned copy, freed when this `Parser` is
       // destroyed. Each re-lexed token's text is interned into the arena.
@@ -289,6 +283,10 @@ public struct Parser {
       // token's text is interned into the arena.
       self.sourceBufferOwner = nil
     }
+
+    // The arena copies each token's text into the token's own node, and needs to
+    // know where the buffer ends to copy a word at a time near the end of it.
+    self.arena.setSourceBuffer(input)
 
     self.maximumNestingLevel = maximumNestingLevel ?? Self.defaultMaximumNestingLevel
     self.swiftVersion = swiftVersion ?? Self.defaultSwiftVersion

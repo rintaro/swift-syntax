@@ -137,24 +137,13 @@ public class RawSyntaxArena {
     }
   }
 
-  /// Copies a materialized token's fields to the memory this arena manages, and
-  /// returns the pointer to the destination.
+  /// Allocates `byteCount` bytes for a syntax node and its tail, aligned for a
+  /// pointer, and returns the uninitialized memory.
   ///
-  /// Held behind a pointer because it is the largest of the three shapes a
-  /// `RawSyntaxData` takes, and every node pays for the largest. Parsing does not
-  /// produce these at all beyond missing and synthesized tokens.
-  func intern(_ value: RawSyntaxData.MaterializedToken) -> UnsafePointer<RawSyntaxData.MaterializedToken> {
-    let allocated = allocator.allocate(RawSyntaxData.MaterializedToken.self, count: 1).baseAddress!
-    allocated.initialize(to: value)
-    return UnsafePointer(allocated)
-  }
-
-  /// Copies a `RawSyntaxData` to the memory this arena manages, and returns the
-  /// pointer to the destination.
-  func intern(_ value: RawSyntaxData) -> UnsafePointer<RawSyntaxData> {
-    let allocated = allocator.allocate(RawSyntaxData.self, count: 1).baseAddress!
-    allocated.initialize(to: value)
-    return UnsafePointer(allocated)
+  /// A node is a header followed by a tail whose shape and size depend on which
+  /// of the three kinds of node it is, so its size is not a type's size.
+  func allocateNode(byteCount: Int) -> UnsafeMutableRawPointer {
+    return allocator.allocate(byteCount: byteCount, alignment: 8).baseAddress!
   }
 
   /// Adds an ``RawSyntaxArena`` to this arena as a "child". Do nothing if `arenaRef`
@@ -304,6 +293,19 @@ public final class ParsingRawSyntaxArena: RawSyntaxArena {
     let allocated = allocateTextBuffer(count: text.count)
     _ = allocated.initialize(from: text)
     return SyntaxText(baseAddress: allocated.baseAddress, count: allocated.count)
+  }
+
+  /// The end of the buffer being parsed, once the parser has said where it is.
+  ///
+  /// Used only to decide how a token's text may be copied into its node: copying
+  /// a word at a time reads up to seven bytes past a short token's end, which is
+  /// safe while those bytes are still inside the buffer. See
+  /// `RawSyntax.parsedToken(kind:wholeText:textRange:presence:tokenDiagnostic:arena:)`.
+  private(set) var sourceBufferEnd: UnsafePointer<UInt8>?
+
+  /// Tell the arena which buffer the tokens it is about to hold are lexed from.
+  public func setSourceBuffer(_ buffer: UnsafeBufferPointer<UInt8>) {
+    self.sourceBufferEnd = buffer.baseAddress.map { $0 + buffer.count }
   }
 
   /// Parse `source` into a list of ``RawTriviaPiece`` using `parseTriviaFunction`.

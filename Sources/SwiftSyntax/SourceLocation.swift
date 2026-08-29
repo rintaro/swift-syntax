@@ -814,22 +814,31 @@ fileprivate extension RawSyntax {
     handleSourceLocationDirective: (_ position: AbsolutePosition, _ rawSyntax: RawSyntax) -> Void
   ) -> AbsolutePosition {
     var position = position
-    switch self.rawData.payload {
-    case .parsedToken(let dat):
-      position = dat.wholeText.forEachEndOfLine(position: position, body: body)
-    case .materializedToken(let dat):
-      position = dat.pointee.leadingTrivia.forEachEndOfLine(position: position, body: body)
-      position = dat.pointee.tokenText.forEachEndOfLine(position: position, body: body)
-      position = dat.pointee.trailingTrivia.forEachEndOfLine(position: position, body: body)
-    case .layout(let dat):
+    switch self.header {
+    case .smolParsedToken:
+      position = self.smolParsedToken.pointee.wholeText(base: self.smolParsedTokenTextBase).forEachEndOfLine(
+        position: position,
+        body: body
+      )
+    case .parsedToken:
+      position = self.parsedToken.pointee.wholeText(base: self.parsedTokenTextBase).forEachEndOfLine(
+        position: position,
+        body: body
+      )
+    case .materializedToken:
+      position = self.materializedToken.pointee.leadingTrivia.forEachEndOfLine(position: position, body: body)
+      position = self.materializedToken.pointee.tokenText.forEachEndOfLine(position: position, body: body)
+      position = self.materializedToken.pointee.trailingTrivia.forEachEndOfLine(position: position, body: body)
+    case .layout:
       // Handle '#sourceLocation' directive.
-      if dat.kind == .poundSourceLocation {
+      if self.layout.pointee.kind == .poundSourceLocation {
         // Do this before `node.forEachEndOfLine` call below so the caller can
         // know the exact position of the directive.
         handleSourceLocationDirective(position, self)
       }
 
-      for case let node? in dat.layout where SyntaxTreeViewMode.sourceAccurate.shouldTraverse(node: node) {
+      for case let node? in self.tailAllocatedChildren
+      where SyntaxTreeViewMode.sourceAccurate.shouldTraverse(node: node) {
         position = node.forEachEndOfLine(
           position: position,
           body: body,
