@@ -72,6 +72,22 @@ extension UInt8 {
     self.testCharacterInfo(.IDENT_CONT)
   }
 
+  /// A Boolean value indicating whether this byte carries no meaning inside a
+  /// string literal beyond being part of its text.
+  ///
+  /// Printable ASCII, less the three bytes that mean something to the lexer
+  /// there: a quote can close the literal, a backslash can begin an escape or an
+  /// interpolation, and a single quote closes a single quoted literal. Excluded
+  /// too, by not being printable, are the newlines that end a segment, the tab
+  /// that only a multi-line literal allows, the NUL that is an error, and
+  /// everything outside ASCII, which has to be decoded to be validated.
+  var isOrdinaryStringLiteralByte: Bool {
+    self >= 0x20 && self < 0x7F
+      && self != UInt8(ascii: "\"")
+      && self != UInt8(ascii: "\\")
+      && self != UInt8(ascii: "'")
+  }
+
   /// The classification of a byte, which is what a scalar's classification
   /// reduces to: a scalar outside ASCII belongs to none of these sets, and one
   /// inside it is this byte.

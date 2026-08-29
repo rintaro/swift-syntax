@@ -906,6 +906,24 @@ extension Lexer.Cursor.Position {
     while self.advance(if: predicate) {}
   }
 
+  /// Advance past every byte that is only part of a string literal's text.
+  ///
+  /// Most of a literal is such bytes, and each one taken singly costs a peek, a
+  /// copy of the cursor out and back, a second peek, a scalar decode and an enum
+  /// to return a value the caller discards. None of that decides anything until a
+  /// byte turns up that could: a quote, a backslash, a newline, a tab, a NUL, or
+  /// anything outside ASCII.
+  mutating func advanceOverOrdinaryStringLiteralBytes() {
+    let bytes = self.input
+    var count = 0
+    while count < bytes.count, bytes[count].isOrdinaryStringLiteralByte {
+      count += 1
+    }
+    if count > 0 {
+      self = self.advanced(by: count)
+    }
+  }
+
   /// Advance past every character that can continue an identifier.
   ///
   /// Roughly half the bytes of a source file pass through here, so the run is
@@ -987,6 +1005,12 @@ extension Lexer.Cursor {
   /// Advance the cursor past every character that can continue an identifier.
   mutating func advanceOverIdentifierContinuationCharacters() {
     self.position.advanceOverIdentifierContinuationCharacters()
+  }
+
+  /// Advance past every byte that is only part of a string literal's text. See
+  /// `Position.advanceOverOrdinaryStringLiteralBytes`.
+  mutating func advanceOverOrdinaryStringLiteralBytes() {
+    self.position.advanceOverOrdinaryStringLiteralBytes()
   }
 
   /// Advance the cursor to the end of the current line.
@@ -2242,6 +2266,10 @@ extension Lexer.Cursor {
     var error: LexingDiagnostic? = nil
 
     while true {
+      // Take the run of bytes that are only text before looking at anything that
+      // could end the segment or need validating.
+      self.advanceOverOrdinaryStringLiteralBytes()
+
       switch self.peek() {
       case "\\":
         if self.isAtStringInterpolationAnchor(delimiterLength: delimiterLength) {
