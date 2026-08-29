@@ -194,6 +194,25 @@ through two closures for every character it merely *looked at*. A byte below
 out to start a token — paying a 48-byte save per trivia character for a rewind
 that happens once per call. It now peeks first.
 
+**The same shape works a third time, for string literals.** `970d1a7ac` takes the
+run of bytes inside a literal that decide nothing — printable ASCII that is not a
+quote, a backslash or a single quote — instead of one character at a time. Each
+ordinary character had cost a peek, a copy of the cursor out and back, a second
+peek of the same byte, a UTF-8 decode, a printability test and an enum carrying a
+scalar the caller discards.
+
+| input | string literal text | runs | characters left on the slow path | |
+|---|---|---|---|---|
+| generated sources, 468 KB | 91,986 B (20%) | 3,390, averaging 27 B | 3,390, from ~92,000 | **−10.7%** |
+| `MinimalCollections`, 177 KB | 825 B (0.5%) | 67 | 42 | ~0 |
+| `nonascii_heavy`, 321 KB | 1,990 B | 16,100, averaging 0 B | 16,100 | +0.5% |
+
+The last row is the cost of the check where it never fires: literals made of CJK
+and emoji leave every character to the machinery, and the scan in front of them
+matches nothing. `@inline(__always)` on the scan was tried and measured the same,
+so that half percent is not the call — it is the loop's own setup, or noise at
+that scale.
+
 #### Bytes belong to the position, not the cursor
 
 A reviewer of the ASCII fast path asked whether the scalar read could move to
@@ -214,6 +233,7 @@ this section is what came of it.
 | `b2ec11378` Drop the end-of-file check that `advance(if:)` does not need | neutral |
 | `f97d79e48` Scan bytes on Position rather than on Cursor | neutral |
 | `b193016db` Remember positions, not cursors, where only bytes are read | neutral to −1% |
+| `970d1a7ac` Take a run of a string literal's ordinary bytes at once | **−10.7%** on generated sources |
 
 Three inputs from here on: the two ASCII ones and
 `nonascii_heavy.swift.input`.
@@ -1028,11 +1048,23 @@ stopping:
   second only to lexing now, and unlike lexing it is not obviously near its floor.
   Whether it holds anything is unknown, which makes it the first thing to measure
   rather than the first thing to change.
-- **String literal lexing at 11.3%.** `lexCharacterInStringLiteral` alone is 6.7%,
-  the third heaviest function in the parse, and it is the one lexer path that was
-  never rewritten — it still consults the state stack per character and copies a
-  cursor to look ahead. The declaration-heavy input is full of string literals in
-  doc comments and attributes, so this share is real rather than an artifact.
+- **String literal lexing, which was 11.3%, has now had its pass** —
+  `970d1a7ac`, worth 10.7% of that input. What is left of it is the part the run
+  scan cannot take: escapes, interpolations, delimiters, and literals whose text
+  is outside ASCII. On the last of those the scan matches nothing and costs about
+  half a percent, which `@inline(__always)` did not recover.
+
+  The cursor `lexInStringLiteral` still snapshots per character it cannot skip is
+  **not** worth removing, which was measured rather than assumed. None of the
+  functions doing the snapshotting reaches for cursor-level state, so moving the
+  family to `Position` and shrinking those rewinds from 32 bytes to 24 does
+  compile and pass — and measures nothing anywhere, including on source whose
+  literals are all outside ASCII, where the slow path still runs 16,100 times a
+  parse. Two builds per side put every input inside the baseline's own spread.
+  Eight bytes off a copy that does not escape is below the noise floor, which is
+  the third time on this branch that a copy has turned out to cost nothing; and
+  the functions are named `lex*` because they lex, so they belong on the cursor
+  whatever their fields are.
 - **Building nodes at 10.7%, of which `RawSyntax.parsedToken` is 4.4%.** After tail
   allocation this is the token factory itself: the keyword precondition, the choice
   of shape, and the text copy. The precondition calls `Keyword.init` on every

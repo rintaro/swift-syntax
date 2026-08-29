@@ -181,6 +181,10 @@ Worth about 1.1% / 0.3% / 3.4% on the three inputs at the end of the branch. No
 cursor API became dead, which is checkable by renaming the forwarders and
 building.
 
+`970d1a7ac` belongs with this cluster: it applies the same idea — take the run of
+bytes that decide nothing — to string literal segments, and is worth 10.7% of a
+parse of the repository's generated sources. It depends on nothing else here.
+
 `scratch-main-inline` holds `08c7d9c98`, the same idea applied to `main` alone:
 worth 6.5% on non-ASCII source against the fast path's 4.0%, and a candidate for
 its own small PR if the non-ASCII case is worth chasing separately.
@@ -290,6 +294,14 @@ cumulative numbers.
   both directions. `@inline(__always)` was the difference between 1% and 3.7% for
   the trivia fast path; its absence hid a 14% regression behind an `@inlinable`
   that looked free.
+- Taking a run of bytes that decide nothing has now paid three times — trivia,
+  identifiers, string literals — and each time the per-character path was doing
+  work whose result the caller discarded. It is the first thing to look for in a
+  scanner.
+- A copy that does not escape costs nothing, and this branch has now measured that
+  three times: `nextToken`'s 88-byte snapshots, the scalar read's cursor, and the
+  string literal rewinds at 32 bytes against 24. Stop proposing it as an
+  optimisation; propose it as layering, if at all.
 - Measure the footprint, not the request. `totalByteSizeAllocated` sums requested
   bytes and ignores the padding the allocator inserts to align the next
   allocation, which here is 1.3× of the source — about 7% of the tree. Accumulate
