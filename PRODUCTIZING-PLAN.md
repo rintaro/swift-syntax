@@ -1,8 +1,8 @@
 # Productizing `perf-parser-2026-woc`
 
-Splitting 51 commits into reviewable pull requests. Parsing is 2.56×/2.40× faster
-and the tree is a quarter smaller; see PERFORMANCE-REPORT.md for what each change
-did and why.
+Splitting the branch into reviewable pull requests. Parsing is 2.5 to 2.8 times
+faster across three inputs and the tree is 42% smaller; see PERFORMANCE-REPORT.md
+for what each change did and why.
 
 Hashes are as of writing and will change when the squashes are built.
 
@@ -226,6 +226,11 @@ and it adds a deliberate bounded over-read, checked under AddressSanitizer over 
 exactly-sized-allocation sweep now in `testParseBufferEOFEdgeCases`.
 
 ### Group 7 — tree memory (chained, SwiftSyntax only)
+
+The two figures in this group are requested bytes on the lost 317 KB input, and
+the shape they describe is the one tail allocation replaces. They still want
+landing first, for the reasoning their messages carry, but quote them as the
+history of the layout rather than as the tree's current size.
 
 | | | contents | lines | effect |
 |---|---|---|---|---|

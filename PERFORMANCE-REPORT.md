@@ -1,27 +1,39 @@
 # SwiftParser performance work — 2026-08
 
-Branch `perf-parser-2026-woc`, 50 commits off `main` (`a3cd836bf`).
+Branch `perf-parser-2026-woc`, off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.56× faster on a 177 KB source file and 2.40× on a 317 KB
-declaration-heavy one, and the tree it produces is a quarter smaller**, with no
-change to the parsed output.
+**Parsing is 2.5 to 2.8 times faster, and the tree it produces is 42% smaller**,
+with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.738 ms | 1.849 ms | **−61.0%** (2.56×) |
-| concatenated parser sources (317 KB) | 8.073 ms | 3.359 ms | **−58.4%** (2.40×) |
+| `MinimalCollections.swift.input` (177 KB) | 4.906 ms | 1.759 ms | **2.79×** |
+| concatenated generated sources (468 KB) | 11.977 ms | 4.639 ms | **2.58×** |
+| `nonascii_heavy.swift.input` (321 KB) | 7.998 ms | 3.171 ms | **2.52×** |
 
-Repeated runs of this pair vary by a couple of percent, so read these as about
-2.6× and about 2.4×.
+| tree memory | main | branch | |
+|---|---|---|---|
+| `MinimalCollections.swift.input` | 26.45× the source | **15.32×** | −42.1% |
+| concatenated generated sources | 24.32× | **13.95×** | −42.6% |
+| `nonascii_heavy.swift.input` | 26.87× | **15.31×** | −43.0% |
 
-| tree memory | main | branch |
-|---|---|---|
-| `MinimalCollections.swift.input` | 4.70 MB, 26.4× the source | 3.51 MB, **19.8×** |
-| concatenated parser sources | 8.52 MB, 26.8× the source | 6.35 MB, **20.0×** |
+Interleaved A/B, 20 rounds, two independent builds per side, medians and
+minimums agreeing to within 0.02×. Tree memory is what the arena's allocations
+actually advance its bump pointer by, padding included — not
+`totalByteSizeAllocated`, which ignores the padding between allocations and
+understates the branch by about 1.3× of the source.
 
-Interleaved A/B, 16 rounds, minimum per rev, both ends rebuilt from source.
+**On the inputs.** Two of the three are reproducible: `MinimalCollections` ships
+in `Tests/PerformanceTest/Inputs`, and `nonascii_heavy` is 700 repetitions of a
+struct whose identifiers, literals and doc comments are CJK, emoji and combining
+marks — 60% non-ASCII bytes. The declaration-heavy input is
+`Sources/SwiftSyntax/generated/*.swift` concatenated in sorted order to 468 KB.
+An earlier 317 KB declaration-heavy file was used for most of the per-commit
+figures below and has since been lost, so those figures are historical: they were
+measured, but not against a file that still exists. Anything re-measured after
+that point says which input it used.
 
 ---
 
@@ -965,55 +977,84 @@ was caught by a compiler warning, the second by another. Anything named after an
 
 ## What is left
 
-Measured on the declaration-heavy input at the branch head, 3.36 ms:
+Re-profiled at the branch head, leaf samples over a parse of the 468 KB
+declaration-heavy input, 4.64 ms:
 
 | | |
 |---|---|
-| `nextToken` | 8.6% |
-| `lexIdentifier` (with the identifier scan inlined into it) | 8.6% |
-| `lexNormal` | 8.3% |
-| `lexTriviaByScanning` | 7.0% |
-| `BumpPtrAllocator.allocate<A>` | 5.5% |
-| generated `Raw*Syntax` initializers | ~3.5% |
-| `memset` | 2.4% |
-| reference counting | **1.7%** |
-| `malloc` / `free` | **0.6%** |
+| lexing bytes | **31.3%** |
+| parser control flow | 18.0% |
+| string literal lexing | 11.3% |
+| building nodes | 10.7% |
+| arena and allocation | 8.0% |
+| keyword and text matching | 7.2% |
+| unattributed, mostly `<deduplicated_symbol>` | 6.7% |
+| reference counting | 5.5% |
+| copying bytes | 1.0% |
+| syntax tree wrapper | 0.4% |
 
-A tree is 20 times the size of its source, from 26.8 — see *Making the tree
-smaller*. Two thirds of what is left is `RawSyntaxData` at 40 bytes a node, and
-the payload is exactly 32, so the next step down the enum allows is 24, which
-needs every case within 23 bytes.
+and the heaviest single functions:
 
-**It is a lexer now.** Reference counting and heap traffic, which between them
-were 12.4% before the collections work, are 2.3% together. What is left is
-overwhelmingly the cost of looking at bytes: the four lexer functions above are a
-third of the parse on their own, and each has already had a pass.
+| | |
+|---|---|
+| `lexNormal` | 10.3% |
+| `nextToken` | 8.7% |
+| `lexCharacterInStringLiteral` | 6.7% |
+| `RawSyntax.parsedToken` | 4.4% |
+| `lexInStringLiteral` | 4.1% |
+| `RawSyntaxArena.allocateNode` | 3.2% |
+| `lexTriviaByScanning` | 2.9% |
+| `LexemeSequence.next` | 2.8% |
 
-That changes what is worth trying, and mostly it argues for stopping. The
-remaining items, in the order I would look at them:
+A tree is 15.3 times the size of its source, from 26.5 — see *Making the tree
+smaller*. What is left there is no longer dominated by one number: a node is a
+word of header plus its own shape, so the question moved from "how small can a
+payload enum be" to "which of these four shapes can lose a field". The compact
+token shape, four bytes for 99% of tokens, is already near the floor, and the
+padding the allocator inserts to align the next node is now a comparable cost at
+1.3× of the source.
 
-- **`memset` at 2.4% and the generated initializers at ~3.5%.** The layout buffer
-  is zeroed and then filled. Removing the zeroing is real work removed rather than
-  moved, and it is a CodeGeneration change, so it is the largest well-defined thing
-  left.
-- **`BumpPtrAllocator.allocate<A>` at 5.5%.** Do not expect this to yield: forcing
-  it inline moved 0.203 ms out of it and 0.206 ms into its callers, because the
-  bump *is* the work. It comes down by allocating fewer nodes, not by making one
-  cheaper, and after the slab and collection commits there is no obvious source of
-  surplus allocations left.
-- **The four lexer functions.** No local win stands out. `lexNormal`'s dispatch is
-  already a jump table, `nextToken` is the orchestrator with two fast paths inlined
-  into it, and the trivia and identifier scans have each been rewritten once. What
-  would move these is a different shape — lexing more than one token at a time, or
-  not re-deriving per-token facts — not another local change.
+**It is a lexer now, and more so than before.** Lexing plus string literal lexing
+is 42.6% of the parse, and each of those functions has already had a pass.
+`memset` has disappeared from the profile entirely — it was zeroing layout
+buffers, which no longer exist as separate allocations — and `malloc`/`free` is
+inside the 8% that all arena work now costs together.
+
+The remaining items, in the order I would look at them, and mostly this argues for
+stopping:
+
+- **Parser control flow at 18%.** This is the one cluster that has never had a
+  pass: `consumeAnyToken`, the `at`/`eat`/`expect` family and lookahead. It is
+  second only to lexing now, and unlike lexing it is not obviously near its floor.
+  Whether it holds anything is unknown, which makes it the first thing to measure
+  rather than the first thing to change.
+- **String literal lexing at 11.3%.** `lexCharacterInStringLiteral` alone is 6.7%,
+  the third heaviest function in the parse, and it is the one lexer path that was
+  never rewritten — it still consults the state stack per character and copies a
+  cursor to look ahead. The declaration-heavy input is full of string literals in
+  doc comments and attributes, so this share is real rather than an artifact.
+- **Building nodes at 10.7%, of which `RawSyntax.parsedToken` is 4.4%.** After tail
+  allocation this is the token factory itself: the keyword precondition, the choice
+  of shape, and the text copy. The precondition calls `Keyword.init` on every
+  keyword token, which the lexer has already resolved once — the same duplication
+  that `eb71d5311` removed on the lexer side.
+- **`allocateNode` at 3.2%.** The bump itself, which does not come down by making
+  one allocation cheaper. Nodes per parse is the lever, and after the collections
+  and tail allocation work there is no obvious surplus left.
+- **Reference counting at 5.5%**, up from 2.3% as a *share* because the parse got
+  faster around it rather than because it grew. Where it comes from is worth a
+  look; the arena work removed the per-token traffic, so what remains is likely
+  the `[RawTriviaPiece]` arrays that materialized trivia still allocates.
 
 Two findings from this branch are worth carrying into whatever comes next.
 `<deduplicated_symbol>` in a profile is not one function: it is the compiler's
 merged-function suffix, so identical generated initializers fold together and the
-name shown is arbitrary among them. And where a small function lands decides
-whether a change is worth anything, in both directions — `@inline(__always)` was
-the difference between 1% and 3.7% for the trivia fast path, and its absence hid a
-14% regression behind an `@inlinable` that looked free.
+name shown is arbitrary among them — here it is 3.8%, and it is why the
+unattributed row exists at all. And where a small function lands decides whether a
+change is worth anything, in both directions — `@inline(__always)` was the
+difference between 1% and 3.7% for the trivia fast path, its absence hid a 14%
+regression behind an `@inlinable` that looked free, and one hand-written fast path
+turned out to exist only because the function under it was not being inlined.
 
 ### One loose end
 
