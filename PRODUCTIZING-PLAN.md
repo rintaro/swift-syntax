@@ -1,6 +1,6 @@
 # Productizing `perf-parser-2026-woc`
 
-Splitting the branch into reviewable pull requests. Parsing is 2.5 to 2.9 times
+Splitting the branch into reviewable pull requests. Parsing is 2.6 to 3.0 times
 faster across three inputs and the tree is 42% smaller; see PERFORMANCE-REPORT.md
 for what each change did and why.
 
@@ -298,6 +298,10 @@ cumulative numbers.
   identifiers, string literals — and each time the per-character path was doing
   work whose result the caller discarded. It is the first thing to look for in a
   scanner.
+- A copy costs something when the value is *stored*, and nothing when it is not.
+  Eight bytes off `Lexer.Lexeme`, which every token advance and every peek copies
+  and which two larger structs embed, is worth 2%. Eight bytes off a rewind that
+  the optimizer can see through is worth nothing, four times over.
 - A copy that does not escape costs nothing, and this branch has now measured that
   three times: `nextToken`'s 88-byte snapshots, the scalar read's cursor, and the
   string literal rewinds at 32 bytes against 24. Stop proposing it as an

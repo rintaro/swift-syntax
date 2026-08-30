@@ -4,14 +4,14 @@ Branch `perf-parser-2026-woc`, off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.5 to 2.9 times faster, and the tree it produces is 42% smaller**,
+**Parsing is 2.6 to 3.0 times faster, and the tree it produces is 42% smaller**,
 with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.916 ms | 1.719 ms | **2.86×** |
-| concatenated generated sources (468 KB) | 11.987 ms | 4.143 ms | **2.89×** |
-| `nonascii_heavy.swift.input` (321 KB) | 7.989 ms | 3.163 ms | **2.53×** |
+| `MinimalCollections.swift.input` (177 KB) | 5.090 ms | 1.769 ms | **2.88×** |
+| concatenated generated sources (468 KB) | 12.410 ms | 4.156 ms | **2.99×** |
+| `nonascii_heavy.swift.input` (321 KB) | 8.232 ms | 3.197 ms | **2.57×** |
 
 | tree memory | main | branch | |
 |---|---|---|---|
@@ -236,6 +236,7 @@ this section is what came of it.
 | `f97d79e48` Scan bytes on Position rather than on Cursor | neutral |
 | `b193016db` Remember positions, not cursors, where only bytes are read | neutral to −1% |
 | `970d1a7ac` Take a run of a string literal's ordinary bytes at once | **−10.7%** on generated sources |
+| `0ae93a368` Derive a lexeme's start from the cursor it was lexed from | **−2%** on all three |
 
 Three inputs from here on: the two ASCII ones and
 `nonascii_heavy.swift.input`.
@@ -1045,11 +1046,29 @@ inside the 8% that all arena work now costs together.
 The remaining items, in the order I would look at them, and mostly this argues for
 stopping:
 
-- **Parser control flow at 18%.** This is the one cluster that has never had a
-  pass: `consumeAnyToken`, the `at`/`eat`/`expect` family and lookahead. It is
-  second only to lexing now, and unlike lexing it is not obviously near its floor.
-  Whether it holds anything is unknown, which makes it the first thing to measure
-  rather than the first thing to change.
+- **Parser control flow, which read as 18%, has been looked at and mostly is not
+  what the label said.** `parseSequenceExpression`, `parsePrimaryExpression` and
+  `parseCodeBlockItem` are the parser's own recursive descent, swept into that
+  cluster by a regex on `Parser\.`. Removing them leaves `consumeAnyToken` at
+  1.95% and a tail of items between 0.3% and 0.9%, which no shape change obviously
+  addresses.
+
+  One thing did come out of it, and it landed: a `Lexer.Lexeme` stored both a
+  `start` pointer and the cursor it was lexed from, which are the same address.
+  Deriving it took a lexeme from 72 bytes to 64, and `Lexer.LexemeSequence` and
+  `Parser.Lookahead` down with it, for about **2% on every input** — `0ae93a368`.
+
+  Three other things were tried there and are not worth retrying. Making
+  `Lexer.Cursor.Position` hold a non-optional address measures nothing: the eight
+  per-byte `baseAddress!` sites were made `unsafelyUnwrapped`, which deletes
+  exactly their trap check, and that is flat, so the representation change has
+  nothing to earn. Reordering `isAtModuleSelector` to test the current token
+  before peeking is also flat, even though it drives 87% of all `peek(isAt:)`
+  calls — a peek returns an already-lexed token, so it was never expensive.
+  Turning its two `at(_:_:_:)` calls into a `TokenSpecSet` was abandoned before
+  measurement: it cannot nest in the `TokenConsumer` protocol extension where it
+  is used, and moving it to file scope for a question this small was not worth
+  the shape.
 - **String literal lexing, which was 11.3%, has now had its pass** —
   `970d1a7ac`, worth 10.7% of that input. What is left of it is the part the run
   scan cannot take: escapes, interpolations, delimiters, and literals whose text
