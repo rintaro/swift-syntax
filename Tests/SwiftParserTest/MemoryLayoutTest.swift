@@ -38,7 +38,6 @@ final class MemoryLayoutTest: XCTestCase {
       "Lexer.Lexeme": .init(size: 64, stride: 64, alignment: 8),
       "Lexer.LexemeSequence": .init(size: 120, stride: 120, alignment: 8),
 
-      "Parser": .init(size: 336, stride: 336, alignment: 8),
       "Parser.Lookahead": .init(size: 208, stride: 208, alignment: 8),
       "TokenSpec": .init(size: 5, stride: 5, alignment: 1),
     ]

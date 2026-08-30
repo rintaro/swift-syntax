@@ -72,8 +72,11 @@ let LexerMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
 ]
 
 /// The parser types. See `ParserMemoryLayout`.
+///
+/// `Parser` itself is not measured here: it gains stored properties under
+/// `SWIFTPARSER_ENABLE_ALTERNATE_TOKEN_INTROSPECTION`, so its size depends on
+/// how the module was built and no single number describes it.
 let ParserMemoryLayouts: [String: SyntaxMemoryLayout.Value] = [
-  "Parser": layout(Parser.self),
   "Parser.Lookahead": layout(Parser.Lookahead.self),
   "TokenSpec": layout(TokenSpec.self),
 ]
