@@ -911,7 +911,8 @@ Recorded so they are not re-attempted.
 | Convert *all* remaining spec sets to switches | **+3%** | Not jump tables, as first claimed — de-hoisting. Fixed by hoisting the field reads by hand, then it was −2.5%. |
 | `TokenSpec.Matcher.fixedText` (from `private/parse-attrkeywords`) | **+1.4% / +2.4%** | Grows `TokenSpec` from 5 to 24 bytes; it is built on nearly every parser decision. |
 | `final` on `RawSyntaxArena`'s nine members | no gain | `ParsingRawSyntaxArena` being final already lets WMO devirtualize. |
-| Drop `Position.previous` | 0 bytes | The flag bytes already occupy that padding. |
+| Drop `Position.previous` | 0 bytes at the time | True while a position held a buffer pointer: the cursor's flag bytes occupied the padding that dropping one byte would have freed. Superseded by *The position*, which dropped it as part of holding a position as a pointer and a count and was worth 2 to 3%. |
+| Narrow `Lexer.Lexeme`'s three byte lengths to `UInt32` | flat, at 64 → 48 bytes | The three counts measure spans within one token, so they fit in 32 bits with room to spare, and with the cursor's one-byte fields moved after its state stack and the counts declared after the cursor they pack into its tail padding: a lexeme 48 bytes, a lexeme sequence 104, a lookahead 176. No input moves, on two builds per side over 20 rounds. **Narrowing a field removes no load and no store — it only makes each one narrower, and a four-byte store costs what an eight-byte store costs.** Compare `0ae93a368`, which paid 2% for the same 8 bytes by deleting a stored pointer outright. Every version of it also costs something elsewhere: passing the narrowed spans on to the node wants `RawSyntax.parsedToken` and `RawTokenSyntax.init` to change signature, and leaving that interface alone means an `Int` → `UInt32` → `Int` → `UInt32` round trip per token. Kept on the local `scratch-lexeme-u32` branch (`8427fdd05`) rather than landed. |
 | Move `Cursor` out of `Lexeme` | — | Read per token by `hasProgressed` and `currentState`; out-of-lining trades a copy for a bump allocation per token. |
 | Take `nextToken`'s positional snapshots as pointers | 415 → 414 instructions | Semantically right — `leadingTriviaStart`, `textStart` and `trailingTriviaStart` are read only for `input.baseAddress` — but the optimizer already elides all three. The hand-written version emits one instruction fewer, one memory op more, and a stack frame 16 bytes larger. |
 | Shrink `LexemeSequence` further | ~0.5–1.1% | Only 24 of its 128 bytes are shared/constant; the rest is genuinely per-lookahead. Removing them means dropping the `Sequence` conformance, since `next()` takes no arguments. |
@@ -989,6 +990,16 @@ memory operations and frame size answers it outright, with none of the layout
 noise above and no benchmark input to argue about. That is what established that
 `nextToken`'s snapshots are already elided, after a timing run had put the same
 question at +0.2% — a number too small to conclude anything from.
+
+**A leaf-symbol profile diff across two builds mostly measures inlining, not
+work.** Profiling the `UInt32` lexeme experiment showed `Lexer.LexemeSequence.next`
+at 0.163 ms and `Parser.consumeAnyToken` at 0.102 disappearing entirely, replaced
+by `LexemeSequence.advance` at 0.145, `TokenConsumer.consume(if:)` at 0.077 and
+`consumeAnyTokenWithoutAdjustingNestingLevel` at 0.038 — the same work under
+different names, because a struct that changed size changed which callees got
+inlined. Read by symbol it looks like a 0.265 ms cluster moved; summed it is
+0.005 ms. Group leaves into clusters before comparing two builds, and treat any
+single symbol appearing on one side only as a renaming until shown otherwise.
 
 **Where a function is inlined decides more than what it contains.** Two of the
 larger findings here were inlining decisions rather than algorithmic ones: a
