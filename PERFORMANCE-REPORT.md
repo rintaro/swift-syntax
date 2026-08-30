@@ -9,9 +9,9 @@ with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 5.090 ms | 1.769 ms | **2.88×** |
-| concatenated generated sources (468 KB) | 12.410 ms | 4.156 ms | **2.99×** |
-| `nonascii_heavy.swift.input` (321 KB) | 8.232 ms | 3.197 ms | **2.57×** |
+| `MinimalCollections.swift.input` (177 KB) | 4.873 ms | 1.669 ms | **2.92×** |
+| concatenated generated sources (468 KB) | 11.900 ms | 3.930 ms | **3.03×** |
+| `nonascii_heavy.swift.input` (321 KB) | 7.952 ms | 3.026 ms | **2.63×** |
 
 | tree memory | main | branch | |
 |---|---|---|---|
@@ -20,9 +20,10 @@ with no change to the parsed output.
 | `nonascii_heavy.swift.input` | 26.87× | **15.31×** | −43.0% |
 
 Interleaved A/B, 20 rounds, two independent builds per side, medians and
-minimums agreeing to within 0.03×. The memory figures are from before
-`970d1a7ac`, which changes only how fast bytes are scanned: it produces trees
-byte for byte identical over the 749 file corpus, so it allocates identically. Tree memory is what the arena's allocations
+minimums agreeing to within 0.01×. The memory figures are from before
+`970d1a7ac` and `251657344`, which change only how bytes are scanned and how a
+position is held: both produce trees byte for byte identical over the 749 file
+corpus, so they allocate identically. Tree memory is what the arena's allocations
 actually advance its bump pointer by, padding included — not
 `totalByteSizeAllocated`, which ignores the padding between allocations and
 understates the branch by about 1.3× of the source.
@@ -112,14 +113,19 @@ been cut hard, and what is left is the state machine that walks them.
 | type | main | now |
 |---|---|---|
 | `Lexer.Cursor` | 81 / 88 | **32 / 32** |
+| `Lexer.Cursor.Position` | 17 / 24 | **16 / 16** |
 | `Lexer.Cursor.State` | 17 / 24 | **10 / 16** |
 | `Lexer.Cursor.StateStack` | 41 / 48 | **8 / 8** |
-| `Lexer.Lexeme` | 121 / 128 | **72 / 72** |
-| `Lexer.LexemeSequence` | 320 / 320 | **128 / 128** |
-| `Parser` | 456 / 456 | **352 / 352** |
-| `RawSyntaxData` | 64 / 64 | **40 / 40** |
-| `RawSyntaxData.Payload` | 52 / 56 | **32 / 32** |
-| `Parser.Lookahead` | 472 / 472 | **224 / 224** |
+| `Lexer.Lexeme` | 121 / 128 | **64 / 64** |
+| `Lexer.LexemeSequence` | 320 / 320 | **120 / 120** |
+| `Parser` | 456 / 456 | **336 / 336** |
+| `Parser.Lookahead` | 472 / 472 | **208 / 208** |
+| `RawSyntaxData` | 64 / 64 | **8 / 8** |
+
+`RawSyntaxData.Payload`, 52 / 56 bytes on `main`, has no counterpart: a node is
+one word of header followed by a tail sized for its kind — 4 bytes for a compact
+token, 20 for a parsed token, 56 for a materialized one, 16 plus the children for
+a layout.
 
 `Lexer.LexemeSequence` and `Parser.Lookahead` are also now **trivially
 copyable**, which the sizes do not show and which is worth more than the bytes.
@@ -783,6 +789,47 @@ qualification: `PrimaryExpressionStart` has a `Self` case, which shadows `Self`
 as a type. `OperatorLike` is not a token and keyword split but a chain of three
 other spec sets, so it took an `if` / `else if` chain instead.
 
+### The position (24 → 16 bytes)
+
+| | |
+|---|---|
+| `251657344` Hold a lexer position as a pointer and a metadata word | **−2.6% / −2.0% / −2.9%** |
+
+A `Position` was an `UnsafeBufferPointer` and the byte before it: 17 bytes, 24
+with padding. That byte is `ptr[-1]` everywhere except at the very start of the
+input, where there is no byte to read — and that single exception is the whole
+reason it was stored.
+
+It is a pointer and one word instead. The word holds how many bytes remain, with
+the sign bit saying that nothing precedes this position; a file is nowhere near
+eight exabytes, so the bit is free, and it answers the one question the stored
+byte was there for. Advancing becomes a pointer bump and a decrement rather than
+slicing the buffer and rebasing it, and a distance between two positions is a
+subtraction of their counts.
+
+This is not the struct-size lever the earlier commits were, and it is worth
+separating why. The cursor does not shrink at all: the three one-byte fields that
+follow the position were already living in its padding, and the state stack
+pointer still lands at offset 24. What the change pays for is what a position
+costs wherever one is copied or stored *on its own* — the scalar read's rewind,
+each run scan's `advanced(by:)`, the string literal rewinds, and every
+`LexingDiagnostic`. Those are frequent enough to be worth 2 to 3% with the
+enclosing struct unchanged, which is the counterexample to reading this branch as
+"make the cursor smaller".
+
+Removing the optional from the address is a *separate* question, and it is still
+worth nothing: the eight per-byte `baseAddress!` sites were made
+`unsafelyUnwrapped`, which deletes exactly their trap checks, and that measured
+flat. So the pointer stayed optional here, and an empty input is still a `nil`
+address rather than a special count.
+
+One latent confusion went with it. `isAtStartOfFile` had been asking whether the
+byte before the position was nul — true at the start of a file, and equally true
+just after a nul byte in the middle of one, which would make the next operator
+character look as though it began the file. It asks the bit now. Nothing in the
+corpus or the malformed-input cases depended on the old reading: the parse output
+is identical over all 749 files, including the ones carrying an embedded nul.
+
 ---
 
 ## Correctness
@@ -1057,18 +1104,16 @@ stopping:
   `start` pointer and the cursor it was lexed from, which are the same address.
   Deriving it took a lexeme from 72 bytes to 64, and `Lexer.LexemeSequence` and
   `Parser.Lookahead` down with it, for about **2% on every input** — `0ae93a368`.
+  Looking at what a position costs by itself came out of the same pass and is
+  worth another 2 to 3% — see *The position* above.
 
-  Three other things were tried there and are not worth retrying. Making
-  `Lexer.Cursor.Position` hold a non-optional address measures nothing: the eight
-  per-byte `baseAddress!` sites were made `unsafelyUnwrapped`, which deletes
-  exactly their trap check, and that is flat, so the representation change has
-  nothing to earn. Reordering `isAtModuleSelector` to test the current token
-  before peeking is also flat, even though it drives 87% of all `peek(isAt:)`
-  calls — a peek returns an already-lexed token, so it was never expensive.
-  Turning its two `at(_:_:_:)` calls into a `TokenSpecSet` was abandoned before
-  measurement: it cannot nest in the `TokenConsumer` protocol extension where it
-  is used, and moving it to file scope for a question this small was not worth
-  the shape.
+  Two other things were tried there and are not worth retrying. Reordering
+  `isAtModuleSelector` to test the current token before peeking is flat, even
+  though it drives 87% of all `peek(isAt:)` calls — a peek returns an
+  already-lexed token, so it was never expensive. Turning its two `at(_:_:_:)`
+  calls into a `TokenSpecSet` was abandoned before measurement: it cannot nest in
+  the `TokenConsumer` protocol extension where it is used, and moving it to file
+  scope for a question this small was not worth the shape.
 - **String literal lexing, which was 11.3%, has now had its pass** —
   `970d1a7ac`, worth 10.7% of that input. What is left of it is the part the run
   scan cannot take: escapes, interpolations, delimiters, and literals whose text
@@ -1078,8 +1123,8 @@ stopping:
   The cursor `lexInStringLiteral` still snapshots per character it cannot skip is
   **not** worth removing, which was measured rather than assumed. None of the
   functions doing the snapshotting reaches for cursor-level state, so moving the
-  family to `Position` and shrinking those rewinds from 32 bytes to 24 does
-  compile and pass — and measures nothing anywhere, including on source whose
+  family to `Position` and shrinking those rewinds from 32 bytes to 24 — 16 after
+  *The position* — does compile and pass, and measures nothing anywhere, including on source whose
   literals are all outside ASCII, where the slow path still runs 16,100 times a
   parse. Two builds per side put every input inside the baseline's own spread.
   Eight bytes off a copy that does not escape is below the noise floor, which is
