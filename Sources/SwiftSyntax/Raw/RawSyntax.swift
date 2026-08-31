@@ -454,7 +454,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .smolParsedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.SmolParsedToken.self)
-    default:
+    case .parsedToken, .materializedToken, .collection, .layout:
       preconditionFailure("not a short parsed token")
     }
   }
@@ -465,7 +465,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .parsedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.ParsedToken.self)
-    default:
+    case .smolParsedToken, .materializedToken, .collection, .layout:
       preconditionFailure("not a parsed token")
     }
   }
@@ -476,7 +476,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .materializedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.MaterializedToken.self)
-    default:
+    case .smolParsedToken, .parsedToken, .collection, .layout:
       preconditionFailure("not a materialized token")
     }
   }
@@ -487,7 +487,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .collection, .layout:
       return tail.assumingMemoryBound(to: RawSyntaxData.Layout.self)
-    default:
+    case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
     }
   }
