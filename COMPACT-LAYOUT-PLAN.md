@@ -13,6 +13,24 @@ that every reader already switches on.
 
 ---
 
+## Where it got to
+
+| | |
+|---|---|
+| tree memory | 15.32× → **11.20×**, 13.95× → **10.44×**, 15.31× → **11.20×** of source |
+| parse time | **1.5% to 1.7% faster** |
+| reading a tree through its typed accessors | 45,786,168 → **42,788,446** instructions, **6.5% fewer**, over the four commits that followed the compaction |
+
+Verified at each step against a 749 file corpus and 120 deliberately corrupted
+files, with Address Sanitizer clean on both, and the suite at 3,490 passing.
+
+Almost all of the read-path gain came from a single pattern: **not asking
+`SyntaxKind` a question the header already answers.** Both `isSyntaxCollection`
+and `interleavesUnexpectedChildren` are switches over some three hundred kinds,
+and they were sitting on paths that run per node.
+
+---
+
 ## What was measured
 
 Walking every layout node of the raw tree, over the 749 Swift files in
@@ -104,11 +122,16 @@ internal enum RawSyntaxData {
   case smolParsedToken(RawSyntaxArenaRef)
   case parsedToken(RawSyntaxArenaRef)
   case materializedToken(RawSyntaxArenaRef)
-  case collection(RawSyntaxArenaRef)            // tail: [Layout][RawSyntax? × n], none absent
-  case layout(RawSyntaxArenaRef)                // tail: [Layout][RawSyntax? × n]
-  case layoutWithUnexpected(RawSyntaxArenaRef)  // tail: [Layout][RawSyntax? × n][RawSyntax? × n+1]
+  case flat(RawSyntaxArenaRef)                  // tail: [Layout][RawSyntax? × n], none absent
+  case layout(RawSyntaxArenaRef)                // interleaved, compact: [Layout][RawSyntax? × n]
+  case layoutWithUnexpected(RawSyntaxArenaRef)  // [Layout][RawSyntax? × n][RawSyntax? × n+1]
 }
 ```
+
+`.flat` is every collection and the few layout kinds that opt out of
+interleaving: children one after another, every slot filled. Splitting it from
+`.collection` was tried and merged back, because the two described the same
+memory and the same guarantee — see the staging notes.
 
 The enum is the word every reader already switches on to reach a tail, so shape
 costs nothing to store and nothing to test. Cases are free: an enum over an
@@ -245,9 +268,27 @@ Each step is independently reviewable, and each has something to measure.
    for itself, and the reason to keep `.collection` as a case even though it is
    physically identical to `.layout`.
 
-   Only the Syntax layer's per-node loop goes through `RawSyntaxElements` so far.
-   `SyntaxCollection` and the generated raw `elements` accessor are still on the
-   logical path.
+   `SyntaxCollection.count` followed — `896f90f7b`, another 0.40% — because it
+   asked the logical view for a length, and the logical view was built by asking
+   the kind whether it interleaves. The generated raw `elements` accessor is still
+   on the logical path and allocates an `Array`, so it is probably not worth
+   moving.
+6. **One flat case, not two.** `.collection` and a flat layout node described the
+   same memory and the same guarantee: a collection's fullness comes from its
+   category, `unexpectedCodeDecl`'s from its one child being non-optional. Merged
+   into `.flat` — `9eb24622b` — with the assertion widened from collections to
+   every flat node.
+
+   This turned out to be the largest read-path win, **5.58%**, and not for tidiness:
+   with the cases merged, `.layout` means interleaved and compact without
+   qualification, so `RawLayoutChildren` takes `interleaves` from the case instead
+   of from `kind.interleavesUnexpectedChildren` — a switch over every kind, which
+   had been running on every access to a node's children. `makeLayout` stops
+   asking `isSyntaxCollection` as well.
+
+   Which reverses what step 5's notes concluded. The measured argument for keeping
+   `.collection` as its own case was real, but it was an argument for asking the
+   *header* rather than the kind, and merging serves that better than splitting.
 
 Steps 2 and 4 had to land together, and did: step 2 without re-detection would
 have let any rewritten node fall back to the expanded shape.
@@ -336,8 +377,11 @@ The instruments this branch already relies on, in the order they catch things:
   is worthless here, and one cold sample mixed into a comparison inverted a result
   during this work. Repeat, drop the first, quote the median and the spread.
 
-  On that basis the two figures in `38b413ab8` and `896f90f7b` — 0.83% and 0.53% —
-  are single samples and should be treated as directional only until repeated.
+  Repeated on an idle machine, the single-sample figures held their direction and
+  lost about a quarter of their size: 0.83% became **0.63%** (`38b413ab8`), 0.53%
+  became **0.40%** (`896f90f7b`), and 5.94% became **5.58%** (`9eb24622b`). Warm
+  spread across those runs was 0.06% to 0.37%. The commit messages still quote the
+  single samples.
 - No assertion that the kind and the case agree: construction derives one from
   the other, so there is nothing to disagree. Where a shape *cannot* be derived
   from the kind — compact against full — the rule is that every building entry
