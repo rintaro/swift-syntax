@@ -18,7 +18,7 @@ extension RawSyntax {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return nil
-    case .layout:
+    case .collection, .layout:
       return RawSyntaxLayoutView(raw: self)
     }
   }
@@ -34,7 +34,7 @@ public struct RawSyntaxLayoutView {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("RawSyntax must be a layout")
-    case .layout:
+    case .collection, .layout:
       break
     }
   }

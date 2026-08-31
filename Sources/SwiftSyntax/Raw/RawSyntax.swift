@@ -37,7 +37,7 @@ struct RecursiveRawSyntaxFlags: OptionSet, Sendable {
 }
 
 /// Node data for RawSyntax tree. Tagged union plus common data.
-/// The first word of every syntax node: which of the four shapes it has, and the
+/// The first word of every syntax node: which of the five shapes it has, and the
 /// arena that owns it.
 ///
 /// An enum rather than a struct with a separate tag, because the tag then lives
@@ -51,11 +51,15 @@ internal enum RawSyntaxData: Sendable {
   case smolParsedToken(RawSyntaxArenaRef)
   case parsedToken(RawSyntaxArenaRef)
   case materializedToken(RawSyntaxArenaRef)
+  /// A node whose children are all elements of one kind, with no `unexpected`
+  /// slots between them. Its fields have the shape of `Layout`.
+  case collection(RawSyntaxArenaRef)
   case layout(RawSyntaxArenaRef)
 
   var arenaReference: RawSyntaxArenaRef {
     switch self {
-    case .smolParsedToken(let ref), .parsedToken(let ref), .materializedToken(let ref), .layout(let ref):
+    case .smolParsedToken(let ref), .parsedToken(let ref), .materializedToken(let ref), .collection(let ref),
+      .layout(let ref):
       return ref
     }
   }
@@ -477,11 +481,11 @@ public struct RawSyntax: Sendable {
     }
   }
 
-  /// - Precondition: this is a layout node.
+  /// - Precondition: this is a layout node or a collection.
   @inline(__always)
   var layout: UnsafePointer<RawSyntaxData.Layout> {
     switch self.header {
-    case .layout:
+    case .collection, .layout:
       return tail.assumingMemoryBound(to: RawSyntaxData.Layout.self)
     default:
       preconditionFailure("not a layout node")
@@ -531,7 +535,7 @@ extension RawSyntax {
   public var kind: SyntaxKind {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken: return .token
-    case .layout: return self.layout.pointee.kind
+    case .collection, .layout: return self.layout.pointee.kind
     }
   }
 
@@ -571,7 +575,7 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return 1
-    case .layout:
+    case .collection, .layout:
       return self.layout.pointee.descendantCount + 1
     }
   }
@@ -586,7 +590,7 @@ extension RawSyntax {
       return fields.presence == .present ? fields.wholeTextLength : 0
     case .materializedToken:
       return self.materializedToken.pointee.presence == .present ? self.materializedToken.pointee.byteLength : 0
-    case .layout:
+    case .collection, .layout:
       return self.layout.pointee.byteLength
     }
   }
@@ -596,7 +600,7 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return 1
-    case .layout:
+    case .collection, .layout:
       return Int(self.layout.pointee.descendantCount) + 1
     }
   }
@@ -623,7 +627,7 @@ extension RawSyntax {
       } else {
         return 0
       }
-    case .layout:
+    case .collection, .layout:
       return Int(self.layout.pointee.byteLength)
     }
   }
@@ -738,7 +742,7 @@ extension RawSyntax {
           try p.withSyntaxText(body: body)
         }
       }
-    case .layout:
+    case .collection, .layout:
       for case let child? in self.tailAllocatedChildren {
         try child.withEachSyntaxText(body: body)
       }
@@ -786,7 +790,7 @@ extension RawSyntax: TextOutputStreamable, CustomStringConvertible {
         String(syntaxText: self.materializedToken.pointee.tokenText).write(to: &target)
         for p in self.materializedToken.pointee.trailingTrivia { p.write(to: &target) }
       }
-    case .layout:
+    case .collection, .layout:
       for case let child? in self.tailAllocatedChildren {
         child.write(to: &target)
       }
@@ -1180,8 +1184,12 @@ extension RawSyntax {
     // The children are tail allocated behind the node's metadata, so they need
     // no allocation and no pointer of their own: `initializer` writes them where
     // they will live.
+    // Which shape a node has follows from its kind, decided here so that the
+    // header and the kind cannot disagree.
+    let arenaRef = RawSyntaxArenaRef(arena)
+    let header: RawSyntaxData = kind.isSyntaxCollection ? .collection(arenaRef) : .layout(arenaRef)
     let (node, tail) = Self.allocate(
-      .layout(RawSyntaxArenaRef(arena)),
+      header,
       tailByteCount: MemoryLayout<RawSyntaxData.Layout>.stride
         + count * MemoryLayout<RawSyntax?>.stride,
       arena: arena
@@ -1305,7 +1313,7 @@ extension RawSyntax: CustomDebugStringConvertible {
       target.write(" numLeadingTrivia=\(self.materializedToken.pointee.numLeadingTrivia)")
       target.write(" byteLength=\(self.materializedToken.pointee.byteLength)")
       break
-    case .layout:
+    case .collection, .layout:
       target.write(".layout(")
       target.write(String(describing: kind))
       target.write(" byteLength=\(Int(self.layout.pointee.byteLength))")
@@ -1362,7 +1370,7 @@ extension RawSyntax {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return .token(tokenView!)
-    case .layout:
+    case .collection, .layout:
       return .layout(layoutView!)
     }
   }
