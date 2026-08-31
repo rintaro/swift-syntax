@@ -125,7 +125,7 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
             /// count and a free that gathering them elsewhere does not need.
             public init(elements: RawSyntaxNodeList<\(element)>, arena: __shared RawSyntaxArena) {
               let raw = RawSyntax.makeLayout(
-                kind: .\(node.memberCallName), uninitializedCount: elements.count, arena: arena) { layout in
+                kind: .\(node.memberCallName), childCount: elements.count, hasUnexpected: false, arena: arena) { layout in
                   guard var ptr = layout.baseAddress else { return }
                   for elem in elements.buffer {
                     ptr.initialize(to: elem.raw)
@@ -162,22 +162,53 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
           }
           try InitializerDeclSyntax("public init(\(params))") {
             if !node.children.isEmpty {
-              let list = ExprListSyntax {
-                ExprSyntax("layout.initialize(repeating: nil)")
-                for (index, child) in node.children.enumerated() {
-                  let optionalMark = child.isOptional ? "?" : ""
+              // A node that interleaves keeps its real children and its
+              // `unexpected` slots in separate regions, real ones first, so that
+              // the slots can be left out of a node that has nothing to put in
+              // them. A node that does not interleave has only real children.
+              let interleaves = node.interleavesUnexpectedChildren
+              let realChildren = interleaves ? node.children.filter { !$0.isUnexpectedNodes } : node.children
+              let unexpectedChildren = interleaves ? node.children.filter { $0.isUnexpectedNodes } : []
 
+              // Every slot is written exactly once — the `unexpected` ones exist
+              // only when they are being written — so initializing them and then
+              // assigning over them would be a `memset` of the whole tail for
+              // nothing.
+              let list = ExprListSyntax {
+                for (index, child) in realChildren.enumerated() {
+                  let optionalMark = child.isOptional ? "?" : ""
                   ExprSyntax(
-                    "layout[\(raw: index)] = \(child.baseCallName)\(raw: optionalMark).raw"
+                    "layout.initializeElement(at: \(raw: index), to: \(child.baseCallName)\(raw: optionalMark).raw)"
+                  )
+                  .with(\.leadingTrivia, .newline)
+                }
+                if !unexpectedChildren.isEmpty {
+                  let assignments = unexpectedChildren.enumerated()
+                    .map {
+                      "layout.initializeElement(at: \(realChildren.count + $0.offset), to: \($0.element.baseCallName)?.raw)"
+                    }
+                    .joined(separator: "\n")
+                  ExprSyntax(
+                    """
+                    if hasUnexpected {
+                      \(raw: assignments)
+                    }
+                    """
                   )
                   .with(\.leadingTrivia, .newline)
                 }
               }
 
+              let hasUnexpected =
+                unexpectedChildren.isEmpty
+                ? "false"
+                : unexpectedChildren.map { "\($0.baseCallName) != nil" }.joined(separator: " || ")
+
+              DeclSyntax("let hasUnexpected = \(raw: hasUnexpected)")
               DeclSyntax(
                 """
                 let raw = RawSyntax.makeLayout(
-                  kind: .\(node.memberCallName), uninitializedCount: \(raw: node.children.count), arena: arena) { layout in
+                  kind: .\(node.memberCallName), childCount: \(raw: realChildren.count), hasUnexpected: hasUnexpected, arena: arena) { layout in
                   \(list)
                 }
                 """

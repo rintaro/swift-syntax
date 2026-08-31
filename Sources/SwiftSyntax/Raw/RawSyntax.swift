@@ -1214,6 +1214,79 @@ extension RawSyntax {
   ///   stopped inlining it, which cost 0.19 ms of a parse — more than the
   ///   narrowing saved anywhere else.
   @inline(__always)
+  /// Makes a layout node whose caller knows both how many real children it has
+  /// and whether any of its `unexpected` slots is occupied, and writes them where
+  /// they will live: the real children first, then the `unexpected` slots if
+  /// there are any.
+  ///
+  /// The generated initializers know both statically, so they take this and
+  /// nothing is written twice. `makeLayout(kind:uninitializedCount:...)` is for
+  /// callers holding a layout in the shape the tree describes, which has to be
+  /// examined before its size is known.
+  public static func makeLayout(
+    kind: SyntaxKind,
+    childCount: Int,
+    hasUnexpected: Bool,
+    isMaximumNestingLevelOverflow: Bool = false,
+    arena: __shared RawSyntaxArena,
+    initializingWith initializer: (UnsafeMutableBufferPointer<RawSyntax?>) -> Void
+  ) -> RawSyntax {
+    let arenaRef = RawSyntaxArenaRef(arena)
+    let header: RawSyntaxData
+    if kind.isSyntaxCollection {
+      header = .collection(arenaRef)
+    } else if hasUnexpected {
+      header = .layoutWithUnexpected(arenaRef)
+    } else {
+      header = .layout(arenaRef)
+    }
+    let slotCount = hasUnexpected ? 2 * childCount + 1 : childCount
+    let (node, tail) = Self.allocate(
+      header,
+      tailByteCount: MemoryLayout<RawSyntaxData.Layout>.stride
+        + slotCount * MemoryLayout<RawSyntax?>.stride,
+      arena: arena
+    )
+    let slots = UnsafeMutableBufferPointer<RawSyntax?>(
+      start: tail.advanced(by: MemoryLayout<RawSyntaxData.Layout>.stride)
+        .assumingMemoryBound(to: RawSyntax?.self),
+      count: slotCount
+    )
+    initializer(slots)
+
+    // Summing over the slots needs no order, so it does not matter that they are
+    // not in the order the tree describes.
+    var byteLength: UInt32 = 0
+    var descendantCount: UInt32 = 0
+    var recursiveFlags = RecursiveRawSyntaxFlags()
+    if kind.hasError {
+      recursiveFlags.insert(.hasError)
+    }
+    for case let child? in slots {
+      byteLength += child.byteLength32
+      descendantCount += child.totalNodes32
+      recursiveFlags.insert(child.recursiveFlags)
+      arena.addChild(child.arenaReference)
+    }
+    if kind == .sequenceExpr {
+      recursiveFlags.insert(.hasSequenceExpr)
+    }
+    if isMaximumNestingLevelOverflow {
+      recursiveFlags.insert(.hasMaximumNestingLevelOverflow)
+    }
+
+    tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).initialize(
+      to: RawSyntaxData.Layout(
+        childCount: UInt32(childCount),
+        byteLength: byteLength,
+        descendantCount: descendantCount,
+        kind: kind,
+        recursiveFlags: recursiveFlags
+      )
+    )
+    return node
+  }
+
   public static func makeLayout(
     kind: SyntaxKind,
     uninitializedCount count: Int,
