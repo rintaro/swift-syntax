@@ -104,7 +104,7 @@ internal enum RawSyntaxData {
   case smolParsedToken(RawSyntaxArenaRef)
   case parsedToken(RawSyntaxArenaRef)
   case materializedToken(RawSyntaxArenaRef)
-  case collection(RawSyntaxArenaRef)            // tail: [Collection][RawSyntax × n]
+  case collection(RawSyntaxArenaRef)            // tail: [Layout][RawSyntax? × n], none absent
   case layout(RawSyntaxArenaRef)                // tail: [Layout][RawSyntax? × n]
   case layoutWithUnexpected(RawSyntaxArenaRef)  // tail: [Layout][RawSyntax? × n][RawSyntax? × n+1]
 }
@@ -122,11 +122,12 @@ Three reasons to prefer this to a bit in `Layout`:
    `Raw/RawSyntax.swift`, `Raw/RawSyntaxLayoutView.swift`,
    `Raw/RawSyntaxTokenView.swift` and `SourceLocation.swift`; the compiler will
    list them.
-2. **A collection's tail can be `RawSyntax` rather than `RawSyntax?`.** Nothing
-   is ever nil there, and the generated collection initializer already holds
-   non-optional values — it writes `ptr.initialize(to: elem.raw)` from a
-   `RawSyntaxNodeList` and only widens because the buffer is typed that way.
-   Element iteration loses its nil test.
+2. **A collection's elements can be read as `RawSyntax` rather than
+   `RawSyntax?`.** Nothing is ever nil there, so element iteration loses its
+   test. Measured at 0.83% of a traversal — but only when the shape question goes
+   to the header; see step 5. The storage stays `RawSyntax?`, since an optional
+   `RawSyntax` is already one word and changing the tail's type would save no
+   memory at all.
 3. **Growing back to the full form becomes a case change** rather than clearing
    a bit, so a mutation that writes an unexpected child cannot forget.
 
@@ -232,8 +233,21 @@ Each step is independently reviewable, and each has something to measure.
    the plan asked for — set an unexpected child on a compact node, round-trip it,
    and compare `formLayoutArray()` against the same node built expanded — should
    be written before this branch is considered finished.
-5. **Non-optional collection tails.** Not started. Nothing is ever nil there, so
-   element iteration can lose its nil test.
+5. **Collection elements read without a test for an absent one.** Done —
+   `38b413ab8`. The traversal takes 0.83% fewer instructions.
+
+   Framed here as making the tail non-optional, which turns out to save nothing:
+   `RawSyntax?` is already one word, so the tail is the same size either way. What
+   there was to win was the branch, and winning it depended on asking the *header*
+   whether a node is a collection. Asking `kind.isSyntaxCollection` instead
+   measured **+0.06%** — a switch over every kind costs about what a
+   well-predicted test per element saves. That is the case split of step 1 paying
+   for itself, and the reason to keep `.collection` as a case even though it is
+   physically identical to `.layout`.
+
+   Only the Syntax layer's per-node loop goes through `RawSyntaxElements` so far.
+   `SyntaxCollection` and the generated raw `elements` accessor are still on the
+   logical path.
 
 Steps 2 and 4 had to land together, and did: step 2 without re-detection would
 have let any rewritten node fall back to the expanded shape.
