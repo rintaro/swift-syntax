@@ -262,15 +262,51 @@ unexpected child on a compacted node, round-trip it, and compare
 
 ---
 
+## Considered and rejected
+
+**An occupancy bitmap for the nil real children.** 34.1% of the *real* child
+slots are nil — optional children that are absent: 1,232,536 slots over the
+corpus, 1.13× / 0.80× / 0.94× of source on the three inputs, so 5% to 7% of tree
+memory. Packing the present ones and recording which they are in a bitmap would
+collect that.
+
+The bounds favour it, which is why it is written down rather than dismissed. From
+the generated schema: the largest logical index is 22, so a layout node has at
+most **11** real children; at most **6** of a node's real children are optional
+(`RawTupleTypeElementSyntax`, `RawForStmtSyntax`), and **196 of 298 kinds have
+none**; only 19.1% of real-child accessors — 210 of 1,100 — return an optional at
+all. So the bitmap needs 6 bits, and a `UInt8` fits in the padding byte `Layout`
+already has, costing nothing. A naive `UInt32` would have been the trap: it takes
+`Layout` from size 15 to 19, pushing the children region off its 8-byte alignment
+for 8 bytes a node — 0.94× of source, against the 1.02× being reclaimed.
+
+It is still not worth taking. Mapping a logical index needs a presence test plus a
+population count of the bits below it:
+
+```
+optional child at ordinal j  →  occupancy & (1 << j) != 0
+                                base[requiredCount + popcount(occupancy & ((1 << j) - 1))]
+```
+
+Ordering required children first keeps 890 of the 1,100 real-child accessors as
+constant-index loads, and the remaining 210 popcount over at most 6 bits with a
+constant mask, which the generator can unroll into bit tests rather than
+`nonzeroBitCount` — worth doing on arm64, where that crosses to SIMD and back.
+Sequential traversal needs no popcount at all; it walks the bits and advances a
+pointer.
+
+The deeper objection is not the arithmetic. It is that a node's physical shape
+would depend on *which* of its optional children happen to be present, where
+compacting the unexpected slots leaves shape decided by the kind alone. That
+property is what makes the mapping cheap to reason about, cheap to assert, and
+cheap to re-derive on mutation.
+
+---
+
 ## Adjacent findings, deliberately out of scope
 
 Each was measured while investigating this and is independent of it.
 
-- **34.1% of the *real* child slots are nil** — optional children that are
-  absent: 1,232,536 slots over the corpus, 1.13× / 0.80× / 0.94× of source on
-  the three inputs. An occupancy bitmap in the header would drop those too; the
-  largest layout node has 23 children, so 32 bits suffices. Together with this
-  plan that would put the tree near 10.2–10.5× source, about −32%.
 - **Empty collections are everywhere, and worth about an eighth of this plan.**
   437,330 collection nodes hold 420,213 elements, and **188,625 of them — 43.1%
   — are empty**, because every declaration carries `attributes` and
