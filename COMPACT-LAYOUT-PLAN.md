@@ -209,17 +209,65 @@ the re-detection invariant prevents.
 
 Each step is independently reviewable, and each has something to measure.
 
-1. **Add `.collection`.** No memory change. Collections get non-optional tails
-   and lose their nil tests. Compiler-enumerated. Measure time; expect a small
-   gain or neutral.
+1. **Add `.collection`.** Done — `c09a35f68`. The case split alone, with both
+   cases still holding the same fields and the same tail, so no memory changes
+   and the parsed output is identical. Measured within noise on all three inputs.
+   Non-optional collection tails are deferred to a step of their own, since they
+   are a representation change rather than a discriminator change.
 2. **Split `.layout` / `.layoutWithUnexpected`, compacting at construction,**
    and implement re-detection in every building entry point. This is where the
    ~26% lands. Measure tree memory and time.
 3. **Regenerate the accessors** against physical indices.
 4. **Mutation paths**: converting case when an unexpected child is written, with
    tests written directly against it.
+5. **Non-optional collection tails.** Nothing is ever nil there, so element
+   iteration can lose its nil test.
 
 Steps 2 and 4 must land together — step 2 without step 4 is unsound.
+
+### Two things step 1 taught, which step 2 should apply first
+
+**The exhaustive switches are the safe ones; the `default:` arms are the
+hazard.** The compiler listed 26 switches to extend, and every one of them was
+mechanical. What it could not list were the four checked accessors —
+`smolParsedToken`, `parsedToken`, `materializedToken`, `layout` — each of which
+ends in `default: preconditionFailure`. Three of them correctly reject a
+collection, but `layout` would have trapped on every collection node in the
+tree, and nothing said so. **Convert those four to exhaustive switches before
+adding more cases**, so that the compiler covers them too.
+
+**Let one place decide, by inspecting what it was given.** The plan proposed a
+`DEBUG`-only assertion that `kind.isSyntaxCollection` agreed with the case. That
+turned out to be unnecessary: deriving the case from the kind at the single site
+that allocates a node means there is no second source of truth to check. Step 2
+cannot do exactly that — whether a node is compact depends on its arguments, not
+its kind — but it can keep the discipline: every building entry point decides for
+itself by looking at the unexpected slots it was handed, and none of them accepts
+the shape as a parameter.
+
+### The write path, for step 2
+
+The initializer closure `makeLayout` takes writes the *logical* layout, so
+whether the unexpected slots are all nil is not known until it has run — after
+the allocation size would have had to be chosen. Two ways out:
+
+- **Fill a scratch buffer, then allocate.** A layout node has at most 23 slots,
+  so the scratch is 184 bytes of `withUnsafeTemporaryAllocation`. Scan it, then
+  allocate the exact size and copy. Costs one extra pass of at most 23 words per
+  node, and requires no change to any caller or to the generated code.
+- **Have the generator hand over the two groups separately,** so the shape is
+  known before allocating and nothing is copied twice. No scratch, no extra
+  write, but it changes the template and every generated initializer.
+
+Take the first: it is self-contained, and if the copy shows up in a measurement
+the second is the optimization on top of it rather than a rewrite of it.
+
+**Knowing which kinds interleave cannot come from parity.** `unexpectedCodeDecl`
+has one child, at index 0, and that child is real — so an odd child count does
+not imply the even slots are unexpected. The schema knows
+(`noInterleaveUnexpected`, `kind.isBase`), so the generator should emit the
+answer as a property on `SyntaxKind` rather than have the runtime infer it or a
+hand-written list drift from it.
 
 ---
 
@@ -237,9 +285,10 @@ The instruments this branch already relies on, in the order they catch things:
 - **Memory measured as what the allocator's bump pointer advances by**, padding
   included — not `totalByteSizeAllocated`, which ignores inter-allocation
   padding and understates the branch.
-- A `DEBUG`-only assertion that the two sources of truth agree:
-  `kind.isSyntaxCollection == (case == .collection)`. A disagreement
-  misinterprets a tail silently.
+- No assertion that the kind and the case agree: construction derives one from
+  the other, so there is nothing to disagree. Where a shape *cannot* be derived
+  from the kind — compact against full — the rule is that every building entry
+  point decides for itself from what it was handed.
 
 Step 4 wants its own direct test rather than relying on the corpus: set an
 unexpected child on a compacted node, round-trip it, and compare
