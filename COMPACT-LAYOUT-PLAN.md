@@ -370,6 +370,43 @@ The instruments this branch already relies on, in the order they catch things:
 - **Memory measured as what the allocator's bump pointer advances by**, padding
   included — not `totalByteSizeAllocated`, which ignores inter-allocation
   padding and understates the branch.
+- **A baseline file turns the instruction counts into a gate.**
+  `measureInstructions` compares against `Tests/PerformanceTest/baselines.json`,
+  or against whatever `BASELINE_FILE` points at, and allows 1% either way. With no
+  such file it measures and asserts nothing, which is how the repository ships —
+  so the file is deliberately **not** tracked: the counts belong to one machine and
+  one toolchain, and a checked-in one would fail for everybody else. It is in
+  `.gitignore`.
+
+  To make one, point the harness at a stub so that every test reports itself:
+
+  ```
+  echo '{"dummy":1}' > /tmp/harvest.json
+  BASELINE_FILE=/tmp/harvest.json swift test -c release --filter PerformanceTest
+  ```
+
+  Each test then fails with `Missing baseline for <name> with number of
+  instructions '<n>'`. Collect those pairs over three runs, take the median of
+  each, and write them as `[String: UInt64]`. Every test in the target has to be
+  present: once the file exists, a *missing* entry is a failure where a missing
+  file was silently skipped.
+
+  Measured on macOS arm64 while this branch was written, with the run-to-run
+  spread that a 1% tolerance has to live with:
+
+  | test | baseline | spread |
+  |---|---|---|
+  | `testClassifierPerformance` | 1,404,934,852 | 0.17% |
+  | `testEmptyAnyVisitorPerformance` | 13,184,751 | 0.81% |
+  | `testEmptyRewriterPerformance` | 16,981,273 | 0.00% |
+  | `testEmptyVisitorPerformance` | 12,628,324 | 0.10% |
+  | `testNativeParsingPerformance` | 34,678,025 | 0.07% |
+  | `testTypedAccessorTraversalPerformance` | 42,771,810 | 0.08% |
+
+  The gate was checked in both directions: moved 3%, the accessor test fails and
+  reports the deviation; restored, all six pass. Note the headroom on
+  `testEmptyAnyVisitorPerformance` — 0.81% of variation against a 1% tolerance.
+
 - **Instruction counts, repeated, first run discarded.** `AccessorPerformanceTests`
   counts instructions rather than time, which is what makes sub-percent effects on
   the read path measurable at all. But the first run after a build is 5% to 12%
