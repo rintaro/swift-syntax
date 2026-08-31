@@ -1262,6 +1262,12 @@ extension RawSyntax {
       count: slotCount
     )
     initializer(slots)
+    // What `RawSyntaxLayoutView.elements` relies on: a collection has an element
+    // in every slot.
+    assert(
+      !kind.isSyntaxCollection || slots.allSatisfy { $0 != nil },
+      "a collection may not have an absent element"
+    )
 
     // Summing over the slots needs no order, so it does not matter that they are
     // not in the order the tree describes.

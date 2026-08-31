@@ -457,7 +457,24 @@ final class SyntaxDataArena: @unchecked Sendable {
 
   /// Create the layout buffer of the node.
   private func createLayoutDataImpl(_ parent: SyntaxDataReference) -> UnsafeBufferPointer<SyntaxDataReference?> {
-    let rawChildren = parent.pointee.raw.layoutView!.children
+    let layoutView = parent.pointee.raw.layoutView!
+    // A collection has an element in every slot, so its children need neither the
+    // test for an absent one nor the mapping that a layout node's indices need.
+    if let elements = layoutView.elementsIfCollection {
+      let allocated = self.allocator.allocate(SyntaxDataReference?.self, count: elements.count)
+      var ptr = allocated.baseAddress!
+      var absoluteInfo = parent.pointee.absoluteInfo.advancedToFirstChild()
+      for raw in elements {
+        ptr.initialize(
+          to: Self.createDataImpl(allocator: self.allocator, raw: raw, parent: parent, absoluteInfo: absoluteInfo)
+        )
+        absoluteInfo = absoluteInfo.advancedBySibling(raw)
+        ptr += 1
+      }
+      return UnsafeBufferPointer(allocated)
+    }
+
+    let rawChildren = layoutView.children
     let allocated = self.allocator.allocate(SyntaxDataReference?.self, count: rawChildren.count)
 
     var ptr = allocated.baseAddress!
