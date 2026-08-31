@@ -271,12 +271,27 @@ Each was measured while investigating this and is independent of it.
   the three inputs. An occupancy bitmap in the header would drop those too; the
   largest layout node has 23 children, so 32 bits suffices. Together with this
   plan that would put the tree near 10.2–10.5× source, about −32%.
-- **Empty collections are everywhere.** 437,330 collection nodes hold 420,213
-  elements — 0.96 elements each — because every declaration carries `attributes`
-  and `modifiers` lists. An empty collection still costs a node: 8 bytes of
-  header plus a 16-byte `Layout`. Interning one canonical empty collection per
-  kind may be worth a comparable amount to this plan. Wants its own measurement
-  first.
+- **Empty collections are everywhere, and worth about an eighth of this plan.**
+  437,330 collection nodes hold 420,213 elements, and **188,625 of them — 43.1%
+  — are empty**, because every declaration carries `attributes` and
+  `declModifierList` and every call carries
+  `multipleTrailingClosureElementList`; those three kinds alone are 175,505 of
+  the empty ones. An empty collection costs 24 bytes: 8 of header plus a 16-byte
+  `Layout` whose `childCount`, `byteLength` and `descendantCount` are all zero,
+  so `kind` is the only field saying anything.
+
+  | variant | per node | corpus | of tree memory, three inputs |
+  |---|---|---|---|
+  | `.emptyCollection`, allocated, no tail | −16 B | 0.31× source | 2.0% / 1.4% / 3.2% |
+  | inline value, no allocation | −24 B | 0.47× | 3.1% / 2.1% / 4.8% |
+  | interned per kind per arena | −24 B | 0.46× | ≈ as above |
+
+  Packing `kind` into the header word fits — 11 spare bits, 3 for the case tag,
+  far fewer than 64 collection kinds — but it is a hand-rolled encoding rather
+  than something the enum layout gives. The inline variant is blocked by
+  identity: `RawSyntax.ID` *is* the node's pointer, and `SyntaxRewriter` compares
+  it to detect rewrites, so a node with no allocation has no id. Interning keeps
+  a pointer but gives every empty list of a kind the same one.
 - **The Syntax layer wastes the same 56.8%.** `createLayoutDataImpl` allocates a
   `SyntaxDataReference?` per *logical* slot, so a fully traversed corpus tree
   costs 8.36M refs where 3.6M are meaningful — 67 MB rather than 29 MB. It is
