@@ -234,13 +234,13 @@ the re-detection invariant prevents.
 
 Each step is independently reviewable, and each has something to measure.
 
-1. **Add `.collection`.** Done — `c09a35f68`, with `392ad559c` making the checked
+1. **Add `.collection`.** Done — `f89090804`, with `be5232589` making the checked
    field accessors exhaustive so that a later shape cannot slip past them.
 2. **Split `.layout` / `.layoutWithUnexpected`, compacting at construction.**
-   Done — `a8526e8d7`, on top of `955e38008` which generates whether a kind
+   Done — `716127f54`, on top of `e7474384d` which generates whether a kind
    interleaves. Tree memory 15.32× → 11.20×, 13.95× → 10.44×, 15.31× → 11.20×.
-   `e7b18af8d` then moved the write into the tail; see *The write path*.
-3. **Accessors on physical slots.** Done — `402d033ac`. Reading a tree through
+   `bb1f9a521` then moved the write into the tail; see *The write path*.
+3. **Accessors on physical slots.** Done — `0f3933e09`. Reading a tree through
    its typed accessors takes 4.1% fewer instructions.
 4. **Mutation paths.** The behaviour landed with step 2 rather than separately:
    every mutating operation on `RawSyntaxLayoutView` builds a layout in the shape
