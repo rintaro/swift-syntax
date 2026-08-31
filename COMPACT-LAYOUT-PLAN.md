@@ -329,6 +329,15 @@ The instruments this branch already relies on, in the order they catch things:
 - **Memory measured as what the allocator's bump pointer advances by**, padding
   included — not `totalByteSizeAllocated`, which ignores inter-allocation
   padding and understates the branch.
+- **Instruction counts, repeated, first run discarded.** `AccessorPerformanceTests`
+  counts instructions rather than time, which is what makes sub-percent effects on
+  the read path measurable at all. But the first run after a build is 5% to 12%
+  high from cold caches; warm runs agree to within 0.1% to 0.8%. A single sample
+  is worthless here, and one cold sample mixed into a comparison inverted a result
+  during this work. Repeat, drop the first, quote the median and the spread.
+
+  On that basis the two figures in `38b413ab8` and `896f90f7b` — 0.83% and 0.53% —
+  are single samples and should be treated as directional only until repeated.
 - No assertion that the kind and the case agree: construction derives one from
   the other, so there is nothing to disagree. Where a shape *cannot* be derived
   from the kind — compact against full — the rule is that every building entry
