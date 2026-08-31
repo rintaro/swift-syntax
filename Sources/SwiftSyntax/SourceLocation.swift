@@ -829,7 +829,7 @@ fileprivate extension RawSyntax {
       position = self.materializedToken.pointee.leadingTrivia.forEachEndOfLine(position: position, body: body)
       position = self.materializedToken.pointee.tokenText.forEachEndOfLine(position: position, body: body)
       position = self.materializedToken.pointee.trailingTrivia.forEachEndOfLine(position: position, body: body)
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       // Handle '#sourceLocation' directive.
       if self.layout.pointee.kind == .poundSourceLocation {
         // Do this before `node.forEachEndOfLine` call below so the caller can
@@ -837,7 +837,7 @@ fileprivate extension RawSyntax {
         handleSourceLocationDirective(position, self)
       }
 
-      for case let node? in self.tailAllocatedChildren
+      for case let node? in self.logicalChildren
       where SyntaxTreeViewMode.sourceAccurate.shouldTraverse(node: node) {
         position = node.forEachEndOfLine(
           position: position,

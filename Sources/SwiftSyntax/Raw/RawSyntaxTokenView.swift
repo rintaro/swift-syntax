@@ -18,7 +18,7 @@ extension RawSyntax {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return RawSyntaxTokenView(raw: self)
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       return nil
     }
   }
@@ -34,7 +34,7 @@ public struct RawSyntaxTokenView: Sendable {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       break
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("RawSyntax must be a token")
     }
   }
@@ -49,7 +49,7 @@ public struct RawSyntaxTokenView: Sendable {
       return raw.parsedToken.pointee.tokenKind
     case .materializedToken:
       return raw.materializedToken.pointee.tokenKind
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'tokenKind' is not available for non-token node")
     }
   }
@@ -64,7 +64,7 @@ public struct RawSyntaxTokenView: Sendable {
       return raw.parsedToken.pointee.tokenText(base: raw.parsedTokenTextBase)
     case .materializedToken:
       return raw.materializedToken.pointee.tokenText
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'rawText' is not available for non-token node")
     }
   }
@@ -79,7 +79,7 @@ public struct RawSyntaxTokenView: Sendable {
       return raw.parsedToken.pointee.leadingTriviaText(base: raw.parsedTokenTextBase).count
     case .materializedToken:
       return raw.materializedToken.pointee.leadingTrivia.reduce(0) { $0 + $1.byteLength }
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'leadingTriviaByteLength' is not available for non-token node")
     }
   }
@@ -94,7 +94,7 @@ public struct RawSyntaxTokenView: Sendable {
       return raw.parsedToken.pointee.trailingTriviaText(base: raw.parsedTokenTextBase).count
     case .materializedToken:
       return raw.materializedToken.pointee.trailingTrivia.reduce(0) { $0 + $1.byteLength }
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'trailingTriviaByteLength' is not available for non-token node")
     }
   }
@@ -114,7 +114,7 @@ public struct RawSyntaxTokenView: Sendable {
       )
     case .materializedToken:
       return Array(raw.materializedToken.pointee.leadingTrivia)
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'leadingRawTriviaPieces' is called on non-token raw syntax")
     }
   }
@@ -134,7 +134,7 @@ public struct RawSyntaxTokenView: Sendable {
       )
     case .materializedToken:
       return Array(raw.materializedToken.pointee.trailingTrivia)
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'trailingRawTriviaPieces' is called on non-token raw syntax")
     }
   }
@@ -163,7 +163,7 @@ public struct RawSyntaxTokenView: Sendable {
       var leadingTriviaStr = Trivia(pieces: raw.materializedToken.pointee.leadingTrivia.map(TriviaPiece.init))
         .description
       return leadingTriviaStr.withSyntaxText(body)
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'leadingTrivia' is called on non-token raw syntax")
     }
   }
@@ -180,7 +180,7 @@ public struct RawSyntaxTokenView: Sendable {
       var trailingTriviaStr = Trivia(pieces: raw.materializedToken.pointee.trailingTrivia.map(TriviaPiece.init))
         .description
       return trailingTriviaStr.withSyntaxText(body)
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'trailingTrivia' is called on non-token raw syntax")
     }
   }
@@ -315,7 +315,7 @@ public struct RawSyntaxTokenView: Sendable {
       return raw.parsedToken.pointee.tokenText(base: raw.parsedTokenTextBase).count
     case .materializedToken:
       return raw.materializedToken.pointee.tokenText.count
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'textByteLength' is not available for non-token node")
     }
   }
@@ -343,7 +343,7 @@ public struct RawSyntaxTokenView: Sendable {
         kind: raw.materializedToken.pointee.tokenKind,
         text: String(syntaxText: raw.materializedToken.pointee.tokenText)
       )
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'formKind' is not available for non-token node")
     }
   }
@@ -357,7 +357,7 @@ public struct RawSyntaxTokenView: Sendable {
       return raw.parsedToken.pointee.presence
     case .materializedToken:
       return raw.materializedToken.pointee.presence
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'presence' is not available for non-token node")
     }
   }
@@ -371,7 +371,7 @@ public struct RawSyntaxTokenView: Sendable {
       return raw.parsedToken.pointee.tokenDiagnostic
     case .materializedToken:
       return raw.materializedToken.pointee.tokenDiagnostic
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("'tokenDiagnostic' is not available for non-token node")
     }
   }

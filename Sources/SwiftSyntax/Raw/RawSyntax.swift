@@ -54,12 +54,19 @@ internal enum RawSyntaxData: Sendable {
   /// A node whose children are all elements of one kind, with no `unexpected`
   /// slots between them. Its fields have the shape of `Layout`.
   case collection(RawSyntaxArenaRef)
+  /// A layout node holding only its real children, which is every layout node
+  /// that parsed without anything unexpected in it. Its fields have the shape of
+  /// `Layout`, followed by `childCount` slots.
   case layout(RawSyntaxArenaRef)
+  /// A layout node that has something in at least one of its `unexpected` slots,
+  /// so it holds them after its real children: `childCount` slots and then
+  /// `childCount + 1` of them.
+  case layoutWithUnexpected(RawSyntaxArenaRef)
 
   var arenaReference: RawSyntaxArenaRef {
     switch self {
     case .smolParsedToken(let ref), .parsedToken(let ref), .materializedToken(let ref), .collection(let ref),
-      .layout(let ref):
+      .layout(let ref), .layoutWithUnexpected(let ref):
       return ref
     }
   }
@@ -454,7 +461,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .smolParsedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.SmolParsedToken.self)
-    case .parsedToken, .materializedToken, .collection, .layout:
+    case .parsedToken, .materializedToken, .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("not a short parsed token")
     }
   }
@@ -465,7 +472,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .parsedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.ParsedToken.self)
-    case .smolParsedToken, .materializedToken, .collection, .layout:
+    case .smolParsedToken, .materializedToken, .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("not a parsed token")
     }
   }
@@ -476,7 +483,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .materializedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.MaterializedToken.self)
-    case .smolParsedToken, .parsedToken, .collection, .layout:
+    case .smolParsedToken, .parsedToken, .collection, .layout, .layoutWithUnexpected:
       preconditionFailure("not a materialized token")
     }
   }
@@ -485,7 +492,7 @@ public struct RawSyntax: Sendable {
   @inline(__always)
   var layout: UnsafePointer<RawSyntaxData.Layout> {
     switch self.header {
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       return tail.assumingMemoryBound(to: RawSyntaxData.Layout.self)
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
@@ -510,11 +517,44 @@ public struct RawSyntax: Sendable {
   ///
   /// - Precondition: this is a layout node.
   @inline(__always)
-  var tailAllocatedChildren: RawSyntaxBuffer {
-    let metadata = tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).pointee
+  /// The slots this node holds: its real children, followed by its `unexpected`
+  /// slots if it kept room for them.
+  var physicalSlots: UnsafeBufferPointer<RawSyntax?> {
+    let childCount = Int(tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).pointee.childCount)
+    let slotCount: Int
+    switch self.header {
+    case .layoutWithUnexpected:
+      slotCount = 2 * childCount + 1
+    case .collection, .layout:
+      slotCount = childCount
+    case .smolParsedToken, .parsedToken, .materializedToken:
+      preconditionFailure("not a layout node")
+    }
     let start = UnsafeRawPointer(pointer.pointer).advanced(by: Self.childrenOffset)
       .assumingMemoryBound(to: RawSyntax?.self)
-    return RawSyntaxBuffer(UnsafeBufferPointer(start: start, count: Int(metadata.childCount)))
+    return UnsafeBufferPointer(start: start, count: slotCount)
+  }
+
+  /// This node's children as the tree describes them, which for a node that kept
+  /// no room for its `unexpected` slots means reading those as nil.
+  var logicalChildren: RawLayoutChildren {
+    let childCount = Int(tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).pointee.childCount)
+    let start = UnsafeRawPointer(pointer.pointer).advanced(by: Self.childrenOffset)
+      .assumingMemoryBound(to: RawSyntax?.self)
+    let unexpected: UnsafeBufferPointer<RawSyntax?>
+    switch self.header {
+    case .layoutWithUnexpected:
+      unexpected = UnsafeBufferPointer(start: start + childCount, count: childCount + 1)
+    case .collection, .layout:
+      unexpected = UnsafeBufferPointer(start: nil, count: 0)
+    case .smolParsedToken, .parsedToken, .materializedToken:
+      preconditionFailure("not a layout node")
+    }
+    return RawLayoutChildren(
+      real: UnsafeBufferPointer(start: start, count: childCount),
+      unexpected: unexpected,
+      interleaves: self.kind.interleavesUnexpectedChildren
+    )
   }
 
   public var arena: RetainedRawSyntaxArena {
@@ -535,7 +575,7 @@ extension RawSyntax {
   public var kind: SyntaxKind {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken: return .token
-    case .collection, .layout: return self.layout.pointee.kind
+    case .collection, .layout, .layoutWithUnexpected: return self.layout.pointee.kind
     }
   }
 
@@ -575,7 +615,7 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return 1
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       return self.layout.pointee.descendantCount + 1
     }
   }
@@ -590,7 +630,7 @@ extension RawSyntax {
       return fields.presence == .present ? fields.wholeTextLength : 0
     case .materializedToken:
       return self.materializedToken.pointee.presence == .present ? self.materializedToken.pointee.byteLength : 0
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       return self.layout.pointee.byteLength
     }
   }
@@ -600,7 +640,7 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return 1
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       return Int(self.layout.pointee.descendantCount) + 1
     }
   }
@@ -627,7 +667,7 @@ extension RawSyntax {
       } else {
         return 0
       }
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       return Int(self.layout.pointee.byteLength)
     }
   }
@@ -742,8 +782,8 @@ extension RawSyntax {
           try p.withSyntaxText(body: body)
         }
       }
-    case .collection, .layout:
-      for case let child? in self.tailAllocatedChildren {
+    case .collection, .layout, .layoutWithUnexpected:
+      for case let child? in self.logicalChildren {
         try child.withEachSyntaxText(body: body)
       }
     }
@@ -790,8 +830,8 @@ extension RawSyntax: TextOutputStreamable, CustomStringConvertible {
         String(syntaxText: self.materializedToken.pointee.tokenText).write(to: &target)
         for p in self.materializedToken.pointee.trailingTrivia { p.write(to: &target) }
       }
-    case .collection, .layout:
-      for case let child? in self.tailAllocatedChildren {
+    case .collection, .layout, .layoutWithUnexpected:
+      for case let child? in self.logicalChildren {
         child.write(to: &target)
       }
     }
@@ -1181,56 +1221,99 @@ extension RawSyntax {
     arena: __shared RawSyntaxArena,
     initializingWith initializer: (UnsafeMutableBufferPointer<RawSyntax?>) -> Void
   ) -> RawSyntax {
-    // The children are tail allocated behind the node's metadata, so they need
-    // no allocation and no pointer of their own: `initializer` writes them where
-    // they will live.
-    // Which shape a node has follows from its kind, decided here so that the
-    // header and the kind cannot disagree.
-    let arenaRef = RawSyntaxArenaRef(arena)
-    let header: RawSyntaxData = kind.isSyntaxCollection ? .collection(arenaRef) : .layout(arenaRef)
-    let (node, tail) = Self.allocate(
-      header,
-      tailByteCount: MemoryLayout<RawSyntaxData.Layout>.stride
-        + count * MemoryLayout<RawSyntax?>.stride,
-      arena: arena
-    )
-    let children = UnsafeMutableBufferPointer<RawSyntax?>(
-      start: tail.advanced(by: MemoryLayout<RawSyntaxData.Layout>.stride)
-        .assumingMemoryBound(to: RawSyntax?.self),
-      count: count
-    )
-    initializer(children)
+    // `initializer` writes the layout as the tree describes it, with an
+    // `unexpected` slot before the first child, between each pair and after the
+    // last. Whether any of those slots is occupied decides how much memory the
+    // node needs, and it is not known until the initializer has run — so it runs
+    // into a temporary first. A layout node has at most 23 slots.
+    return withUnsafeTemporaryAllocation(of: RawSyntax?.self, capacity: count) { logical in
+      initializer(logical)
 
-    // Calculate the "byte width".
-    var byteLength: UInt32 = 0
-    var descendantCount: UInt32 = 0
-    var recursiveFlags = RecursiveRawSyntaxFlags()
-    if kind.hasError {
-      recursiveFlags.insert(.hasError)
-    }
-    for case let child? in children {
-      byteLength += child.byteLength32
-      descendantCount += child.totalNodes32
-      recursiveFlags.insert(child.recursiveFlags)
-      arena.addChild(child.arenaReference)
-    }
-    if kind == .sequenceExpr {
-      recursiveFlags.insert(.hasSequenceExpr)
-    }
-    if isMaximumNestingLevelOverflow {
-      recursiveFlags.insert(.hasMaximumNestingLevelOverflow)
-    }
+      let interleaves = kind.interleavesUnexpectedChildren
+      // Real children are the odd slots when a kind interleaves, and all of them
+      // when it does not.
+      let childCount = interleaves ? (count - 1) / 2 : count
 
-    tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).initialize(
-      to: RawSyntaxData.Layout(
-        childCount: UInt32(count),
-        byteLength: byteLength,
-        descendantCount: descendantCount,
-        kind: kind,
-        recursiveFlags: recursiveFlags
+      var hasUnexpected = false
+      if interleaves {
+        for i in stride(from: 0, to: count, by: 2) where logical[i] != nil {
+          hasUnexpected = true
+          break
+        }
+      }
+
+      let arenaRef = RawSyntaxArenaRef(arena)
+      let header: RawSyntaxData
+      if kind.isSyntaxCollection {
+        header = .collection(arenaRef)
+      } else if hasUnexpected {
+        header = .layoutWithUnexpected(arenaRef)
+      } else {
+        header = .layout(arenaRef)
+      }
+      // A node keeps room for its `unexpected` slots only when it has something
+      // to put in them, which is what this whole shape is for.
+      let slotCount = hasUnexpected ? count : childCount
+
+      let (node, tail) = Self.allocate(
+        header,
+        tailByteCount: MemoryLayout<RawSyntaxData.Layout>.stride
+          + slotCount * MemoryLayout<RawSyntax?>.stride,
+        arena: arena
       )
-    )
-    return node
+      let slots = UnsafeMutableBufferPointer<RawSyntax?>(
+        start: tail.advanced(by: MemoryLayout<RawSyntaxData.Layout>.stride)
+          .assumingMemoryBound(to: RawSyntax?.self),
+        count: slotCount
+      )
+      // Real children first, so that reaching one is the same constant index
+      // whichever shape the node has.
+      if interleaves {
+        for k in 0..<childCount {
+          slots.initializeElement(at: k, to: logical[2 * k + 1])
+        }
+        if hasUnexpected {
+          for j in 0...childCount {
+            slots.initializeElement(at: childCount + j, to: logical[2 * j])
+          }
+        }
+      } else {
+        for i in 0..<count {
+          slots.initializeElement(at: i, to: logical[i])
+        }
+      }
+
+      // Calculate the "byte width".
+      var byteLength: UInt32 = 0
+      var descendantCount: UInt32 = 0
+      var recursiveFlags = RecursiveRawSyntaxFlags()
+      if kind.hasError {
+        recursiveFlags.insert(.hasError)
+      }
+      for case let child? in logical {
+        byteLength += child.byteLength32
+        descendantCount += child.totalNodes32
+        recursiveFlags.insert(child.recursiveFlags)
+        arena.addChild(child.arenaReference)
+      }
+      if kind == .sequenceExpr {
+        recursiveFlags.insert(.hasSequenceExpr)
+      }
+      if isMaximumNestingLevelOverflow {
+        recursiveFlags.insert(.hasMaximumNestingLevelOverflow)
+      }
+
+      tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).initialize(
+        to: RawSyntaxData.Layout(
+          childCount: UInt32(childCount),
+          byteLength: byteLength,
+          descendantCount: descendantCount,
+          kind: kind,
+          recursiveFlags: recursiveFlags
+        )
+      )
+      return node
+    }
   }
 
   static func makeEmptyLayout(
@@ -1313,13 +1396,13 @@ extension RawSyntax: CustomDebugStringConvertible {
       target.write(" numLeadingTrivia=\(self.materializedToken.pointee.numLeadingTrivia)")
       target.write(" byteLength=\(self.materializedToken.pointee.byteLength)")
       break
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       target.write(".layout(")
       target.write(String(describing: kind))
       target.write(" byteLength=\(Int(self.layout.pointee.byteLength))")
       target.write(" descendantCount=\(Int(self.layout.pointee.descendantCount))")
       if withChildren {
-        for (num, child) in self.tailAllocatedChildren.enumerated() {
+        for (num, child) in self.logicalChildren.enumerated() {
           target.write("\n")
           target.write(String(repeating: " ", count: childIndent))
           target.write("\(num): ")
@@ -1370,7 +1453,7 @@ extension RawSyntax {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return .token(tokenView!)
-    case .collection, .layout:
+    case .collection, .layout, .layoutWithUnexpected:
       return .layout(layoutView!)
     }
   }
