@@ -50,7 +50,8 @@ At 8 bytes a slot, against the tree sizes in `PERFORMANCE-REPORT.md`:
 | `nonascii_heavy.swift.input` | 15.31× | 4.12× | 11.19× | **−26.9%** |
 | 749-file corpus | — | 3.94× (37,972,544 bytes) | — | — |
 
-Time should improve as well, though nothing here predicts by how much:
+Time improves too, by 1.5% to 1.7% — see *The write path* for why, which is not
+the reason given here:
 `makeLayout` writes *n* slots rather than 2*n*+1 and its
 `byteLength`/`descendantCount`/`recursiveFlags` loop iterates less than half as
 many. `4d63b3595` established that slot writes on this path are worth whole
@@ -259,8 +260,25 @@ the allocation size would have had to be chosen. Two ways out:
   known before allocating and nothing is copied twice. No scratch, no extra
   write, but it changes the template and every generated initializer.
 
-Take the first: it is self-contained, and if the copy shows up in a measurement
-the second is the optimization on top of it rather than a rewrite of it.
+Both were built. **The copy was never the cost, and a `memset` was.**
+
+The scratch lowers to a stack allocation with no runtime call — neither binary
+references `swift_stackAlloc` — and `makeLayout` inlines into every caller, so it
+never appears as a profile leaf. The extra stores land in hot memory while the
+cold traffic, first touch of freshly bump-allocated arena memory, is identical
+either way. The two versions measured alike.
+
+What made the second version lose at first was that handing the closure a buffer
+into arena memory turned the generated `layout.initialize(repeating: nil)` into a
+real `_platform_memset` — 1.95% of a parse — which cannot be eliminated because
+the compiler cannot see that every slot is later written. Every slot *is* written
+exactly once, since the `unexpected` slots exist only when they are being
+written, so the generated initializer initializes each slot instead of blanking
+the tail and assigning over it. With that, parsing is 1.5% to 1.7% *faster* than
+before the compaction rather than 0.2% to 1.5% slower.
+
+The blanket initialize predates this work, so part of that gain is a `memset`
+every node has been paying for and did not need.
 
 **Knowing which kinds interleave cannot come from parity.** `unexpectedCodeDecl`
 has one child, at index 0, and that child is real — so an odd child count does
