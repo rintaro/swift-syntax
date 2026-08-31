@@ -51,9 +51,11 @@ internal enum RawSyntaxData: Sendable {
   case smolParsedToken(RawSyntaxArenaRef)
   case parsedToken(RawSyntaxArenaRef)
   case materializedToken(RawSyntaxArenaRef)
-  /// A node whose children are all elements of one kind, with no `unexpected`
-  /// slots between them. Its fields have the shape of `Layout`.
-  case collection(RawSyntaxArenaRef)
+  /// A node whose children are laid out one after another, with no `unexpected`
+  /// slots among them: every collection, and the few layout kinds that opt out of
+  /// interleaving. Every slot holds a child. Its fields have the shape of
+  /// `Layout`.
+  case flat(RawSyntaxArenaRef)
   /// A layout node holding only its real children, which is every layout node
   /// that parsed without anything unexpected in it. Its fields have the shape of
   /// `Layout`, followed by `childCount` slots.
@@ -65,7 +67,7 @@ internal enum RawSyntaxData: Sendable {
 
   var arenaReference: RawSyntaxArenaRef {
     switch self {
-    case .smolParsedToken(let ref), .parsedToken(let ref), .materializedToken(let ref), .collection(let ref),
+    case .smolParsedToken(let ref), .parsedToken(let ref), .materializedToken(let ref), .flat(let ref),
       .layout(let ref), .layoutWithUnexpected(let ref):
       return ref
     }
@@ -461,7 +463,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .smolParsedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.SmolParsedToken.self)
-    case .parsedToken, .materializedToken, .collection, .layout, .layoutWithUnexpected:
+    case .parsedToken, .materializedToken, .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("not a short parsed token")
     }
   }
@@ -472,7 +474,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .parsedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.ParsedToken.self)
-    case .smolParsedToken, .materializedToken, .collection, .layout, .layoutWithUnexpected:
+    case .smolParsedToken, .materializedToken, .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("not a parsed token")
     }
   }
@@ -483,7 +485,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .materializedToken:
       return tail.assumingMemoryBound(to: RawSyntaxData.MaterializedToken.self)
-    case .smolParsedToken, .parsedToken, .collection, .layout, .layoutWithUnexpected:
+    case .smolParsedToken, .parsedToken, .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("not a materialized token")
     }
   }
@@ -492,7 +494,7 @@ public struct RawSyntax: Sendable {
   @inline(__always)
   var layout: UnsafePointer<RawSyntaxData.Layout> {
     switch self.header {
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       return tail.assumingMemoryBound(to: RawSyntaxData.Layout.self)
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
@@ -525,7 +527,7 @@ public struct RawSyntax: Sendable {
     switch self.header {
     case .layoutWithUnexpected:
       slotCount = 2 * childCount + 1
-    case .collection, .layout:
+    case .flat, .layout:
       slotCount = childCount
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
@@ -551,18 +553,24 @@ public struct RawSyntax: Sendable {
     let start = UnsafeRawPointer(pointer.pointer).advanced(by: Self.childrenOffset)
       .assumingMemoryBound(to: RawSyntax?.self)
     let unexpected: UnsafeBufferPointer<RawSyntax?>
+    let interleaves: Bool
     switch self.header {
     case .layoutWithUnexpected:
       unexpected = UnsafeBufferPointer(start: start + childCount, count: childCount + 1)
-    case .collection, .layout:
+      interleaves = true
+    case .layout:
       unexpected = UnsafeBufferPointer(start: nil, count: 0)
+      interleaves = true
+    case .flat:
+      unexpected = UnsafeBufferPointer(start: nil, count: 0)
+      interleaves = false
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
     }
     return RawLayoutChildren(
       real: UnsafeBufferPointer(start: start, count: childCount),
       unexpected: unexpected,
-      interleaves: self.kind.interleavesUnexpectedChildren
+      interleaves: interleaves
     )
   }
 
@@ -584,7 +592,7 @@ extension RawSyntax {
   public var kind: SyntaxKind {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken: return .token
-    case .collection, .layout, .layoutWithUnexpected: return self.layout.pointee.kind
+    case .flat, .layout, .layoutWithUnexpected: return self.layout.pointee.kind
     }
   }
 
@@ -624,7 +632,7 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return 1
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       return self.layout.pointee.descendantCount + 1
     }
   }
@@ -639,7 +647,7 @@ extension RawSyntax {
       return fields.presence == .present ? fields.wholeTextLength : 0
     case .materializedToken:
       return self.materializedToken.pointee.presence == .present ? self.materializedToken.pointee.byteLength : 0
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       return self.layout.pointee.byteLength
     }
   }
@@ -649,7 +657,7 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return 1
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       return Int(self.layout.pointee.descendantCount) + 1
     }
   }
@@ -676,7 +684,7 @@ extension RawSyntax {
       } else {
         return 0
       }
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       return Int(self.layout.pointee.byteLength)
     }
   }
@@ -791,7 +799,7 @@ extension RawSyntax {
           try p.withSyntaxText(body: body)
         }
       }
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       for case let child? in self.logicalChildren {
         try child.withEachSyntaxText(body: body)
       }
@@ -839,7 +847,7 @@ extension RawSyntax: TextOutputStreamable, CustomStringConvertible {
         String(syntaxText: self.materializedToken.pointee.tokenText).write(to: &target)
         for p in self.materializedToken.pointee.trailingTrivia { p.write(to: &target) }
       }
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       for case let child? in self.logicalChildren {
         child.write(to: &target)
       }
@@ -1242,8 +1250,8 @@ extension RawSyntax {
   ) -> RawSyntax {
     let arenaRef = RawSyntaxArenaRef(arena)
     let header: RawSyntaxData
-    if kind.isSyntaxCollection {
-      header = .collection(arenaRef)
+    if !kind.interleavesUnexpectedChildren {
+      header = .flat(arenaRef)
     } else if hasUnexpected {
       header = .layoutWithUnexpected(arenaRef)
     } else {
@@ -1265,8 +1273,8 @@ extension RawSyntax {
     // What `RawSyntaxLayoutView.elements` relies on: a collection has an element
     // in every slot.
     assert(
-      !kind.isSyntaxCollection || slots.allSatisfy { $0 != nil },
-      "a collection may not have an absent element"
+      kind.interleavesUnexpectedChildren || slots.allSatisfy { $0 != nil },
+      "a node with a flat layout may not have an absent child"
     )
 
     // Summing over the slots needs no order, so it does not matter that they are
@@ -1332,8 +1340,8 @@ extension RawSyntax {
 
       let arenaRef = RawSyntaxArenaRef(arena)
       let header: RawSyntaxData
-      if kind.isSyntaxCollection {
-        header = .collection(arenaRef)
+      if !interleaves {
+        header = .flat(arenaRef)
       } else if hasUnexpected {
         header = .layoutWithUnexpected(arenaRef)
       } else {
@@ -1484,7 +1492,7 @@ extension RawSyntax: CustomDebugStringConvertible {
       target.write(" numLeadingTrivia=\(self.materializedToken.pointee.numLeadingTrivia)")
       target.write(" byteLength=\(self.materializedToken.pointee.byteLength)")
       break
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       target.write(".layout(")
       target.write(String(describing: kind))
       target.write(" byteLength=\(Int(self.layout.pointee.byteLength))")
@@ -1541,7 +1549,7 @@ extension RawSyntax {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return .token(tokenView!)
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       return .layout(layoutView!)
     }
   }

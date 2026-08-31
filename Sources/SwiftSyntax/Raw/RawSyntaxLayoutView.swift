@@ -18,7 +18,7 @@ extension RawSyntax {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return nil
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       return RawSyntaxLayoutView(raw: self)
     }
   }
@@ -34,7 +34,7 @@ public struct RawSyntaxLayoutView {
     switch raw.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("RawSyntax must be a layout")
-    case .collection, .layout, .layoutWithUnexpected:
+    case .flat, .layout, .layoutWithUnexpected:
       break
     }
   }
@@ -249,7 +249,7 @@ extension RawSyntaxLayoutView {
       let (base, childCount) = raw.slotBase
       precondition(index >= 0 && index <= childCount)
       return base[childCount + index]
-    case .collection, .layout:
+    case .flat, .layout:
       return nil
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
@@ -285,16 +285,17 @@ public struct RawSyntaxElements: RandomAccessCollection {
 }
 
 extension RawSyntaxLayoutView {
-  /// The elements of this node if it is a collection, and `nil` if it is a layout
-  /// node whose children have to be read as the tree describes them.
+  /// This node's slots if they are laid out one after another, and `nil` if they
+  /// are interleaved with `unexpected` slots and so have to be read as the tree
+  /// describes them.
   ///
   /// Asking this way costs a test of the word a reader has already loaded, where
   /// asking the kind costs a switch over every kind there is.
   @_spi(RawSyntax)
   @inline(__always)
-  public var elementsIfCollection: RawSyntaxElements? {
+  public var flatSlots: RawSyntaxElements? {
     switch raw.header {
-    case .collection:
+    case .flat:
       let (base, childCount) = raw.slotBase
       return RawSyntaxElements(slots: UnsafeBufferPointer(start: base, count: childCount))
     case .layout, .layoutWithUnexpected:
@@ -311,11 +312,11 @@ extension RawSyntaxLayoutView {
   @inline(__always)
   public var elements: RawSyntaxElements {
     switch raw.header {
-    case .collection:
+    case .flat:
       let (base, childCount) = raw.slotBase
       return RawSyntaxElements(slots: UnsafeBufferPointer(start: base, count: childCount))
     case .layout, .layoutWithUnexpected:
-      preconditionFailure("not a collection")
+      preconditionFailure("this node's children are interleaved with unexpected slots")
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
     }
