@@ -535,6 +535,15 @@ public struct RawSyntax: Sendable {
     return UnsafeBufferPointer(start: start, count: slotCount)
   }
 
+  /// Where this node's slots begin, and how many real children it has.
+  @inline(__always)
+  var slotBase: (base: UnsafePointer<RawSyntax?>, childCount: Int) {
+    let childCount = Int(tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).pointee.childCount)
+    let base = UnsafeRawPointer(pointer.pointer).advanced(by: Self.childrenOffset)
+      .assumingMemoryBound(to: RawSyntax?.self)
+    return (base, childCount)
+  }
+
   /// This node's children as the tree describes them, which for a node that kept
   /// no room for its `unexpected` slots means reading those as nil.
   var logicalChildren: RawLayoutChildren {
