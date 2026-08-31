@@ -210,21 +210,33 @@ the re-detection invariant prevents.
 
 Each step is independently reviewable, and each has something to measure.
 
-1. **Add `.collection`.** Done — `c09a35f68`. The case split alone, with both
-   cases still holding the same fields and the same tail, so no memory changes
-   and the parsed output is identical. Measured within noise on all three inputs.
-   Non-optional collection tails are deferred to a step of their own, since they
-   are a representation change rather than a discriminator change.
-2. **Split `.layout` / `.layoutWithUnexpected`, compacting at construction,**
-   and implement re-detection in every building entry point. This is where the
-   ~26% lands. Measure tree memory and time.
-3. **Regenerate the accessors** against physical indices.
-4. **Mutation paths**: converting case when an unexpected child is written, with
-   tests written directly against it.
-5. **Non-optional collection tails.** Nothing is ever nil there, so element
-   iteration can lose its nil test.
+1. **Add `.collection`.** Done — `c09a35f68`, with `392ad559c` making the checked
+   field accessors exhaustive so that a later shape cannot slip past them.
+2. **Split `.layout` / `.layoutWithUnexpected`, compacting at construction.**
+   Done — `a8526e8d7`, on top of `955e38008` which generates whether a kind
+   interleaves. Tree memory 15.32× → 11.20×, 13.95× → 10.44×, 15.31× → 11.20×.
+   `e7b18af8d` then moved the write into the tail; see *The write path*.
+3. **Accessors on physical slots.** Done — `402d033ac`. Reading a tree through
+   its typed accessors takes 4.1% fewer instructions.
+4. **Mutation paths.** The behaviour landed with step 2 rather than separately:
+   every mutating operation on `RawSyntaxLayoutView` builds a layout in the shape
+   the tree describes and hands it back to `makeLayout`, which re-examines it, so
+   a node that gains an unexpected child becomes `.layoutWithUnexpected` and one
+   that loses its last one becomes `.layout` again. Nothing has to remember to
+   preserve a shape, which is why `SyntaxRewriter` needed no changes.
 
-Steps 2 and 4 must land together — step 2 without step 4 is unsound.
+   **Its dedicated test is still outstanding.** What covers it today is indirect:
+   the suite, and 120 corrupted files that produce and read
+   `.layoutWithUnexpected` nodes. Neither aims at the transition itself, and no
+   test names `insertingChild`, `replacingChild` or the `withX` setters. The test
+   the plan asked for — set an unexpected child on a compact node, round-trip it,
+   and compare `formLayoutArray()` against the same node built expanded — should
+   be written before this branch is considered finished.
+5. **Non-optional collection tails.** Not started. Nothing is ever nil there, so
+   element iteration can lose its nil test.
+
+Steps 2 and 4 had to land together, and did: step 2 without re-detection would
+have let any rewritten node fall back to the expanded shape.
 
 ### Two things step 1 taught, which step 2 should apply first
 
@@ -308,9 +320,21 @@ The instruments this branch already relies on, in the order they catch things:
   from the kind — compact against full — the rule is that every building entry
   point decides for itself from what it was handed.
 
-Step 4 wants its own direct test rather than relying on the corpus: set an
-unexpected child on a compacted node, round-trip it, and compare
-`formLayoutArray()` against the equivalent node built expanded.
+All of the above ran on each of steps 1 to 3: fingerprints identical over the 749
+file corpus and over 120 deliberately corrupted files, 107 of which have errors
+and so exercise `.layoutWithUnexpected`; the trivia, UTF-8 and incremental
+checks identical; Address Sanitizer clean on both corpora.
+
+**The sanitizer run is not a fingerprint oracle against release output.** Two of
+the 749 files parse differently in a debug build than in a release one — one
+reports an error and 18,494 nodes where release reports none and 18,578 — and they
+did so before this work as well as after. Compare an instrumented build against
+another instrumented build, never against a release one; that comparison is what
+confirmed step 3, and it was identical.
+
+Step 4 still wants its own direct test, as above: set an unexpected child on a
+compact node, round-trip it, and compare `formLayoutArray()` against the same
+node built expanded. The suite passing is not that test.
 
 ---
 
