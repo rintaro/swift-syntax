@@ -118,3 +118,46 @@ trivia, UTF-8 and incremental checks; the suite; Address Sanitizer over both
 corpora, since the merge touches tail arithmetic; the arena memory probe, which
 should be **identical** — the move changes no shape, so any change in tree memory
 means something went wrong.
+
+---
+
+## Attempted, measured, and deferred
+
+Resolved and committed at `1391321b8` on `scratch-raw-merge`: builds, suite 3,486
+passing, trees identical to the pre-merge tip over the corpus and the 120 corrupted
+files, Address Sanitizer clean on both, and **tree memory byte-identical**, which is
+the check that the move altered no node shape.
+
+And **2% to 4% slower**: 1.641 → 1.671 ms on the collections input, 3.684 → 3.803 on
+the declaration-heavy one, confirmed at 3.540 → 3.681 on a second run. Not carried
+onto the integration branch on that basis; the refactor has not landed upstream, and
+the inlining question is better settled against it than against a cherry-pick.
+
+**The read-path instrument is blind to this.** `AccessorPerformanceTests` measured
+−0.09%, inside the noise floor, and on that basis this merge was described as
+costing nothing. That was wrong: the test reads trees through typed accessors, and
+the regression is in *building* them. Do not clear a change on that instrument alone
+when the change touches construction.
+
+The profile says exactly what happens, on the declaration-heavy input:
+
+| leaf | pre-merge | merged |
+|---|---|---|
+| `RawSyntax.makeLayout(kind:childCount:hasUnexpected:…)` | 0.00% | **12.18%** |
+| `RawSyntax.parsedToken`, specialized | 5.31% | 0.00% |
+| `RawSyntax.parsedToken`, **unspecialized** | 0.00% | 4.55% |
+| the generated `Raw*Syntax.init`s | ~3.0% together | 0.00% |
+| `<deduplicated_symbol>` | 4.32% | 1.84% |
+
+One mechanism: `makeLayout` and the generated initializers were inlined into each
+other and appeared as no leaf at all; across the module boundary they are real
+calls. `parsedToken` additionally loses its *specialisation*, which every token
+pays. `<deduplicated_symbol>` shrinks because the merged generated bodies that were
+being folded together no longer exist.
+
+So `@inlinable` on `makeLayout` alone cannot fix it — it would not recover
+`parsedToken`'s specialisation — and `@inlinable` on `makeLayout` already demands
+`@usableFromInline` on about a dozen internals including `RawSyntaxData` itself, its
+`Layout` initializer, `RecursiveRawSyntaxFlags` and four of its cases,
+`arenaReference`, `addChild`, `byteLength32` and `totalNodes32`. That is most of the
+node representation. Cross-module optimisation is the better lever, or waiting.

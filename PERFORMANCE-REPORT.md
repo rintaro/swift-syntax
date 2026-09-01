@@ -32,7 +32,11 @@ marks — 60% non-ASCII bytes. The declaration-heavy input is
 `Sources/SwiftSyntax/generated/*.swift` concatenated in sorted order to 468 KB.
 An earlier 317 KB declaration-heavy file was used for most of the per-commit
 figures below and has since been lost, so those figures are historical: they were
-measured, but not against a file that still exists. Anything re-measured after
+measured, but not against a file that still exists. The same has now happened to
+`nonascii_heavy`: the 321 KB file every figure here was measured against is gone,
+and the reproducible replacement in `swift-oss/perf-workspace/inputs` is 388 KB and
+65% non-ASCII, so future non-ASCII numbers are not comparable with these. The
+workspace exists because `/tmp` was cleaned three times during this work. Anything re-measured after
 that point says which input it used.
 
 ---
