@@ -167,7 +167,13 @@ branch: `dfd8fc3e7` moves the scalar read to `Lexer.Cursor.Position`,
 `a64eedc09` deletes P2's ASCII fast path in favour of inlining that read,
 `b2ec11378` drops a redundant end-of-file check, `f97d79e48` moves the
 byte-scanning functions down to `Position` behind cursor forwarders, and
-`b193016db` converts twenty snapshots from cursors to positions.
+`b193016db` converts twenty snapshots from cursors to positions. A sixth,
+`251657344`, holds a position as a pointer and one metadata word — the count of
+bytes left, with the sign bit saying nothing precedes it — which removes the stored
+look-behind byte and takes a `Position` from 17/24 bytes to 16. It has to come last
+of the six: it rewrites `advance()`, `advanced(by:)` and `distance(to:)`, which
+`f97d79e48` has only just moved onto `Position`. Worth **2.6% / 2.0% / 2.9%** on its
+own, which is more than the other five together.
 
 **Order matters here and the plan has to say so.** `a64eedc09` deletes the very
 change P2 introduces, and that is only correct downstream of P14 and P15:
@@ -315,6 +321,18 @@ adversarially nested input. And what is left in each is the array itself — an
 inline buffer with a count for the skipping stack, as the lexer's state stack
 already does, and for the spec set a generated `static let`, since everything
 derived there depends on the type rather than on the parse.
+
+### Not yet assigned to a PR
+
+Work that landed after this plan was written and has no row above. None of it is
+large; it needs homes rather than analysis.
+
+| | where it belongs |
+|---|---|
+| `0ae93a368` Derive a lexeme's `start` from the cursor it was lexed from — 72 → 64 bytes, ~2% on every input | its own small PR, or with the Cursor/Position split, since it is the same argument about what a lexeme stores |
+| `970d1a7ac` Scan the run of ordinary bytes inside a string literal — −10.7% on the declaration-heavy input | its own PR; independent of everything, and the third instance of the run-scanning shape |
+| `e12075211` Stop tracking `Parser`'s size | fold into P5, which is the PR that introduces the tracking; `Parser` gains stored properties under `SWIFTPARSER_ENABLE_ALTERNATE_TOKEN_INTROSPECTION`, so one expected number cannot describe it |
+| `c01c36234` List the added sources in the CMake builds | **split across the PRs that add those files** — P5 for `MemoryLayout.swift`, Group 6 for `RawSyntaxNodeList.swift` and `RawSyntaxNodeListBuilder.swift`. A PR that adds a file and not its CMake line breaks the CMake build while SwiftPM stays green |
 
 ## Needs your sign-off
 
