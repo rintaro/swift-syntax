@@ -20,6 +20,7 @@ add_swift_syntax_library(SwiftParser
   IsValidIdentifier.swift
   Lookahead.swift
   LoopProgressCondition.swift
+  MemoryLayout.swift
   Modifiers.swift
   Names.swift
   Nominals.swift
@@ -27,6 +28,7 @@ add_swift_syntax_library(SwiftParser
   Parser.swift
   ParseSourceFile.swift
   Patterns.swift
+  RawSyntaxNodeListBuilder.swift
   TokenSpec.swift
   TokenSpecSet.swift
   Recovery.swift
