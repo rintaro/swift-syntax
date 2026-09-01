@@ -23,6 +23,31 @@ That number overstates the work: nine of them are generated.
 Seven hunks of genuine merging. The nine generated files are derived from the one
 template, so resolving them by hand would be both laborious and wrong.
 
+## What attempting it found, which the conflicts do not show
+
+An attempt is preserved at `scratch-raw-merge` (`4f20a52d6`). Everything above
+resolved, the generator wrote the nine files to their new paths without complaint —
+**and it does not compile.** The real work is not merging text, it is deciding
+which side of the new module boundary the things this branch added belong on.
+
+1. **`RawSyntaxNodeList` cannot stay in SwiftSyntax.** It is generic over
+   `RawSyntaxNodeProtocol`, which the move takes to SwiftParser, so the type the
+   collections work introduced has to move with it — along with its CMake entry,
+   and with consequences for how P18 and P19 are cut.
+2. **SwiftSyntax still reaches for typed raw nodes.** `RawSyntaxTokenView` uses
+   `RawTokenSyntax` and `.cast`, which are no longer in the module. This is in code
+   the compaction work also changed — `withPresence` and `rebuiltParsedToken` — so
+   their handling of it and ours have to be reconciled rather than picked between.
+3. **The `raw.header` versus `header` hunks cannot be resolved by rule.** Dropping
+   the prefix is correct inside `extension RawSyntax`, where the move removes the
+   conformance that supplied `raw`, and wrong inside `RawSyntaxTokenView`, which
+   holds its own `raw`. Resolving all five the same way is what broke the build.
+   Read them one at a time.
+
+So the estimate above — seven hunks, a couple of hours — is wrong in kind, not in
+size. Budget for a module-partitioning decision, and expect it to touch the
+collections work as well as the compaction.
+
 ## Order to do it in
 
 1. **Take the renames.** Their paths win: the generated nodes and their template
@@ -67,6 +92,11 @@ this work turned on inlining placement: the bump allocator's fast path was worth
 in `advance(if:)` existed only because the function under it was not being
 inlined. The dylib profile taken through `swift-parse-test` also shows the same
 sources behaving differently once modules are separated.
+
+The direction is now genuinely unclear rather than merely unmeasured, because two
+effects pull opposite ways: the raw node accessors start crossing a module
+boundary, while `RawSyntaxNodeList`-based collection building stops crossing one
+if it moves to SwiftParser. Do not predict the sign.
 
 **What to measure, after the merge and before believing it:**
 
