@@ -1211,15 +1211,32 @@ stopping:
   materialized trivia allocates — is wrong. Trivia does not appear at all. It is
   parser-side arrays, and half of it is lookahead.
 
-  `skip(initialState:)` is the largest item in the parse that is not lexing. It
-  keeps `var stack: [SkippingState]` and pushes with `stack += [a, b]`, so every
-  push builds a temporary array literal as well as growing the buffer. Two
-  `append` calls and a `reserveCapacity` cost nothing to try; the shape that
-  removes the allocation altogether is the one the lexer's state stack already
-  uses — a fixed inline buffer with a count, spilling into the bump allocator.
-  Recursion would also remove it, at the price of unbounded machine-stack depth on
-  adversarially nested input, which is what the explicit stack is presumably there
-  to avoid.
+  The first two were taken, and both were allocations rather than algorithms:
+
+  | | |
+  |---|---|
+  | `a5ac88b83` Push a skipping state without allocating an array to hold it | **−3.9% / −1.6% / −0.7%** |
+  | `3ce750382` Ask a spec set for its cases once | **−1.1% / −2.4% / −1.7%** |
+
+  `skip(initialState:)` pushed onto its stack with `stack += [a, b]`, which builds
+  a temporary array for every push; `canRecoverTo(anyIn:)` asked `specSet.allCases`
+  three times, each a fresh `Array`, and reduced one of them through a second array
+  it threw away. Note the opposite spreads: skipping costs the declaration-heavy
+  input most, recovery costs the collections one most, which is why all three
+  inputs stay in the harness.
+
+  What is left of both is the arrays themselves. For `skip` that is the shape the
+  lexer's state stack already uses — a fixed inline buffer with a count, spilling
+  into the bump allocator. **Recursion is not the answer**: `01e94a1af` deliberately
+  removed it, and the explicit stack is what bounds the depth on adversarially
+  nested input. For `canRecoverTo` everything derived depends on the spec set and
+  not on the parse, so the answer is not to compute it per call at all — a
+  `static let` per generated spec set, which needs the generator since a protocol
+  extension cannot hold stored state.
+
+  Still untouched: `RawUnexpectedNodesSyntax.init(combining:)` at 0.84%, a direct
+  candidate for `RawSyntaxNodeList`, and the attribute and parameter list sites at
+  1.76% together.
 
 Two findings from this branch are worth carrying into whatever comes next.
 `<deduplicated_symbol>` in a profile is not one function: it is the compiler's
