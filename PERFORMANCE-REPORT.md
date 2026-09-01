@@ -4,26 +4,23 @@ Branch `perf-parser-2026-woc`, off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.6 to 3.0 times faster, and the tree it produces is 42% smaller**,
+**Parsing is 2.7 to 3.1 times faster, and the tree it produces is 57% smaller**,
 with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.873 ms | 1.669 ms | **2.92×** |
-| concatenated generated sources (468 KB) | 11.900 ms | 3.930 ms | **3.03×** |
-| `nonascii_heavy.swift.input` (321 KB) | 7.952 ms | 3.026 ms | **2.63×** |
+| `MinimalCollections.swift.input` (177 KB) | 4.934 ms | 1.681 ms | **2.94×** |
+| concatenated generated sources (468 KB) | 12.257 ms | 3.941 ms | **3.11×** |
+| `nonascii_heavy.swift.input` (321 KB) | 8.080 ms | 3.046 ms | **2.65×** |
 
 | tree memory | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` | 26.45× the source | **15.32×** | −42.1% |
-| concatenated generated sources | 24.32× | **13.95×** | −42.6% |
-| `nonascii_heavy.swift.input` | 26.87× | **15.31×** | −43.0% |
+| `MinimalCollections.swift.input` | 26.45× the source | **11.20×** | −57.7% |
+| concatenated generated sources | 24.32× | **10.44×** | −57.1% |
+| `nonascii_heavy.swift.input` | 26.87× | **11.20×** | −58.3% |
 
-Interleaved A/B, 20 rounds, two independent builds per side, medians and
-minimums agreeing to within 0.01×. The memory figures are from before
-`970d1a7ac` and `251657344`, which change only how bytes are scanned and how a
-position is held: both produce trees byte for byte identical over the 749 file
-corpus, so they allocate identically. Tree memory is what the arena's allocations
+Interleaved A/B, 14 rounds, two independent builds per side, per-build medians
+agreeing to within 0.02 ms. Tree memory is what the arena's allocations
 actually advance its bump pointer by, padding included — not
 `totalByteSizeAllocated`, which ignores the padding between allocations and
 understates the branch by about 1.3× of the source.
@@ -829,6 +826,50 @@ just after a nul byte in the middle of one, which would make the next operator
 character look as though it began the file. It asks the bit now. Nothing in the
 corpus or the malformed-input cases depended on the old reading: the parse output
 is identical over all 749 files, including the ones carrying an embedded nul.
+
+### Compacting the tree
+
+| | |
+|---|---|
+| `c09a35f68`… `eb1a20b29` — a node keeps no room for its `unexpected` children unless it has some | **tree −26%**, parse **−1.5% to −1.7%**, reads **−6.5%** |
+
+A non-collection layout node interleaves an `unexpected` slot before its first
+child, between every pair and after the last, so *n* children occupy 2*n*+1
+slots. Over the 749 file corpus **not one of 1,132,225 layout nodes had anything
+in any of them**, and with every 200th byte deleted it is still under 1%. Those
+slots were 56.8% of every layout child slot in the tree.
+
+A node now holds only its real children unless it has something unexpected, and
+which of the three shapes it has — flat, interleaved and compact, interleaved
+with the slots present — is the case of the header word every reader already
+switches on to reach a tail. Real children come first in every shape, so
+reaching one is the same index whichever shape a node has.
+
+Three findings are worth more than the bytes:
+
+- **A `memset` cost what the copy did not.** Filling a temporary and copying into
+  the tail measured the same as writing into it directly, because the temporary
+  is a stack allocation and the cold arena traffic is identical either way. What
+  cost 1.95% of a parse was the generated `layout.initialize(repeating: nil)`
+  becoming a real `memset` once it wrote into arena memory. Initializing each slot
+  exactly once removed it, and that inefficiency predated this work.
+- **Nearly all of the read-path gain was not asking `SyntaxKind` a question the
+  header answers.** `isSyntaxCollection` and `interleavesUnexpectedChildren` are
+  switches over some three hundred kinds, and they sat on paths that run per node.
+  Merging the flat cases so that `.layout` means interleaved-and-compact without
+  qualification was worth 5.6% of a traversal on its own — more than every other
+  read-path change together.
+- **Parsing benchmarks cannot see any of this.** They build nodes and never read
+  them back. `AccessorPerformanceTests` reads a tree the way the compiler's AST
+  generation does and is the only instrument here that measures reaching a child;
+  it counts instructions, and the first run after a build is 5% to 12% high from
+  cold caches.
+
+An occupancy bitmap for the 34% of *real* child slots that are nil was measured
+and rejected: worth 5% to 7% of tree memory, at the price of a node's physical
+shape depending on which of its optional children are present rather than on its
+kind. See `COMPACT-LAYOUT-PLAN.md` for that and for the empty-collection
+findings.
 
 ---
 
