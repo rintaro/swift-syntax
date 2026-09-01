@@ -4,20 +4,23 @@ Branch `perf-parser-2026-woc`, off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.7 to 3.3 times faster, and the tree it produces is 57% smaller**,
+**Parsing is 2.4 to 3.3 times faster, and the tree it produces is 57% smaller**,
 with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.925 ms | 1.633 ms | **3.02×** |
-| concatenated generated sources (468 KB) | 12.299 ms | 3.679 ms | **3.34×** |
-| `nonascii_heavy.swift.input` (321 KB) | 8.040 ms | 2.974 ms | **2.70×** |
+| `MinimalCollections.swift.input` (177 KB) | 4.698 ms | 1.555 ms | **3.02×** |
+| concatenated generated sources (468 KB) | 11.543 ms | 3.555 ms | **3.25×** |
+| `nonascii_heavy.swift.input` (388 KB) | 8.037 ms | 3.295 ms | **2.44×** |
 
 | tree memory | main | branch | |
 |---|---|---|---|
 | `MinimalCollections.swift.input` | 26.45× the source | **11.20×** | −57.7% |
 | concatenated generated sources | 24.32× | **10.44×** | −57.1% |
 | `nonascii_heavy.swift.input` | 26.87× | **11.20×** | −58.3% |
+
+The non-ASCII row of the timing table is the reproducible 388 KB input; its memory
+row above is still the lost 321 KB one, and has not been re-measured.
 
 Interleaved A/B, 16 rounds, two independent builds per side and all four built in
 one session, per-build medians agreeing to within 0.03 ms. Tree memory is what the arena's allocations
