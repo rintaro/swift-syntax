@@ -286,6 +286,36 @@ asking `SyntaxKind` a question the header answers: `isSyntaxCollection` and
 per-node paths, which is why merging the flat cases in P27 was worth more than
 every other read-path change together.
 
+### Group 9 — lookahead allocations (standalone, independent of everything else)
+
+Attributing every retain, release and allocation to its caller put reference
+counting at 13.3% of a parse, of which 9.6% was `Array` machinery — and half of
+that was in lookahead. Neither of these is an algorithm change; both are an
+allocation that did not need to happen.
+
+| | | contents | lines | measured |
+|---|---|---|---|---|
+| [ ] | P28 | Push a skipping state without allocating an array to hold it — `a5ac88b83` | 24 | −1.6% / **−3.9%** / −0.7% |
+| [ ] | P29 | Ask a spec set for its cases once — `3ce750382` | 14 | **−2.4%** / −1.1% / −1.7% |
+
+Percentages are collections, declaration-heavy and non-ASCII, each against the
+commit's own parent. The spreads are opposite and that is the point: skipping
+costs the declaration-heavy input most, recovery costs the collections one most.
+
+`Lookahead.skip(initialState:)` pushed onto its state stack with
+`stack += [a, b]`, which builds a temporary array for every push, on the path
+malformed input and every speculative parse take. `canRecoverTo(anyIn:)` asked
+`specSet.allCases` three times — four with alternate token introspection enabled,
+which is why the hoist has to go above that `#if` — and each call builds a fresh
+`Array`, one of which it then reduced through a second array it discarded.
+
+Two notes for review. **Recursion is the wrong fix for the first**: `01e94a1af`
+deliberately removed it, and the explicit stack is what bounds the depth on
+adversarially nested input. And what is left in each is the array itself — an
+inline buffer with a count for the skipping stack, as the lexer's state stack
+already does, and for the spec set a generated `static let`, since everything
+derived there depends on the type rather than on the parse.
+
 ## Needs your sign-off
 
 - [ ] **P17** rests on `@exclusivity(unchecked)`. Without it the change is a 14%
@@ -313,6 +343,9 @@ automatically. They want saying in prose.
 5. Group 8 after Group 7, since it assumes tail-allocated children. P22 can go at
    any point and is worth landing early on its own merits — it is the only
    benchmark here that measures reading a tree rather than building one.
+6. Group 9 whenever convenient. Two small diffs in two files, dependent on
+   nothing, and between them worth more on the declaration-heavy input than most
+   of Group 1.
 
 ## What "done" means for each PR
 
