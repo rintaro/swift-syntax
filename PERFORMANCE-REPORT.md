@@ -1191,10 +1191,35 @@ stopping:
 - **`allocateNode` at 3.2%.** The bump itself, which does not come down by making
   one allocation cheaper. Nodes per parse is the lever, and after the collections
   and tail allocation work there is no obvious surplus left.
-- **Reference counting at 5.5%**, up from 2.3% as a *share* because the parse got
-  faster around it rather than because it grew. Where it comes from is worth a
-  look; the arena work removed the per-token traffic, so what remains is likely
-  the `[RawTriviaPiece]` arrays that materialized trivia still allocates.
+- **Reference counting, and it is `Array`, not trivia.** Attributing every
+  retain, release, allocation and deallocation to its *caller* over a parse of the
+  468 KB input puts reference counting at 13.3%, of which 9.6% is array machinery:
+  growth, copy-on-write reallocation and teardown. (That is not a regression
+  against the 5.5% above, which is leaf self time in a named cluster — the two
+  count different things.)
+
+  | grown by | % of parse |
+  |---|---|
+  | `Parser.Lookahead.skip(initialState:)` | **3.22%** |
+  | `Parser.Lookahead.canRecoverTo(anyIn:overrideRecoveryPrecedence:)` | **1.63%** |
+  | `_swift_release_dealloc`, unattributed teardown | 1.02% |
+  | `RawUnexpectedNodesSyntax.init(combining:_:arena:)` | 0.84% |
+  | `Parser.parseStringLiteral()` | 0.75% |
+  | `parseTypeAttributeList`, `parseFunctionParameter`, `parseAttributeList`, `parseSwitchCases` | 1.76% together |
+
+  The guess recorded here previously — that it was the `[RawTriviaPiece]` arrays
+  materialized trivia allocates — is wrong. Trivia does not appear at all. It is
+  parser-side arrays, and half of it is lookahead.
+
+  `skip(initialState:)` is the largest item in the parse that is not lexing. It
+  keeps `var stack: [SkippingState]` and pushes with `stack += [a, b]`, so every
+  push builds a temporary array literal as well as growing the buffer. Two
+  `append` calls and a `reserveCapacity` cost nothing to try; the shape that
+  removes the allocation altogether is the one the lexer's state stack already
+  uses — a fixed inline buffer with a count, spilling into the bump allocator.
+  Recursion would also remove it, at the price of unbounded machine-stack depth on
+  adversarially nested input, which is what the explicit stack is presumably there
+  to avoid.
 
 Two findings from this branch are worth carrying into whatever comes next.
 `<deduplicated_symbol>` in a profile is not one function: it is the compiler's
