@@ -241,6 +241,51 @@ history of the layout rather than as the tree's current size.
 | [ ] | P20 | Hold a materialized token's fields behind a pointer — `77a7fc600` | 106 | node 64 → 56 bytes |
 | [ ] | P21 | Narrow the node's fields and reorder them — *squash of 2* | ~250 | node → **40**, tree 26.8× → **20.0×**, ~0.5% slower |
 
+### Group 8 — compacting the tree (chained, requires Group 7)
+
+A non-collection layout node interleaves an `unexpected` slot before its first
+child, between every pair and after the last, so *n* children take 2*n*+1 slots.
+Over the 749 file corpus **not one of 1,132,225 layout nodes had anything in any
+of them** — with every 200th byte deleted it is still under 1% — and those slots
+were 56.8% of every layout child slot in the tree. A node now keeps room for them
+only when it has something to put there.
+
+| | | contents | lines | measured |
+|---|---|---|---|---|
+| [ ] | P22 | Read a tree through its typed accessors, as a benchmark — `bb3b8391d` | 227 | — |
+| [ ] | P23 | `.collection` as its own header case; field accessors made exhaustive — `f89090804`, `be5232589` | 78 | neutral |
+| [ ] | P24 | Generate whether a kind interleaves its unexpected children — `e7474384d` | 38 [496] | — |
+| [ ] | P25 | Keep no room for unexpected children in a node that has none — *squash of 3* | 655 [6,562] | **tree −26%**, parse −1.5%/−1.7% |
+| [ ] | P26 | Reach a child by where it sits, not by where the tree says — `0f3933e09` | 68 [3,596] | reads −4.1% |
+| [ ] | P27 | One flat case, and read its slots without a test — *squash of 3* | 210 | reads **−6.5%** |
+
+**P22 first, and not as a courtesy.** Every performance test in the repository
+builds trees or walks them generically; none reads one through the generated
+accessors, which is what P26 and P27 change. Without it those two measure as
+noise. It counts instructions rather than time, so it resolves effects under a
+percent — but the first run after a build is 5% to 12% high from cold caches, and
+two sessions measuring one commit differ by about 0.4%, which is the floor on any
+comparison across builds.
+
+**The whole group sits on Group 7.** Compaction assumes a node's children are tail
+allocated, so P20 and P21 have to land first. P23 and P24 are prerequisites with
+nothing to show on their own: P23 is the header case with both shapes still
+identical, P24 a generated `SyntaxKind` property.
+
+**P25 and its mutation tests cannot be split.** Every mutating operation hands its
+layout back to `makeLayout`, which decides the shape afresh — that is what keeps a
+rewritten node compact and what let `SyntaxRewriter` go untouched. Landing the
+compaction without that would silently re-expand every rewritten tree.
+
+Two things a reviewer will want, and neither is in the diffs. `RawSyntaxData` gains
+three shapes where it had one, and the four checked field accessors ended in
+`default:` arms that the compiler could not flag — that is why P23 makes them
+exhaustive before any shape is added. And nearly all of P26 and P27's gain is *not*
+asking `SyntaxKind` a question the header answers: `isSyntaxCollection` and
+`interleavesUnexpectedChildren` are switches over three hundred kinds that sat on
+per-node paths, which is why merging the flat cases in P27 was worth more than
+every other read-path change together.
+
 ## Needs your sign-off
 
 - [ ] **P17** rests on `@exclusivity(unchecked)`. Without it the change is a 14%
@@ -263,8 +308,11 @@ automatically. They want saying in prose.
 2. Groups 2, 3, 4 and 7 in parallel — 2 and 3 touch different files, 4 is
    independent of both, 7 is a different module.
 3. Group 5 once the two questions above are settled.
-4. Group 6 last: it is the largest, touches CodeGeneration and most parser files,
-   and wants a quiet base.
+4. Group 6 last among the parser work: it is the largest, touches CodeGeneration
+   and most parser files, and wants a quiet base.
+5. Group 8 after Group 7, since it assumes tail-allocated children. P22 can go at
+   any point and is worth landing early on its own merits — it is the only
+   benchmark here that measures reading a tree rather than building one.
 
 ## What "done" means for each PR
 
