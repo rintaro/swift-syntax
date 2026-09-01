@@ -96,8 +96,8 @@ to P16. Resolve by taking P4's side without it.
 |---|---|---|---|---|
 | [x] | P5+P6 | Track the memory layout, then shrink `Lexer.Cursor` — `e93ebdd4c` in its consolidated form, then a squash of `0c3ccd94b`, `14d54bd0a`, `1a39c55bc` | 150 + 114 | **−11.1%/−11.7%** and **−10.9%/−10.8%** vs `main`, two builds per input |
 | [x] | P7 | Keep the state allocator alive across the cursor — `91e26dc86` | 71 | neutral, as expected: the parse benchmark never reaches this code |
-| [ ] | P8 | State stack as a shared linked list — *squash of 4* | ~250 | −1.9% / −1.9%, then +0.6% for interning |
-| [ ] | P9 | Hand the lexer its allocator without retaining it — *squash of 3* | ~150 | −4.0/−3.6, then −1.7/−1.5 |
+| [ ] | P8 | State stack as a shared linked list — `6e5ee4ee4`, `ad179aa76`, `8886b84d0`, `9a9c7095c` | ~250 | −1.9% / −1.9%, then +0.6% for interning |
+| [ ] | P9 | Hand the lexer its allocator without retaining it — `aad644153`, `c331d96de`, `d3952537f` | ~150 | −4.0/−3.6, then −1.7/−1.5 |
 
 P5 and P6 went out as one PR of two commits: the tracked numbers land with
 `main`'s values, then one squashed commit moves all of them. Two findings from
@@ -134,8 +134,8 @@ digest of every literal's represented value: identical across 749 files and
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [x] | P10 | Cache the resolved keyword on `Lexeme`, reuse `lexIdentifier`'s lookup — *squash of 2* | 79 | **−6.5% / −6.6%** vs `main`, against **−10.3/−9.8** claimed at its own base |
-| [ ] | P11 | Match hand-written spec sets on the keyword — *squash of 5* | ~700 *mechanical* | −9.8/−7.8, −0.4/−1.2, −2.5/−2.3 |
+| [x] | P10 | Cache the resolved keyword on `Lexeme`, reuse `lexIdentifier`'s lookup — `265f0b27e`, `eb71d5311` | 79 | **−6.5% / −6.6%** vs `main`, against **−10.3/−9.8** claimed at its own base |
+| [ ] | P11 | Match hand-written spec sets on the keyword — `d64f96239`, `c2a9dffe8`, `916c0b86b`, `7524ff0b4`, `3077fc191` | ~700 *mechanical* | −9.8/−7.8, −0.4/−1.2, −2.5/−2.3 |
 | [ ] | P12 | Generate spec set initializers the same way — `eca3c7bef`, `2ac6a490b` | 150 [2,645] | −0.3% / −0.3% |
 | [ ] | P13 | Don't declare attribute names as keywords — `41a10b37b` | 250 [108] | neutral |
 
@@ -146,8 +146,8 @@ the rest of this group.
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [x] | P14 | Trivia: decide before consuming, then the fast path — *squash of 4* | 133 | **−9.1%/−10.3% and −10.5%/−10.9%** vs `main`, two builds per input |
-| [x] | P15 | Identifier scanning and one character classification — *squash of 3* | 96 | **−10.3% / −9.3%** vs `main`, against −3.1/−3.2 claimed across its own bases |
+| [x] | P14 | Trivia: decide before consuming, then the fast path — `4b95810fa`, `ab06261c3`, `db190d73c`, `cfd6a9383` | 133 | **−9.1%/−10.3% and −10.5%/−10.9%** vs `main`, two builds per input |
+| [x] | P15 | Identifier scanning and one character classification — `79bc75d3d`, `50044b0fe`, `e3ff94452` | 96 | **−10.3% / −9.3%** vs `main`, against −3.1/−3.2 claimed across its own bases |
 
 P14 cherry-picks onto `main` cleanly. P15 does not: `50044b0fe` expects the
 `extension UInt8` block that P14 introduces, and `main` has no
@@ -245,7 +245,7 @@ history of the layout rather than as the tree's current size.
 | | | contents | lines | effect |
 |---|---|---|---|---|
 | [ ] | P20 | Hold a materialized token's fields behind a pointer — `77a7fc600` | 106 | node 64 → 56 bytes |
-| [ ] | P21 | Narrow the node's fields and reorder them — *squash of 2* | ~250 | node → **40**, tree 26.8× → **20.0×**, ~0.5% slower |
+| [ ] | P21 | Narrow the node's fields and reorder them — `ffa99ce81`, `43ad5af60` | ~250 | node → **40**, tree 26.8× → **20.0×**, ~0.5% slower |
 
 ### Group 8 — compacting the tree (chained, requires Group 7)
 
@@ -261,9 +261,9 @@ only when it has something to put there.
 | [ ] | P22 | Read a tree through its typed accessors, as a benchmark — `bb3b8391d` | 227 | — |
 | [ ] | P23 | `.collection` as its own header case; field accessors made exhaustive — `f89090804`, `be5232589` | 78 | neutral |
 | [ ] | P24 | Generate whether a kind interleaves its unexpected children — `e7474384d` | 38 [496] | — |
-| [ ] | P25 | Keep no room for unexpected children in a node that has none — *squash of 3* | 655 [6,562] | **tree −26%**, parse −1.5%/−1.7% |
+| [ ] | P25 | Keep no room for unexpected children in a node that has none — `716127f54`, `bb1f9a521`, `587968bf9` | 655 [6,562] | **tree −26%**, parse −1.5%/−1.7% |
 | [ ] | P26 | Reach a child by where it sits, not by where the tree says — `0f3933e09` | 68 [3,596] | reads −4.1% |
-| [ ] | P27 | One flat case, and read its slots without a test — *squash of 3* | 210 | reads **−6.5%** |
+| [ ] | P27 | One flat case, and read its slots without a test — `b9922d00d`, `a05c1a083`, `d5e8375cd` | 210 | reads **−6.5%** |
 
 **P22 first, and not as a courtesy.** Every performance test in the repository
 builds trees or walks them generically; none reads one through the generated
