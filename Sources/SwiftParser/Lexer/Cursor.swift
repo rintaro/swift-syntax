@@ -46,6 +46,24 @@ public enum StringLiteralKind: Equatable {
   case singleQuote
 }
 
+extension UInt8 {
+  /// Whether this byte can only begin a token, and so is never trivia nor the
+  /// start of any.
+  ///
+  /// True of the printable ASCII characters other than the three that begin a
+  /// comment or a conflict marker. A byte outside that range is whitespace, a
+  /// control character, or part of a multi-byte scalar, each of which the lexer
+  /// can take as trivia.
+  fileprivate var beginsOnlyAToken: Bool {
+    switch self {
+    case UInt8(ascii: "!")...UInt8(ascii: "~"):
+      return self != UInt8(ascii: "/") && self != UInt8(ascii: "<") && self != UInt8(ascii: ">")
+    default:
+      return false
+    }
+  }
+}
+
 extension Lexer.Cursor {
   /// Because the lexer lexes tokens lazily it doesn't carry any state in its
   /// current call stack. Instead, we model the lexer state by an explicit state
@@ -105,7 +123,7 @@ extension Lexer.Cursor {
 
     /// The mode in which leading trivia should be lexed for this state or `nil`
     /// if no trivia should be lexed.
-    func leadingTriviaLexingMode(cursor: Lexer.Cursor) -> TriviaLexingMode? {
+    func leadingTriviaLexingMode() -> TriviaLexingMode? {
       switch self {
       case .normal, .preferRegexOverBinaryOperator: return .normal
       case .afterRawStringDelimiter: return nil
@@ -126,7 +144,7 @@ extension Lexer.Cursor {
 
     /// The mode in which trailing trivia should be lexed for this state or `nil`
     /// if no trivia should be lexed.
-    func trailingTriviaLexingMode(cursor: Lexer.Cursor) -> TriviaLexingMode? {
+    func trailingTriviaLexingMode() -> TriviaLexingMode? {
       switch self {
       case .normal, .preferRegexOverBinaryOperator: return .noNewlines
       case .afterRawStringDelimiter: return nil
@@ -451,7 +469,7 @@ extension Lexer.Cursor {
     let leadingTriviaStart = self
     let newlineInLeadingTrivia: NewlinePresence
     var diagnostic: TokenDiagnostic? = nil
-    if let leadingTriviaMode = self.currentState.leadingTriviaLexingMode(cursor: self) {
+    if let leadingTriviaMode = self.currentState.leadingTriviaLexingMode() {
       let triviaResult = self.lexTrivia(mode: leadingTriviaMode)
       newlineInLeadingTrivia = triviaResult.newlinePresence
       diagnostic = TokenDiagnostic(combining: diagnostic, triviaResult.error?.tokenDiagnostic(tokenStart: cursor))
@@ -506,7 +524,7 @@ extension Lexer.Cursor {
 
     // Trailing trivia.
     let trailingTriviaStart = self
-    if let trailingTriviaMode = result.trailingTriviaLexingMode ?? currentState.trailingTriviaLexingMode(cursor: self) {
+    if let trailingTriviaMode = result.trailingTriviaLexingMode ?? currentState.trailingTriviaLexingMode() {
       let triviaResult = self.lexTrivia(mode: trailingTriviaMode)
       self.previousLexemeTrailingNewlinePresence = triviaResult.newlinePresence
       diagnostic = TokenDiagnostic(combining: diagnostic, triviaResult.error?.tokenDiagnostic(tokenStart: cursor))
@@ -1269,7 +1287,38 @@ extension Lexer.Cursor {
     let error: LexingDiagnostic?
   }
 
+  /// - Important: `@inline(__always)` so that the fast path lands in the caller.
+  ///   Left to itself the compiler keeps this out of line, which puts a call in
+  ///   front of the scan rather than in place of it.
+  @inline(__always)
   fileprivate mutating func lexTrivia(mode: TriviaLexingMode) -> TriviaResult {
+    // Four fifths of the calls over real source are answered here: two thirds
+    // find a byte that begins a token, so there is no trivia at all, and a sixth
+    // find one space and then such a byte. The scan dispatches on the byte
+    // through an indirect branch, and being inlined this spares them the call
+    // as well.
+    //
+    // A newline reaches the scan even where it is not trivia, because whether it
+    // is depends on the mode. It is a tenth of the calls that find no trivia.
+    //
+    // `escapedNewlineInMultiLineStringLiteral` starts at a backslash, which
+    // begins a token everywhere else, so it cannot take this path.
+    if mode != .escapedNewlineInMultiLineStringLiteral {
+      var byte = self.peek()
+      // A space is trivia to every mode that reaches here, so take one before
+      // testing: it is the whole of the trivia between most pairs of tokens.
+      if byte == UInt8(ascii: " ") {
+        _ = self.advance()
+        byte = self.peek()
+      }
+      if let byte, byte.beginsOnlyAToken {
+        return TriviaResult(newlinePresence: .absent, error: nil)
+      }
+    }
+    return self.lexTriviaByScanning(mode: mode)
+  }
+
+  private mutating func lexTriviaByScanning(mode: TriviaLexingMode) -> TriviaResult {
     var newlinePresence = NewlinePresence.absent
     var error: LexingDiagnostic? = nil
     if mode == .escapedNewlineInMultiLineStringLiteral {
@@ -1287,54 +1336,56 @@ extension Lexer.Cursor {
     }
 
     while true {
-      let start = self
-
-      switch self.advance() {
+      // The character is only consumed once it is known to be trivia, so the
+      // cursor does not have to be saved in order to put it back. Only the
+      // branches that look at the character a second time need its position.
+      switch self.peek() {
       // 'continue' - the character is a part of the trivia.
-      // 'break' - the character should a part of token text.
+      // 'return' - the character should be a part of token text.
       case nil:
-        break
+        return TriviaResult(newlinePresence: newlinePresence, error: error)
       case "\n":
         if mode == .noNewlines {
-          break
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
         newlinePresence = .present
+        _ = self.advance()
         continue
       case "\r":
         if mode == .noNewlines {
-          break
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
         newlinePresence = .present
+        _ = self.advance()
         continue
 
-      case " ":
-        continue
-      case "\t":
-        continue
-      case "\u{000B}":
-        continue
-      case "\u{000C}":
+      case " ", "\t", "\u{000B}", "\u{000C}":
+        _ = self.advance()
         continue
       case "/":
-        switch self.peek() {
+        switch self.peek(at: 1) {
         case "/":
           self.advanceToEndOfLine()
           continue
         case "*":
-          let starSlashResult = self.advanceToEndOfSlashStarComment(slashPosition: start)
+          let slashPosition = self
+          _ = self.advance()
+          let starSlashResult = self.advanceToEndOfSlashStarComment(slashPosition: slashPosition)
           if starSlashResult.newlinePresence == .present {
             newlinePresence = .present
           }
           error = error ?? starSlashResult.error
           continue
         default:
-          break
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
       case "<", ">":
+        let start = self
         if self.tryLexConflictMarker(start: start) {
           error = LexingDiagnostic(.sourceConflictMarker, position: start)
           continue
         }
+        return TriviaResult(newlinePresence: newlinePresence, error: error)
       // Start character of tokens.
       //        case (char)-1: case (char)-2:
       case  // Punctuation.
@@ -1357,10 +1408,11 @@ extension Lexer.Cursor {
 
         // Start of operators.
         "%", "!", "?", "=", "-", "+", "*", "&", "|", "^", "~", ".":
-        break
+        return TriviaResult(newlinePresence: newlinePresence, error: error)
       case 0xEF:
-        if self.is(at: 0xBB), self.is(offset: 1, at: 0xBF) {
+        if self.is(offset: 1, at: 0xBB), self.is(offset: 2, at: 0xBF) {
           // BOM marker.
+          _ = self.advance()
           _ = self.advance()
           _ = self.advance()
           continue
@@ -1368,27 +1420,26 @@ extension Lexer.Cursor {
 
         fallthrough
       default:
-        if let peekedScalar = start.peekScalar(), peekedScalar.isValidIdentifierStartCodePoint {
-          break
+        if let peekedScalar = self.peekScalar(), peekedScalar.isValidIdentifierStartCodePoint {
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
-        if let peekedScalar = start.peekScalar(), peekedScalar.isOperatorStartCodePoint {
-          break
+        if let peekedScalar = self.peekScalar(), peekedScalar.isOperatorStartCodePoint {
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
 
-        // `lexUnknown` expects that the first character has not been consumed yet.
-        self = start
+        // `lexUnknown` expects that the first character has not been consumed
+        // yet, which it is not, but it does consume what it looks at. Put the
+        // cursor back if what it found belongs to the token rather than to the
+        // trivia.
+        let unknownStart = self
         if case .trivia(let unknownError) = self.lexUnknown() {
           error = error ?? unknownError
           continue
         } else {
-          break
+          self = unknownStart
+          return TriviaResult(newlinePresence: newlinePresence, error: error)
         }
       }
-
-      // `break` means the character was not a trivia. Reset the cursor and
-      // return the result.
-      self = start
-      return TriviaResult(newlinePresence: newlinePresence, error: error)
     }
   }
 }
