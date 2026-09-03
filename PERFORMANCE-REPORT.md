@@ -891,16 +891,49 @@ findings.
 `swiftlang-6.5.0.9.6` that was worth −2.4%. On `6.5.0.10.5` the same eight lines
 cost **+19%**, and the branch as a whole ran 47% slower.
 
-The profile says why. Under 10.5 the generic local stops being specialised, so its
-type is resolved at run time: `swift_getTypeByMangledName`, `demangleType` and
-`DemangleInitRAII` appear from nowhere and take **14.07%** of a parse where they
-were 0.00% before, `_pop<A>` shows up unspecialised, and `memmove` quadruples.
-Every parser symbol's share falls proportionally, which is arithmetic rather than
-improvement.
+Isolated properly, as a four-cell matrix over the two variables — the hoist
+present or not, crossed with the two toolchains — on `decl_heavy.swift.input`,
+two builds per cell, six interleaved rounds with the first discarded:
 
-Isolated properly: cherry-picked alone onto `main` (`8846689fe`) it takes metadata
-lookup from 0.00% to 7.06% and costs 19%, so it is the change and not the branch.
-Reverted here in `cb62d8055`, after which metadata is 0.00% again on 10.5.
+| | 9.6 | 10.5 |
+|---|---|---|
+| without the hoist | 8.716 ms | 8.788 ms |
+| with the hoist | 8.684 ms | **10.477 ms** |
+
+The hoist is **−0.37%** under 9.6 and **+19.22%** under 10.5; the toolchain alone,
+without the hoist, is +0.83%. The two builds within each cell agree to 0.25%, so
+none of this is build-layout noise. It is an interaction: neither the change nor
+the compiler is slow, only the pair.
+
+**The mechanism is not known**, and the first answer recorded here was wrong. The
+profile showed metadata symbols — `swift_getTypeByMangledName`, `demangleType` —
+taking 14.07% where they had been 0.00%, and that was read as the generic losing
+its specialisation. Object-level inspection of the very builds it was claimed for
+does not support it: `canRecoverTo(anyIn:)` is specialised in all cells, 34 to 38
+specialisations each, and metadata-accessor and
+`instantiateConcreteTypeFromMangledName` call sites are identical across all of
+them. The hoist's only static footprint is +12 KB of `__text`, three more outlined
+variables, and two more specialisations, and 9.6 *merges* a specialisation where
+10.5 emits it separately with `outlined variable #0 of generic specialization`
+symbols. Disabling the object outliner does not recover the time (10.396 ms), so
+that pass is ruled out too.
+
+Of the 632 commits between the two tags, 78 touch the SIL optimizer and only two
+touch generic specialisation — both `[Embedded key paths]` work
+(`ac170af7900`, `eced27022cb`) reachable only under
+`context.options.enableEmbeddedSwift`, so neither can affect this. What remains
+plausible is `85f101092ee`, two lines adding `notifyInstructionsChanged()` and
+`notifyBranchesChanged()` to `Context.inlineFunction`, which reaches release
+builds through `CommonSubexpressionElimination`; and `619b66e639f`, a closure
+specialization thunk fix that adds recursion bail-outs, relevant because the
+hoist deleted a closure. Neither is confirmed.
+
+Five attempts to reproduce it standalone all failed — two conformers, sixty
+conformers, a `canRecoverTo`-shaped body, a two-module package, and
+closure-versus-`lazy`-key-path in one file, where 10.5 specialises both. It takes
+SwiftParser's real scale to tip, which is itself the finding.
+
+Reverted here in `cb62d8055`.
 
 The lesson is not about one commit. **A micro-optimisation and its specialisation
 are not separable results**, and a change whose sign flips between two patch
