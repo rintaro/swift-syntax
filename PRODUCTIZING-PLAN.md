@@ -302,7 +302,7 @@ allocation that did not need to happen.
 | | | contents | lines | measured |
 |---|---|---|---|---|
 | [ ] | P28 | Push a skipping state without allocating an array to hold it — `a5ac88b83` | 24 | −1.6% / **−3.9%** / −0.7% |
-| ~~P29~~ | Ask a spec set for its cases once — `3ce750382`, **reverted in `cb62d8055`** | 14 | −2.4% on 6.5.0.9.6, **+19% on 6.5.0.10.5** |
+| [ ] | P29 | Ask a spec set for its cases once — `3ce750382`, reverted in `cb62d8055`, re-applied as `a196f3daa` | 14 | **−2.0% / −1.3%** in retired instructions |
 
 Percentages are collections, declaration-heavy and non-ASCII, each against the
 commit's own parent. The spreads are opposite and that is the point: skipping
@@ -315,11 +315,13 @@ malformed input and every speculative parse take. `canRecoverTo(anyIn:)` asked
 which is why the hoist has to go above that `#if` — and each call builds a fresh
 `Array`, one of which it then reduced through a second array it discarded.
 
-Two notes for review. **P29 is withdrawn.** Hoisting `specSet.allCases` into a local made a generic
-function stop specialising under `swiftlang-6.5.0.10.5`, which resolves the local's
-type at run time and costs 19% where the hoist had gained 2.4% on 6.5.0.9.6. Cut
-the generated `static let` per spec set instead: it removes the generic local
-rather than hoisting it. **Recursion is the wrong fix for the first**: `01e94a1af`
+Two notes for review. **P29 must keep the closure.** The hoist itself is free; the
+cost that got it reverted was the same commit rewriting
+`.map({ $0.spec.recoveryPrecedence })` as `.lazy.map(\.spec.recoveryPrecedence)`,
+which leaves the key path unfolded under `swiftlang-6.5.0.10.5` and costs 32M
+instructions a parse. That is rdar://186588859. `a196f3daa` re-applies the hoist
+with `.lazy.map({ closure })`, the spelling that is correct under both toolchains
+and the fastest of the four. **Recursion is the wrong fix for the first**: `01e94a1af`
 deliberately removed it, and the explicit stack is what bounds the depth on
 adversarially nested input. And what is left in each is the array itself — an
 inline buffer with a count for the skipping stack, as the lexer's state stack

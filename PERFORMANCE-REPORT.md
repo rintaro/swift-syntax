@@ -905,41 +905,57 @@ without the hoist, is +0.83%. The two builds within each cell agree to 0.25%, so
 none of this is build-layout noise. It is an interaction: neither the change nor
 the compiler is slow, only the pair.
 
-**The mechanism is not known**, and the first answer recorded here was wrong. The
-profile showed metadata symbols — `swift_getTypeByMangledName`, `demangleType` —
-taking 14.07% where they had been 0.00%, and that was read as the generic losing
-its specialisation. Object-level inspection of the very builds it was claimed for
-does not support it: `canRecoverTo(anyIn:)` is specialised in all cells, 34 to 38
-specialisations each, and metadata-accessor and
-`instantiateConcreteTypeFromMangledName` call sites are identical across all of
-them. The hoist's only static footprint is +12 KB of `__text`, three more outlined
-variables, and two more specialisations, and 9.6 *merges* a specialisation where
-10.5 emits it separately with `outlined variable #0 of generic specialization`
-symbols. Disabling the object outliner does not recover the time (10.396 ms), so
-that pass is ruled out too.
+**The mechanism is SIL key path folding, and it is filed as rdar://186588859.**
+Two answers recorded here before it were wrong, both mine. The profile showed
+metadata symbols — `swift_getTypeByMangledName`, `demangleType` — taking 14.07%
+where they had been 0.00%, and that was read as the generic losing its
+specialisation. It never did: `canRecoverTo(anyIn:)` is specialised in all four
+cells, 34 to 38 specialisations each, with identical metadata-accessor call
+sites. The metadata traffic was an unfolded key path all along.
 
-Of the 632 commits between the two tags, 78 touch the SIL optimizer and only two
-touch generic specialisation — both `[Embedded key paths]` work
-(`ac170af7900`, `eced27022cb`) reachable only under
-`context.options.enableEmbeddedSwift`, so neither can affect this. What remains
-plausible is `85f101092ee`, two lines adding `notifyInstructionsChanged()` and
-`notifyBranchesChanged()` to `Context.inlineFunction`, which reaches release
-builds through `CommonSubexpressionElimination`; and `619b66e639f`, a closure
-specialization thunk fix that adds recursion bail-outs, relevant because the
-hoist deleted a closure. Neither is confirmed.
+`\.spec.recoveryPrecedence` should fold into a direct property access inside the
+specialized function. Under 10.5 the `keypath` instruction survives to IRGen, so
+every call does a runtime `swift_getKeyPath` and a `KeyPath._projectReadOnly`
+with the ARC that implies. And the eight-line diff had two halves: **the hoist
+itself is free** — 151.16M retired instructions against a 151.22M baseline — and
+the whole cost is the second half, rewriting
+`.map({ $0.spec.recoveryPrecedence })` as `.lazy.map(\.spec.recoveryPrecedence)`.
+Neither ingredient is slow alone: `.lazy.map({ closure })` is 149.43M and eager
+`.map(\.keypath)` is 151.19M. Only the conjunction costs 32M.
 
-Five attempts to reproduce it standalone all failed — two conformers, sixty
-conformers, a `canRecoverTo`-shaped body, a two-module package, and
-closure-versus-`lazy`-key-path in one file, where 10.5 specialises both. It takes
-SwiftParser's real scale to tip, which is itself the finding.
+The responsible commit is `b883b037814`, *Optimizer: add a DeadStoreElimination
+pass before the ObjectOutliner*, the only change to `addLowLevelPassPipeline`
+between the tags. To put DSE ahead of `ReleaseDevirtualizer` it split the
+pipeline, moving `addRedundantLoadElimination()` out of the restart-prone
+`LowLevel,Function` pipeline into a new one-shot `LowLevelPrepare` — the commit's
+own comment gives the reason, *"in a separate pipeline, because of possible
+pipeline-restarts"*. RLE used to re-run after every inliner-triggered restart and
+clear the loads inlining introduced; now the caller enters the final `PerfInliner`
+round larger, the inliner declines the key path application thunk, and
+`Simplification` never sees the `keypath` and its application together.
+`-sil-disable-pass=redundant-load-elimination` on 9.6 reproduces 10.5 exactly.
 
-Reverted here in `cb62d8055`.
+A 76-line reproducer is at `perf-workspace/repro2/kp.swift`, holding all four
+spellings side by side:
+`swiftc -O -wmo -emit-sil kp.swift | grep -c '= keypath'` gives 2 on 9.6 and 4 on
+10.5, the two extra being the `SetA` and `SetB` specialisations of `minPrecLazy`.
+Five earlier attempts at a reproducer failed because they varied the hoist rather
+than the key path, which is what took so long.
 
-The lesson is not about one commit. **A micro-optimisation and its specialisation
-are not separable results**, and a change whose sign flips between two patch
-releases of the same compiler cannot be shipped on the strength of one of them.
-The replacement is the shape the plan already names — a generated `static let` per
-spec set — which has no generic local to specialise and so cannot behave this way.
+Reverted in `cb62d8055` and **re-applied in `a196f3daa`** with the closure kept,
+which is the form that is correct under both toolchains: −2.03% and −1.33% in
+retired instructions on the two inputs.
+
+Three lessons, none about one commit. **A profile names symbols, not causes**: the
+metadata symbols were read as lost specialisation twice, and object-level
+inspection of the very builds the claim was made for refuted it both times.
+**Vary one thing**: the eight-line diff had two independent halves, one free and
+one costing 32M instructions, and measuring it as a unit attributed the cost to
+the wrong half for weeks — five reproducer attempts failed because they all varied
+the half that was innocent. And **the sugar is not free**: `.lazy.map(\.keypath)`
+against `.lazy.map({ closure })` is a 21% difference in this function, invisible in
+the source and dependent on a pass ordering that changed between two patch
+releases.
 
 ---
 
