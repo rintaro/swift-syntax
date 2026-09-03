@@ -675,11 +675,7 @@ struct CharacterByte: ExpressibleByUnicodeScalarLiteral, ExpressibleByIntegerLit
 
 extension Lexer.Cursor {
   func peek(at offset: Int = 0) -> UInt8? {
-    precondition(offset >= 0)
-    guard offset < self.input.count else {
-      return nil
-    }
-    return self.input[offset]
+    self.position.peek(at: offset)
   }
 
   /// Same as `advanceValidatingUTF8Character` but without advancing the cursor.
@@ -692,15 +688,7 @@ extension Lexer.Cursor {
   /// `bufferBegin` is the start of the source file buffer to guard that we are
   /// not dereferencing a pointer that points before the source buffer.
   func peekBack(by offset: Int, bufferBegin: UnsafePointer<UInt8>?) -> UInt8? {
-    guard let bufferBaseAddress = bufferBegin,
-      let selfBaseAddress = self.input.baseAddress
-    else {
-      return nil
-    }
-    guard bufferBaseAddress <= selfBaseAddress - offset else {
-      return nil
-    }
-    return selfBaseAddress.advanced(by: -offset).pointee
+    self.position.peekBack(by: offset, bufferBegin: bufferBegin)
   }
 
   // MARK: Positive matches
@@ -792,6 +780,19 @@ extension Lexer.Cursor.Position {
       return nil
     }
     return ptr[offset]
+  }
+
+  /// Peeks back `offset` bytes.
+  /// `bufferBegin` is the start of the source file buffer, which guards against
+  /// dereferencing a pointer that points before it.
+  func peekBack(by offset: Int, bufferBegin: UnsafePointer<UInt8>?) -> UInt8? {
+    guard let bufferBegin, let ptr = self.ptr else {
+      return nil
+    }
+    guard bufferBegin <= ptr - offset else {
+      return nil
+    }
+    return (ptr - offset).pointee
   }
 
   /// Returns `true` if we are not at the end of the file and the character at
