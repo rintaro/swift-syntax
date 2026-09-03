@@ -678,12 +678,20 @@ extension Lexer.Cursor.Position {
   }
 
   /// Advance the cursor position by `n` bytes. The offset must be valid.
+  ///
+  /// - Important: `@inline(__always)` because
+  ///   `advanceOverIdentifierContinuationCharacters` calls this once per
+  ///   identifier, where left out of line it costs more than the bytes it moves
+  ///   over.
+  @inline(__always)
   func advanced(by n: Int) -> Self {
     precondition(n > 0)
     precondition(n <= self.input.count)
-    var input = self.input.dropFirst(n - 1)
-    let c = input.removeFirst()
-    return .init(input: UnsafeBufferPointer(rebasing: input), previous: c)
+    let base = self.input.baseAddress!
+    return .init(
+      input: UnsafeBufferPointer(start: base + n, count: self.input.count - n),
+      previous: base[n - 1]
+    )
   }
 }
 
@@ -762,6 +770,34 @@ extension Lexer.Cursor {
   /// Advance the cursor while `predicate` is satisfied.
   mutating func advance(while predicate: (Unicode.Scalar) -> Bool) {
     while self.advance(if: predicate) {}
+  }
+
+  /// Advance the cursor past every character that can continue an identifier.
+  ///
+  /// Roughly half the bytes of a source file pass through here, so the run is
+  /// counted over the buffer and the position moved once at the end of it.
+  /// Taking the bytes one at a time means a bounds check to look at each and,
+  /// to consume it, a second one plus storing `previous` and rebasing the
+  /// buffer, none of which anything needs until the run ends.
+  mutating func advanceOverIdentifierContinuationCharacters() {
+    while true {
+      let bytes = self.input
+      var count = 0
+      while count < bytes.count, bytes[count].isAsciiIdentifierContinue {
+        count += 1
+      }
+      if count > 0 {
+        self.position = self.position.advanced(by: count)
+      }
+
+      // Whatever stopped the run either ends the identifier or begins a scalar
+      // outside ASCII, which has to be decoded to find out which.
+      guard let byte = self.peek(), byte >= 0x80,
+        self.advance(if: { $0.isValidIdentifierContinuationCodePoint })
+      else {
+        return
+      }
+    }
   }
 
   /// Advance the cursor to the end of the current line.
@@ -2098,7 +2134,7 @@ extension Lexer.Cursor {
     precondition(didStart, "Unexpected start")
 
     // Lex [a-zA-Z_$0-9[[:XID_Continue:]]]*
-    self.advance(while: { $0.isValidIdentifierContinuationCodePoint })
+    self.advanceOverIdentifierContinuationCharacters()
 
     let text = tokStart.text(upTo: self)
     let keyword = Keyword(text)
