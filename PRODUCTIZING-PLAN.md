@@ -325,8 +325,13 @@ and the fastest of the four. **Recursion is the wrong fix for the first**: `01e9
 deliberately removed it, and the explicit stack is what bounds the depth on
 adversarially nested input. And what is left in each is the array itself — an
 inline buffer with a count for the skipping stack, as the lexer's state stack
-already does, and for the spec set a generated `static let`, since everything
-derived there depends on the type rather than on the parse.
+already does, and for the spec set a `static let allCases`, **for the generated
+conformances only**. The template emits all 62 of them, so it is one change rather
+than 62 judgements, and the payoff sits in their tail: the median is 4 cases but
+`NameOptions` has 68, `AccessorSpecifierOptions` 33, `LayoutSpecifierOptions` 18.
+The 54 hand-written conformances are the same size as the generated median and
+live in parser source people read, so adding a stored global to each buys little
+and costs clarity. Unmeasured either way.
 
 ### Not yet assigned to a PR
 
