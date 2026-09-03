@@ -190,7 +190,6 @@ private func assertTokens(
 func assertLexemes(
   _ markedSource: String,
   lexemes expectedLexemes: [LexemeSpec],
-  languageFeatures: Parser.LanguageFeatures = [],
   file: StaticString = #filePath,
   line: UInt = #line
 ) {
@@ -210,8 +209,7 @@ func assertLexemes(
     for token in Lexer.tokenize(
       buf,
       from: 0,
-      lookaheadTracker: lookaheadTracker,
-      languageFeatures: languageFeatures
+      lookaheadTracker: lookaheadTracker
     ) {
       lexemes.append(token)
 

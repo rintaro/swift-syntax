@@ -94,11 +94,11 @@ extension StringSegmentSyntax {
     let stateAllocator = BumpPtrAllocator(initialSlabSize: 256)
     withExtendedLifetime(stateAllocator) {
       rawText.withBuffer { buffer in
-        var cursor = Lexer.Cursor(input: buffer, previous: 0, languageFeatures: [])
+        var cursor = Lexer.Cursor(input: buffer, previous: 0)
 
         // Put the cursor in the string literal lexing state. This is just
         // defensive as it's currently not used by `lexCharacterInStringLiteral`.
-        let state = Lexer.Cursor.State.inStringLiteral(kind: stringLiteralKind, delimiterLength: delimiterLength)
+        let state = Lexer.Cursor.State.inStringLiteral(delimiterLength: delimiterLength, kind: stringLiteralKind)
         let transition = Lexer.StateTransition.push(newState: state)
         cursor.perform(stateTransition: transition, stateAllocator: stateAllocator)
 

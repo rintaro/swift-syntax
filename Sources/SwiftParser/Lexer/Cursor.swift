@@ -93,7 +93,7 @@ extension Lexer.Cursor {
 
     /// The lexer is inside a string literal of `kind` after having lexed
     /// `delimiterLength` raw string delimiters.
-    case inStringLiteral(kind: StringLiteralKind, delimiterLength: Int)
+    case inStringLiteral(delimiterLength: Int, kind: StringLiteralKind)
 
     /// The lexer has finished lexing the contents of a string literal and is now
     /// looking for the closing quote.
@@ -114,12 +114,12 @@ extension Lexer.Cursor {
     /// `(` that opens the string interpolation.
     ///
     /// `stringInterpolationStart` points to the first character inside the interpolation.
-    case inStringInterpolation(stringLiteralKind: StringLiteralKind, parenCount: Int)
+    case inStringInterpolation(parenCount: Int, stringLiteralKind: StringLiteralKind)
 
     /// We have encountered a regex literal, and have its tokens to work
     /// through. `lexemes` is a pointer to the lexemes allocated in the state
     /// stack bump pointer allocator.
-    case inRegexLiteral(index: UInt8, lexemes: UnsafePointer<RegexLiteralLexemes>)
+    case inRegexLiteral(lexemes: UnsafePointer<RegexLiteralLexemes>, index: UInt8)
 
     /// The mode in which leading trivia should be lexed for this state or `nil`
     /// if no trivia should be lexed.
@@ -131,7 +131,7 @@ extension Lexer.Cursor {
       case .afterStringLiteral: return nil
       case .afterClosingStringQuote: return nil
       case .inStringInterpolationStart: return nil
-      case .inStringInterpolation(let stringLiteralKind, _):
+      case .inStringInterpolation(_, let stringLiteralKind):
         // Single line strings cannot span multiple lines, so we don't want to
         // consume any newline inside a string interpolation either.
         switch stringLiteralKind {
@@ -165,7 +165,7 @@ extension Lexer.Cursor {
       switch self {
       case .normal, .preferRegexOverBinaryOperator: return false
       case .afterRawStringDelimiter: return false
-      case .inStringLiteral(kind: let stringLiteralKind, delimiterLength: _): return stringLiteralKind != .multiLine
+      case .inStringLiteral(delimiterLength: _, kind: let stringLiteralKind): return stringLiteralKind != .multiLine
       case .afterStringLiteral: return false
       case .afterClosingStringQuote: return false
       case .inStringInterpolationStart: return false
@@ -211,7 +211,7 @@ extension Lexer.Cursor {
       case .pushRegexLexemes(let index, let lexemes):
         perform(
           stateTransition: .push(
-            newState: .inRegexLiteral(index: index, lexemes: lexemes.allocate(in: stateAllocator))
+            newState: .inRegexLiteral(lexemes: lexemes.allocate(in: stateAllocator), index: index)
           ),
           stateAllocator: stateAllocator
         )
@@ -273,8 +273,6 @@ extension Lexer {
     }
     var position: Position
 
-    var languageFeatures: Parser.LanguageFeatures
-
     /// If we have already lexed a token, the kind of the previously lexed token
     var previousTokenKind: RawTokenKind?
 
@@ -287,9 +285,8 @@ extension Lexer {
 
     private var stateStack: StateStack = StateStack()
 
-    init(input: UnsafeBufferPointer<UInt8>, previous: UInt8, languageFeatures: Parser.LanguageFeatures) {
+    init(input: UnsafeBufferPointer<UInt8>, previous: UInt8) {
       self.position = Position(input: input, previous: previous)
-      self.languageFeatures = languageFeatures
     }
 
     /// Returns `true` if this cursor is sufficiently different to `other` in a way that indicates that the lexer has
@@ -463,7 +460,7 @@ extension Lexer.Cursor.Position {
 // MARK: - Entry point
 
 extension Lexer.Cursor {
-  mutating func nextToken(sourceBufferStart: Lexer.Cursor, stateAllocator: BumpPtrAllocator) -> Lexer.Lexeme {
+  mutating func nextToken(sourceBufferStart: UnsafePointer<UInt8>?, stateAllocator: BumpPtrAllocator) -> Lexer.Lexeme {
     let cursor = self
     // Leading trivia.
     let leadingTriviaStart = self
@@ -490,7 +487,7 @@ extension Lexer.Cursor {
       self.stateStack.perform(stateTransition: .pop, stateAllocator: stateAllocator)
     case .afterRawStringDelimiter(let delimiterLength):
       result = lexAfterRawStringDelimiter(delimiterLength: delimiterLength)
-    case .inStringLiteral(kind: let stringLiteralKind, let delimiterLength):
+    case .inStringLiteral(let delimiterLength, let stringLiteralKind):
       result = lexInStringLiteral(stringLiteralKind: stringLiteralKind, delimiterLength: delimiterLength)
     case .afterStringLiteral(kind: let stringLiteralKind, isRawString: _):
       result = lexAfterStringLiteral(stringLiteralKind: stringLiteralKind)
@@ -498,13 +495,13 @@ extension Lexer.Cursor {
       result = lexAfterClosingStringQuote()
     case .inStringInterpolationStart(let stringLiteralKind):
       result = lexInStringInterpolationStart(stringLiteralKind: stringLiteralKind)
-    case .inStringInterpolation(let stringLiteralKind, let parenCount):
+    case .inStringInterpolation(let parenCount, let stringLiteralKind):
       result = lexInStringInterpolation(
         stringLiteralKind: stringLiteralKind,
         parenCount: parenCount,
         sourceBufferStart: sourceBufferStart
       )
-    case .inRegexLiteral(let index, let lexemes):
+    case .inRegexLiteral(let lexemes, let index):
       result = lexInRegexLiteral(lexemes.pointee[index...], existingPtr: lexemes)
     }
 
@@ -590,8 +587,8 @@ extension Lexer.Cursor {
   /// Peeks back `offset` bytes.
   /// `bufferBegin` is the start of the source file buffer to guard that we are
   /// not dereferencing a pointer that points before the source buffer.
-  func peekBack(by offset: Int, bufferBegin: Lexer.Cursor) -> UInt8? {
-    guard let bufferBaseAddress = bufferBegin.input.baseAddress,
+  func peekBack(by offset: Int, bufferBegin: UnsafePointer<UInt8>?) -> UInt8? {
+    guard let bufferBaseAddress = bufferBegin,
       let selfBaseAddress = self.input.baseAddress
     else {
       return nil
@@ -944,11 +941,11 @@ extension Lexer.Cursor {
 // MARK: - Boundness of operators
 
 extension Lexer.Cursor {
-  /// `bufferBegin` is a cursor that points to the start of the source file that
-  /// is being lexed.
-  func isLeftBound(sourceBufferStart: Lexer.Cursor) -> Bool {
+  /// `sourceBufferStart` points to the first byte of the source file that is
+  /// being lexed.
+  func isLeftBound(sourceBufferStart: UnsafePointer<UInt8>?) -> Bool {
     // The first character in the file is not left-bound.
-    if self.input.baseAddress == sourceBufferStart.input.baseAddress {
+    if self.input.baseAddress == sourceBufferStart {
       return false
     }
 
@@ -1018,7 +1015,7 @@ extension Lexer.Cursor {
 
 extension Lexer.Cursor {
   private mutating func lexNormal(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     switch self.peek() {
@@ -1110,7 +1107,7 @@ extension Lexer.Cursor {
   }
 
   private mutating func lexNormalQuestionOrExclamation(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     if let result = lexPostfixOptionalChain(sourceBufferStart: sourceBufferStart) {
@@ -1123,7 +1120,7 @@ extension Lexer.Cursor {
   }
 
   private mutating func lexNormalLeftAngle(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     if self.is(offset: 1, at: "#"),
@@ -1138,7 +1135,7 @@ extension Lexer.Cursor {
   }
 
   private mutating func lexNormalMiscellaneous(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     var tmp = self
@@ -1211,7 +1208,7 @@ extension Lexer.Cursor {
       _ = self.advance()
       return Lexer.Result(
         .leftParen,
-        stateTransition: .replace(newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: 0))
+        stateTransition: .replace(newState: .inStringInterpolation(parenCount: 0, stringLiteralKind: stringLiteralKind))
       )
     case nil:
       return Lexer.Result(.endOfFile)
@@ -1223,7 +1220,7 @@ extension Lexer.Cursor {
   private mutating func lexInStringInterpolation(
     stringLiteralKind: StringLiteralKind,
     parenCount: Int,
-    sourceBufferStart: Lexer.Cursor
+    sourceBufferStart: UnsafePointer<UInt8>?
   ) -> Lexer.Result {
     // Keep track of open parentheses
     switch self.peek() {
@@ -1232,7 +1229,7 @@ extension Lexer.Cursor {
       return Lexer.Result(
         .leftParen,
         stateTransition: .replace(
-          newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: parenCount + 1)
+          newState: .inStringInterpolation(parenCount: parenCount + 1, stringLiteralKind: stringLiteralKind)
         )
       )
     case ")":
@@ -1243,7 +1240,7 @@ extension Lexer.Cursor {
         return Lexer.Result(
           .rightParen,
           stateTransition: .replace(
-            newState: .inStringInterpolation(stringLiteralKind: stringLiteralKind, parenCount: parenCount - 1)
+            newState: .inStringInterpolation(parenCount: parenCount - 1, stringLiteralKind: stringLiteralKind)
           )
         )
       }
@@ -1969,9 +1966,9 @@ extension Lexer.Cursor {
     case .afterStringLiteral(kind: _, isRawString: false):
       return .pop
     case .afterRawStringDelimiter(let delimiterLength):
-      return .replace(newState: .inStringLiteral(kind: kind, delimiterLength: delimiterLength))
+      return .replace(newState: .inStringLiteral(delimiterLength: delimiterLength, kind: kind))
     case .normal, .preferRegexOverBinaryOperator, .inStringInterpolation:
-      return .push(newState: .inStringLiteral(kind: kind, delimiterLength: 0))
+      return .push(newState: .inStringLiteral(delimiterLength: 0, kind: kind))
     case .inRegexLiteral, .inStringLiteral, .afterClosingStringQuote, .inStringInterpolationStart:
       preconditionFailure("Unexpected currentState '\(currentState)' for 'stateTransitionAfterLexingStringQuote'")
     }
@@ -2278,7 +2275,7 @@ extension Lexer.Cursor {
   }
 
   /// Attempt to lex a postfix '!' or '?'.
-  mutating func lexPostfixOptionalChain(sourceBufferStart: Lexer.Cursor) -> Lexer.Result? {
+  mutating func lexPostfixOptionalChain(sourceBufferStart: UnsafePointer<UInt8>?) -> Lexer.Result? {
     // Must be left bound, otherwise this isn't postfix.
     guard self.isLeftBound(sourceBufferStart: sourceBufferStart) else { return nil }
 
@@ -2308,7 +2305,7 @@ extension Lexer.Cursor {
   static func classifyOperatorToken(
     operStart: Lexer.Cursor,
     operEnd: Lexer.Cursor,
-    sourceBufferStart: Lexer.Cursor
+    sourceBufferStart: UnsafePointer<UInt8>?
   ) -> (RawTokenKind, error: LexingDiagnostic?) {
     // Decide between the binary, prefix, and postfix cases.
     // It's binary if either both sides are bound or both sides are not bound.
@@ -2379,7 +2376,7 @@ extension Lexer.Cursor {
   }
 
   mutating func lexOperatorIdentifier(
-    sourceBufferStart: Lexer.Cursor,
+    sourceBufferStart: UnsafePointer<UInt8>?,
     preferRegexOverBinaryOperator: Bool
   ) -> Lexer.Result {
     let tokStart = self
@@ -2477,7 +2474,7 @@ extension Lexer.Cursor {
 // MARK: - Editor Placeholders
 
 extension Lexer.Cursor {
-  mutating func tryLexEditorPlaceholder(sourceBufferStart: Lexer.Cursor) -> Lexer.Result? {
+  mutating func tryLexEditorPlaceholder(sourceBufferStart: UnsafePointer<UInt8>?) -> Lexer.Result? {
     precondition(self.is(at: "<") && self.is(offset: 1, at: "#"))
     let start = self
     var ptr = self
@@ -2644,7 +2641,7 @@ extension Lexer.Cursor {
       return false
     }
 
-    guard let end = Self.findConflictEnd(start, markerKind: kind, languageFeatures: languageFeatures) else {
+    guard let end = Self.findConflictEnd(start, markerKind: kind) else {
       // No end of conflict marker found.
       return false
     }
@@ -2662,16 +2659,14 @@ extension Lexer.Cursor {
   /// Find the end of a version control conflict marker.
   static func findConflictEnd(
     _ curPtr: Lexer.Cursor,
-    markerKind: ConflictMarker,
-    languageFeatures: Parser.LanguageFeatures
+    markerKind: ConflictMarker
   ) -> Lexer.Cursor? {
     // Get a reference to the rest of the buffer minus the length of the start
     // of the conflict marker.
     let advanced = curPtr.input.baseAddress?.advanced(by: markerKind.introducer.count)
     var restOfBuffer = Lexer.Cursor(
       input: .init(start: advanced, count: curPtr.input.count - markerKind.introducer.count),
-      previous: curPtr.input[markerKind.introducer.count - 1],
-      languageFeatures: languageFeatures
+      previous: curPtr.input[markerKind.introducer.count - 1]
     )
     let terminator = markerKind.terminator
     let terminatorStart = terminator.first!
@@ -2692,8 +2687,7 @@ extension Lexer.Cursor {
       let advanced = restOfBuffer.input.baseAddress?.advanced(by: terminator.count)
       return Lexer.Cursor(
         input: .init(start: advanced, count: restOfBuffer.input.count - terminator.count),
-        previous: restOfBuffer.input[terminator.count - 1],
-        languageFeatures: languageFeatures
+        previous: restOfBuffer.input[terminator.count - 1]
       )
     }
     return nil
