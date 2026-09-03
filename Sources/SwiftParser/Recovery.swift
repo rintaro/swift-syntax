@@ -127,26 +127,24 @@ extension Parser.Lookahead {
     anyIn specSet: SpecSet.Type,
     overrideRecoveryPrecedence: TokenPrecedence? = nil
   ) -> (match: SpecSet, handle: RecoveryConsumptionHandle)? {
-    // `allCases` is built fresh on every call, so ask for it once. Everything
-    // derived from it depends only on the spec set, not on the parse.
-    let allCases = specSet.allCases
-
     #if SWIFTPARSER_ENABLE_ALTERNATE_TOKEN_INTROSPECTION
     if shouldRecordAlternativeTokenChoices {
-      recordAlternativeTokenChoice(for: self.currentToken, choices: allCases.map(\.spec))
+      recordAlternativeTokenChoice(for: self.currentToken, choices: specSet.allCases.map(\.spec))
     }
     #endif
 
-    if allCases.isEmpty {
+    if specSet.allCases.isEmpty {
       return nil
     }
 
     let recoveryPrecedence =
-      overrideRecoveryPrecedence ?? allCases.lazy.map(\.spec.recoveryPrecedence).min()!
+      overrideRecoveryPrecedence ?? specSet.allCases.map({
+        return $0.spec.recoveryPrecedence
+      }).min()!
 
     return self.canRecoverToImpl(
       recoveryPrecedence: recoveryPrecedence,
-      allowAtStartOfLine: allCases.allSatisfy(\.spec.allowAtStartOfLine),
+      allowAtStartOfLine: specSet.allCases.allSatisfy(\.spec.allowAtStartOfLine),
       recursionDepth: 1,
       matchesSpec: { lookahead in
         guard let (specSet, _) = lookahead.at(anyIn: specSet) else { return nil }
