@@ -4,14 +4,14 @@ Branch `perf-parser-2026-woc`, off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.4 to 3.3 times faster, and the tree it produces is 57% smaller**,
+**Parsing is 2.4 to 3.2 times faster, and the tree it produces is 57% smaller**,
 with no change to the parsed output.
 
 | input | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.698 ms | 1.555 ms | **3.02×** |
-| concatenated generated sources (468 KB) | 11.543 ms | 3.555 ms | **3.25×** |
-| `nonascii_heavy.swift.input` (388 KB) | 8.037 ms | 3.295 ms | **2.44×** |
+| `MinimalCollections.swift.input` (177 KB) | 5.012 ms | 1.696 ms | **2.95×** |
+| concatenated generated sources (468 KB) | 12.303 ms | 3.833 ms | **3.21×** |
+| `nonascii_heavy.swift.input` (388 KB) | 8.518 ms | 3.572 ms | **2.39×** |
 
 | tree memory | main | branch | |
 |---|---|---|---|
@@ -22,8 +22,12 @@ with no change to the parsed output.
 The non-ASCII row of the timing table is the reproducible 388 KB input; its memory
 row above is still the lost 321 KB one, and has not been re-measured.
 
-Interleaved A/B, 16 rounds, two independent builds per side and all four built in
-one session, per-build medians agreeing to within 0.03 ms. Tree memory is what the arena's allocations
+Interleaved A/B, 14 rounds, both sides built in one session with the same
+toolchain — `swiftlang-6.5.0.10.5`. **Record the toolchain with any measurement
+here.** Two builds of identical source by 6.5.0.9.6 and 6.5.0.10.5 differed by
+47%, which is two orders of magnitude more than the build-layout noise this
+report otherwise warns about; see *A change whose sign depends on the compiler*.
+Per-build medians agreeing to within 0.03 ms. Tree memory is what the arena's allocations
 actually advance its bump pointer by, padding included — not
 `totalByteSizeAllocated`, which ignores the padding between allocations and
 understates the branch by about 1.3× of the source.
@@ -880,6 +884,32 @@ findings.
 
 ---
 
+### A change whose sign depends on the compiler
+
+`3ce750382` hoisted `specSet.allCases` into a local in
+`Lookahead.canRecoverTo(anyIn:)`, a function generic over the spec set. On
+`swiftlang-6.5.0.9.6` that was worth −2.4%. On `6.5.0.10.5` the same eight lines
+cost **+19%**, and the branch as a whole ran 47% slower.
+
+The profile says why. Under 10.5 the generic local stops being specialised, so its
+type is resolved at run time: `swift_getTypeByMangledName`, `demangleType` and
+`DemangleInitRAII` appear from nowhere and take **14.07%** of a parse where they
+were 0.00% before, `_pop<A>` shows up unspecialised, and `memmove` quadruples.
+Every parser symbol's share falls proportionally, which is arithmetic rather than
+improvement.
+
+Isolated properly: cherry-picked alone onto `main` (`8846689fe`) it takes metadata
+lookup from 0.00% to 7.06% and costs 19%, so it is the change and not the branch.
+Reverted here in `cb62d8055`, after which metadata is 0.00% again on 10.5.
+
+The lesson is not about one commit. **A micro-optimisation and its specialisation
+are not separable results**, and a change whose sign flips between two patch
+releases of the same compiler cannot be shipped on the strength of one of them.
+The replacement is the shape the plan already names — a generated `static let` per
+spec set — which has no generic local to specialise and so cannot behave this way.
+
+---
+
 ## Correctness
 
 No commit changes the parsed output. The main instrument was a differential
@@ -1223,7 +1253,7 @@ stopping:
   | | |
   |---|---|
   | `a5ac88b83` Push a skipping state without allocating an array to hold it | **−3.9% / −1.6% / −0.7%** |
-  | `3ce750382` Ask a spec set for its cases once | **−1.1% / −2.4% / −1.7%** |
+  | `3ce750382` Ask a spec set for its cases once | −1.1% / −2.4% / −1.7%, **reverted — see below** |
 
   `skip(initialState:)` pushed onto its stack with `stack += [a, b]`, which builds
   a temporary array for every push; `canRecoverTo(anyIn:)` asked `specSet.allCases`
