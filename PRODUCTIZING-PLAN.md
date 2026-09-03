@@ -135,12 +135,18 @@ digest of every literal's represented value: identical across 749 files and
 | | | contents | lines | measured |
 |---|---|---|---|---|
 | [x] | P10 | Cache the resolved keyword on `Lexeme`, reuse `lexIdentifier`'s lookup — `265f0b27e`, `eb71d5311` | 79 | **−6.5% / −6.6%** vs `main`, against **−10.3/−9.8** claimed at its own base |
-| [ ] | P11 | Match hand-written spec sets on the keyword — `d64f96239`, `c2a9dffe8`, `916c0b86b`, `7524ff0b4`, `3077fc191` | ~700 *mechanical* | −9.8/−7.8, −0.4/−1.2, −2.5/−2.3 |
-| [ ] | P12 | Generate spec set initializers the same way — `eca3c7bef`, `2ac6a490b` | 150 [2,645] | −0.3% / −0.3% |
+| [x] | P11+P12 | Match every spec set on the resolved keyword, hand-written and generated, and delete `PrepareForKeywordMatch` — squash of `d64f96239`, `c2a9dffe8`, `916c0b86b`, `7524ff0b4`, `3077fc191`, `eca3c7bef`, `2ac6a490b` as `2b3180eb7` | 1,694 +/1,009 − over 15 files, mostly generated | −9.8/−7.8, −0.4/−1.2, −2.5/−2.3 for the hand-written part, −0.3%/−0.3% for the generated one; **not measured as a unit** |
 | [ ] | P13 | Don't declare attribute names as keywords — `41a10b37b` | 250 [108] | neutral |
 
-P11 and P12 are one pattern repeated across 117 spec sets. P13 is independent of
-the rest of this group.
+P11 and P12 are one pattern repeated across 117 spec sets, and they went out as a
+single PR on that basis: splitting them would show a reviewer the same rewrite
+twice, once by hand and once through
+`templates/swiftparser/ParserTokenSpecSetFile.swift`. The template is in the
+branch, so the 1,741-line generated diff is derived rather than hand-edited, and
+`swift run --package-path CodeGeneration generate-swift-syntax` should leave the
+tree clean. Migrating both halves is what allows `PrepareForKeywordMatch` to go:
+107 occurrences on `main`, none on the branch. P13 is independent of the rest of
+this group.
 
 ### Group 4 — character scanning (independent of each other)
 
