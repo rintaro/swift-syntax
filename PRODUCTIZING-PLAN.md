@@ -215,7 +215,26 @@ Both measured far larger against `main` than against their own bases, for the
 reason in the notes below: each is a proportion of the scanning work, and the
 scanning work is a larger share of a slow parse.
 
-### The Cursor/Position split — a PR of its own, cascaded after P14 and P15
+### The Cursor/Position split — cut, and held
+
+`perf-parser-32-position-compaction` (`92f924887`) holds all six as one PR, 270
+insertions and 129 deletions over six files. It applies to current `main` with one
+conflict, in the layout test's numbers, and passes the suite.
+
+**Held deliberately**, not blocked: it overlaps `perf-parser-09-state-allocator`
+in `Cursor.swift`, `LexemeSequence.swift`,
+`StringLiteralRepresentedLiteralValue.swift` and the layout test, so whichever of
+the two lands second needs a fixup. Land P8+P9 first, since it is the larger
+result, then rebase this.
+
+**One finding that changes what to claim for it.** On `main`,
+`Lexer.Cursor.Position` goes from 17/24 bytes to 16/16, but `Lexer.Cursor` stays
+at 57/64 — the eight bytes fall into padding rather than shrinking the enclosing
+type, so `Lexeme`, `LexemeSequence` and `Lookahead` do not shrink either. The
+value here is cheaper operations, from dropping the stored look-behind byte, not
+smaller types. That only becomes a size win once the state stack work lands and
+`Cursor` is repacked. Do not quote it as a memory change.
+
 
 Five commits, all off the back of review of P2 rather than off the original
 branch: `dfd8fc3e7` moves the scalar read to `Lexer.Cursor.Position`,
