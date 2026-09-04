@@ -19,22 +19,24 @@ time a branch is checked out and reported false differences six times.
 **Squash.** Five places where the branch's history is exploratory and the
 intermediate states should not ship.
 
-- [ ] `6e5ee4ee4` + `ad179aa76` + `8886b84d0` + `9a9c7095c` → one commit. The
+- [x] `6e5ee4ee4` + `ad179aa76` + `8886b84d0` + `9a9c7095c` and `aad644153` +
+      `c331d96de` + `d3952537f` → **one commit for all seven**, `694044db4`. The
       state stack became a pointer and a count, then a linked list, then an
-      interned one. Only the end state is worth reviewing.
-- [ ] `aad644153` + `c331d96de` + `d3952537f` → one commit. The same field held
-      three ways: `unowned(unsafe)`, then boxed for SPI, then `Unmanaged`.
-- [ ] `ffa99ce81` + `43ad5af60` → one commit. The narrowing introduced a 2%
-      regression that the next commit fixes; the first alone is a regression.
-- [ ] `d64f96239` + `c2a9dffe8` + `916c0b86b` + `7524ff0b4` + `3077fc191` → one
-      commit. The last two reshape what the first three wrote.
+      interned one, while the same field was held three ways; only the end state is
+      worth reviewing, and the two sets interleave so they cannot be two commits.
+- [ ] `ffa99ce81` + `43ad5af60` → one commit, if they are ever cut. Withdrawn as
+      a PR of their own; see Group 7. The narrowing introduced a 2% regression that
+      the next commit fixes, so the first alone is a regression.
+- [x] `d64f96239` + `c2a9dffe8` + `916c0b86b` + `7524ff0b4` + `3077fc191`, plus
+      P12's `eca3c7bef` + `2ac6a490b` → one commit, `2b3180eb7`. The last two
+      reshape what the first three wrote.
 - [x] `79bc75d3d` + `50044b0fe` + `e3ff94452` → one commit. The middle one adds a
       `continuesAnIdentifier` to `Cursor.swift` that the last one deletes, moving
       the classification to `CharacterInfo.swift` where it ends up.
 
 **Drop.**
 
-- [ ] `fc282de88`. It documents `PrepareForKeywordMatch`, which the next commit
+- [x] `fc282de88`. It documents `PrepareForKeywordMatch`, which the next commit
       deletes. It exists only because I misread the code.
 
 **Leave out.** The nine report commits, about 1,150 lines. PERFORMANCE-REPORT.md
@@ -42,11 +44,44 @@ is a working document that cites branch-local hashes and my own measurement
 mistakes; it is not something the project should carry. Keep it to draw PR
 descriptions from.
 
+## Measuring
+
+Every number in this document was taken with both sides built in one session by
+one toolchain. Say which, because it matters more than it should: two patch
+releases of the same compiler differ by up to 47% on identical source, and one
+eight-line change was free under `6.5.0.9.6` and 19% slower under `6.5.0.10.5`
+(rdar://186588859, key path folding). The current default is `6.5.0.11.3`, which
+is within 0.5% of `6.5.0.10.5` on this branch.
+
+Prefer retired instructions to wall clock for anything under a few percent. A
+timing run's floor across builds is about 0.4% and the first run after a build is
+5% to 12% high from cold caches, so a 1% change is not resolvable by clock. The
+harness is in `../perf-workspace/harness`: `measure-instr.sh` for instructions,
+`measure-two-sides.sh` for wall clock, `measure-memory.sh` for arena bytes,
+`measure-toolchains.sh` for one source against two compilers. Keep the machine
+quiet — a concurrent build in another session invalidates a timing run, and it has
+happened.
+
 ## Progress
 
-Built, verified and measured against `main`: P1, P2, P3, P4, P5+P6, P7, P10,
-P14, P15 — ten of 21, all of Group 1 and the front of Group 2. One commit each
-except P5+P6, which is two. None pushed.
+`origin/main` is `018aecfa9`. Read the state from git rather than from this
+prose, which has fallen behind twice; the tables below carry `[x]` for built and
+this section for what has landed.
+
+**Merged upstream:** P2, P4, P5+P6, P7, P10, P14, P15.
+
+**In flight on `rintaro/swift-syntax`,** and not to be rebased unless they
+conflict: P1 (`8b6983df8`) and P11+P12 (`2b3180eb7`). Neither has a measurement
+against current `main`, and P11+P12's base predates P5.
+
+**Cut, verified, unpushed:**
+
+| branch | commit | what it is |
+|---|---|---|
+| `perf-parser-03-diagnostic-combine` | `21e3f862b` | P3, rebased onto current `main` |
+| `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
+| `perf-parser-22-accessor-benchmark` | `2ffdbfac8` | P22, the read-path instrument |
+| `perf-parser-30-tail-alloc` | `cde9eead0` | the node header and tail allocation |
 
 The integration branch has since grown a sixth cluster that did not come off the
 original branch at all — the Cursor/Position split, described below. It is a PR
@@ -96,8 +131,7 @@ to P16. Resolve by taking P4's side without it.
 |---|---|---|---|---|
 | [x] | P5+P6 | Track the memory layout, then shrink `Lexer.Cursor` — `e93ebdd4c` in its consolidated form, then a squash of `0c3ccd94b`, `14d54bd0a`, `1a39c55bc` | 150 + 114 | **−11.1%/−11.7%** and **−10.9%/−10.8%** vs `main`, two builds per input |
 | [x] | P7 | Keep the state allocator alive across the cursor — `91e26dc86` | 71 | neutral, as expected: the parse benchmark never reaches this code |
-| [ ] | P8 | State stack as a shared linked list — `6e5ee4ee4`, `ad179aa76`, `8886b84d0`, `9a9c7095c` | ~250 | −1.9% / −1.9%, then +0.6% for interning |
-| [ ] | P9 | Hand the lexer its allocator without retaining it — `aad644153`, `c331d96de`, `d3952537f` | ~150 | −4.0/−3.6, then −1.7/−1.5 |
+| [x] | P8+P9 | State stack as a shared linked list, and the lexer's allocator held without retaining it — squash of `6e5ee4ee4`, `ad179aa76`, `aad644153`, `c331d96de`, `8886b84d0`, `d3952537f`, `9a9c7095c` as `694044db4` | 188 +/59 − over 7 files | **−15.20% / −7.78%** vs `main` |
 
 P5 and P6 went out as one PR of two commits: the tracked numbers land with
 `main`'s values, then one squashed commit moves all of them. Two findings from
@@ -115,6 +149,21 @@ scatters the dictionaries into those two hot files and makes both import the
 P9 is what makes them so. It became `testCopyingLookaheadTypes`, recording all
 four values as data the way the sizes are recorded, so P9 flips two `false`s to
 `true` and its benefit shows up as a diff.
+
+**P8 and P9 cannot be split, and not in the order this plan assumed.** P8's third
+and fourth commits need `Lexer.StateAllocator`, which P9's `c331d96de`
+introduces, and `nodesOnEmptyStack`, which P8's own interning commit adds — so
+"P8 before P9" holds only for P8's first two commits. `694044db4` applies all
+seven in their original order, P9's first two, then P8's interning, then P9's
+third, then P8's transition, which is why they go out as one PR. Measured
+together at −15.20% and −7.78%, well past the −1.9% recorded here, because P5's
+`Cursor` shrink is on `main` now and the linked list compounds with it.
+
+Sizes, from the tracked layout test: `Lexer.Cursor` 57 → 32 bytes, its
+`StateStack` 33 → 8, `Lexer.Lexeme` 97 → 72, `Lexer.LexemeSequence` 192 → 128,
+`Parser.Lookahead` 320 → 224. All four of the types a lookahead copies are
+trivial, which `testCopyingLookaheadTypes` records as data so the flip shows up
+as a diff.
 
 P7 before P8 still holds: the linked list turns that latent use-after-free into a
 live one. But P6 and P7 conflict with each other, textually and in both
@@ -218,42 +267,70 @@ its own small PR if the non-ASCII case is worth chasing separately.
 The largest win on the branch. P19 is one transformation repeated; its size is
 call sites, not ideas.
 
-### Tail allocated nodes — a PR of its own, after Group 7
+### The node's header and its tail — cut, and it goes first
 
-`64487d0b4` makes a node a one-word header followed by its own shape's fields and
-then its children or its text, which supersedes the question Group 7 was
-answering. It is 744 insertions over seven files, one commit, and it cannot be
-split without reconstructing intermediate states in a style the final one
-replaced — the two attempts at that would each have shipped something either
-broken or memory-regressing.
+`perf-parser-30-tail-alloc` (`cde9eead0`) makes `RawSyntaxData` the header — an
+enum over the arena reference whose cases name the shape — and puts that shape's
+fields in the same allocation, immediately past it. 302 insertions over six
+files.
 
-Worth **6.2% / 4.9%** of parse time and takes the tree from 20.90× the source to
-15.36×, counting allocator padding. It reverts `1f6c6234f`'s whole-source copy
-without reintroducing the per-token allocation that made `748dde4ff` slow, since
-the text now lands in an allocation the node was making anyway.
+| | |
+|---|---|
+| arena memory | **−8.40%** requested bytes, −7.94% slab capacity |
+| tree size | 26.45× the source → **24.23×** |
+| instructions | **−1.12% / −1.11%** |
+| header | 64 bytes → **8** |
+| node | 64 → 56 for a layout node or parsed token, 64 for a materialized one |
 
-It must follow Group 7: `77a7fc600` and `ffa99ce81` shrink the payload enum this
-change deletes, and their commit messages explain the layout reasoning it builds
-on. Landing them in the other order would leave the earlier two looking pointless.
+It deliberately changes nothing else: the fields keep their types and order, and
+a layout node's children and a parsed token's text keep their own allocations.
+
+**This reverses the order this plan used to give.** It said tail allocation had
+to follow Group 7 because `77a7fc600` and `ffa99ce81` shrink the payload it
+deletes. Group 7 is now folded into the shape PRs instead, for the reason in that
+section, so this lands first and the shape changes build on it.
+
+Two findings worth keeping.
+
+**Leave the header an enum.** Hand-rolling the tag into the low three bits of the
+arena address — `struct RawSyntaxData` with a `Kind` and a mask, kept at
+`scratch-manual-masking` (`34dbbdb58`) — makes `arenaReference` two instructions
+instead of four and costs **4% more work overall**. Swift's own spare-bit choice
+is not just a free slot for the tag: it places the discriminator so that the
+common test is a single bit, `tbnz #63` separating a token from a layout, which a
+three-bit low field cannot do. There are 38 `switch header` sites against 4
+constructions, so the switches decide it.
+
+**`RawSyntax` owns the allocation, the arena hands out bytes.**
+`allocateNode(byteCount:)` on the arena knows nothing about a node's shape;
+`RawSyntax.allocate(_:tailByteCount:arena:)` writes the header and returns
+`(node, tail)` for the caller to fill. That is the shape the shape PRs need,
+which is why it is worth the three explicit initializers rather than one generic
+helper.
 
 Needs saying in the PR: it removes `RawSyntaxData.Payload`, the stored form of a
-layout node's fields, and `RawSyntax.rawData` from the `@_spi(RawSyntax)` surface,
-and it adds a deliberate bounded over-read, checked under AddressSanitizer over an
-exactly-sized-allocation sweep now in `testParseBufferEOFEdgeCases`.
+layout node's fields, and `RawSyntax.rawData` from the `@_spi(RawSyntax)`
+surface.
 
-### Group 7 — tree memory (chained, SwiftSyntax only)
-
-The two figures in this group are requested bytes on the lost 317 KB input, and
-the shape they describe is the one tail allocation replaces. They still want
-landing first, for the reasoning their messages carry, but quote them as the
-history of the layout rather than as the tree's current size.
+### ~~Group 7~~ — withdrawn, folded into the shape PRs
 
 | | | contents | lines | effect |
 |---|---|---|---|---|
-| [ ] | P20 | Hold a materialized token's fields behind a pointer — `77a7fc600` | 106 | node 64 → 56 bytes |
-| [ ] | P21 | Narrow the node's fields and reorder them — `ffa99ce81`, `43ad5af60` | ~250 | node → **40**, tree 26.8× → **20.0×**, ~0.5% slower |
+| ~~P20~~ | | Hold a materialized token's fields behind a pointer — `77a7fc600` | 106 | node 64 → 56 bytes |
+| ~~P21~~ | | Narrow the node's fields and reorder them — `ffa99ce81`, `43ad5af60` | ~250 | node → **40**, tree 26.8× → **20.0×**, ~0.5% slower |
 
-### Group 8 — compacting the tree (chained, requires Group 7)
+**Not landing on their own.** Both are overwritten by the later changes that
+alter a payload's shape — the short-token form above all — so landing them first
+means shipping code that the next PRs rewrite, and asking a reviewer to read the
+same fields twice. Fold the narrowing into whichever shape PR needs it.
+
+Their figures are requested bytes on the lost 317 KB input, so quote them as the
+history of the layout rather than as any current size; the header-and-tail PR
+above has measured numbers on the corpus. Their commit messages still carry the
+layout reasoning the compaction work builds on, and that reasoning is worth
+lifting into the PR that lands the shape rather than losing it.
+
+### Group 8 — compacting the tree (chained, requires the header-and-tail PR)
 
 A non-collection layout node interleaves an `unexpected` slot before its first
 child, between every pair and after the last, so *n* children take 2*n*+1 slots.
@@ -264,7 +341,7 @@ only when it has something to put there.
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [ ] | P22 | Read a tree through its typed accessors, as a benchmark — `bb3b8391d` | 227 | — |
+| [x] | P22 | Read a tree through its typed accessors, as a benchmark — `bb3b8391d`, cut as `2ffdbfac8` | 227 | — |
 | [ ] | P23 | `.collection` as its own header case; field accessors made exhaustive — `f89090804`, `be5232589` | 78 | neutral |
 | [ ] | P24 | Generate whether a kind interleaves its unexpected children — `e7474384d` | 38 [496] | — |
 | [ ] | P25 | Keep no room for unexpected children in a node that has none — `716127f54`, `bb1f9a521`, `587968bf9` | 655 [6,562] | **tree −26%**, parse −1.5%/−1.7% |
@@ -279,10 +356,10 @@ percent — but the first run after a build is 5% to 12% high from cold caches, 
 two sessions measuring one commit differ by about 0.4%, which is the floor on any
 comparison across builds.
 
-**The whole group sits on Group 7.** Compaction assumes a node's children are tail
-allocated, so P20 and P21 have to land first. P23 and P24 are prerequisites with
-nothing to show on their own: P23 is the header case with both shapes still
-identical, P24 a generated `SyntaxKind` property.
+**The whole group sits on the header-and-tail PR**, not on Group 7: compaction
+assumes a node's children are tail allocated, which is what `cde9eead0` provides.
+P23 and P24 are prerequisites with nothing to show on their own: P23 is the header
+case with both shapes still identical, P24 a generated `SyntaxKind` property.
 
 **P25 and its mutation tests cannot be split.** Every mutating operation hands its
 layout back to `makeLayout`, which decides the shape afresh — that is what keeps a
@@ -368,17 +445,20 @@ automatically. They want saying in prose.
 
 ## Suggested order
 
-1. Group 1, in any order. Cheap to review; P2 is the only one of the four worth
-   a performance claim.
-2. Groups 2, 3, 4 and 7 in parallel — 2 and 3 touch different files, 4 is
-   independent of both, 7 is a different module.
-3. Group 5 once the two questions above are settled.
-4. Group 6 last among the parser work: it is the largest, touches CodeGeneration
+1. **P22 now**, and P3 with it. P22 is a test file that depends on nothing, and
+   the read-path changes in Group 8 measure as noise without it. Landing it before
+   the changes it measures also keeps it from looking like a benchmark written to
+   flatter them.
+2. **P8+P9**, which is cut and measured at −15.20% / −7.78%, the largest single
+   result left. P7 is already upstream, so nothing blocks it.
+3. **The header-and-tail PR**, which is cut. Everything in Group 8 assumes it.
+4. Groups 3 and 4 in parallel with the above where they do not collide — P11+P12
+   is already in flight, P13 is independent of it.
+5. Group 5 once the two questions above are settled.
+6. Group 6 last among the parser work: it is the largest, touches CodeGeneration
    and most parser files, and wants a quiet base.
-5. Group 8 after Group 7, since it assumes tail-allocated children. P22 can go at
-   any point and is worth landing early on its own merits — it is the only
-   benchmark here that measures reading a tree rather than building one.
-6. Group 9 whenever convenient. Two small diffs in two files, dependent on
+7. Group 8 after the header-and-tail PR, in its own order.
+8. Group 9 whenever convenient. Two small diffs in two files, dependent on
    nothing, and between them worth more on the declaration-heavy input than most
    of Group 1.
 
