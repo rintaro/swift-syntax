@@ -454,10 +454,19 @@ large; it needs homes rather than analysis.
       measured against `main` it *costs* 3.66% of the declaration-heavy parse and
       saves 1.53% of the non-ASCII one, where at the end of the branch it was
       −1.7% / −3.8%. Neither side emits a single `swift_beginAccess`, so the
-      attribute is working and exclusivity is not the cause; what changed is what
-      the allocator is asked for. On `main` every node is a fixed 64 bytes, and the
-      shape PRs make a node's size depend on its kind. Re-measure after those land
-      rather than posting a regression on the input that matters more.
+      attribute is working and exclusivity is not the cause. **The commit's stated
+      reason is wrong**, which a reviewer would catch: it says the bump has to be
+      `@inlinable` because it is "called from other modules", but
+      `RawSyntaxArena`'s wrappers — `allocateRawSyntaxBuffer`, `allocateTextBuffer`,
+      `allocateNode` — are not `@inlinable` on `main` or on this branch, so
+      SwiftParser cannot see through them and never inlines the bump. SwiftParser's
+      `__text` is byte-identical across the change; only SwiftSyntax grows, by
+      24,596 bytes. Profiling `decl_heavy` shows the work moving rather than
+      shrinking: `BumpPtrAllocator.allocate` leaves the profile (−2.69pp),
+      `RawSyntaxArena.intern` enters it (+2.32pp), and `RawSyntax.makeLayout` also
+      stops being a leaf (−1.63pp), so the inlining cascades past the one function
+      it was aimed at. Either make the wrappers `@inlinable` so the premise becomes
+      true and re-measure, or drop it.
 - [ ] **P16** changes observable behaviour: `Parser.lookaheadRanges` is
       `public internal(set)`, and a caller driving `Parser` directly now finds it
       empty unless it asks for the ranges.
