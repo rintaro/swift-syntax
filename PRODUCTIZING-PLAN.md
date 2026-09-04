@@ -274,7 +274,28 @@ its own small PR if the non-ASCII case is worth chasing separately.
 | | | contents | lines | measured |
 |---|---|---|---|---|
 | [ ] | P16 | Only record lookahead ranges when asked — `d4f3d94e4`, `e8acf42b2` | 63 | −2.7/−2.7, −1.7/−1.9 |
-| [x] | P17 | Inline the bump allocator's fast path — `7b2b378a4`, cut as `609875bf7` | 33 | **+3.66% / −1.53%** vs `main`; −1.7% / −3.8% at the end of the branch |
+| ~~P17~~ | | ~~Inline the bump allocator's fast path~~ — `7b2b378a4` | 33 | **dropped**: +3.66% on the declaration-heavy input against `main` |
+
+**P17 is dropped, and its premise is the reason.** The commit marks the bump
+`@inlinable` "because the bump is called from other modules", but the only
+allocator entry points SwiftParser uses are `RawSyntaxArena`'s wrappers —
+`allocateRawSyntaxBuffer`, `allocateTextBuffer`, `allocateNode` — and none of them
+is `@inlinable`, on `main` or on this branch. So no other module can see through
+to the bump, and SwiftParser's `__text` is byte-identical across the change.
+What is left is inlining inside SwiftSyntax, which grows it by 24,596 bytes and
+costs 3.66% of the declaration-heavy parse while saving 1.53% of the non-ASCII
+one. Profiling shows the work moving rather than shrinking:
+`BumpPtrAllocator.allocate` leaves the profile (−2.69pp),
+`RawSyntaxArena.intern` enters it (+2.32pp), and `RawSyntax.makeLayout` stops
+being a leaf too (−1.63pp), so it cascades past the function it was aimed at.
+`@exclusivity(unchecked)` is not implicated: neither side emits a single
+`swift_beginAccess`.
+
+Reviving it means making the arena wrappers `@inlinable` so the premise holds,
+which pulls `@usableFromInline` onto the arena's internals and is a larger API
+change than the 33 lines suggest. The branch measured this at −1.7% / −3.8%, and
+that number does not survive contact with `main`. `perf-parser-17-allocator-inline`
+(`609875bf7`) holds the attempt.
 
 ### Group 6 — collections without an `Array` (chained)
 
@@ -449,24 +470,6 @@ large; it needs homes rather than analysis.
 
 ## Needs your sign-off
 
-- [ ] **P17** rests on `@exclusivity(unchecked)`. Without it the change is a 14%
-      regression, so it is the premise, not a detail. **Do not post it yet:**
-      measured against `main` it *costs* 3.66% of the declaration-heavy parse and
-      saves 1.53% of the non-ASCII one, where at the end of the branch it was
-      −1.7% / −3.8%. Neither side emits a single `swift_beginAccess`, so the
-      attribute is working and exclusivity is not the cause. **The commit's stated
-      reason is wrong**, which a reviewer would catch: it says the bump has to be
-      `@inlinable` because it is "called from other modules", but
-      `RawSyntaxArena`'s wrappers — `allocateRawSyntaxBuffer`, `allocateTextBuffer`,
-      `allocateNode` — are not `@inlinable` on `main` or on this branch, so
-      SwiftParser cannot see through them and never inlines the bump. SwiftParser's
-      `__text` is byte-identical across the change; only SwiftSyntax grows, by
-      24,596 bytes. Profiling `decl_heavy` shows the work moving rather than
-      shrinking: `BumpPtrAllocator.allocate` leaves the profile (−2.69pp),
-      `RawSyntaxArena.intern` enters it (+2.32pp), and `RawSyntax.makeLayout` also
-      stops being a leaf (−1.63pp), so the inlining cascades past the one function
-      it was aimed at. Either make the wrappers `@inlinable` so the premise becomes
-      true and re-measure, or drop it.
 - [ ] **P16** changes observable behaviour: `Parser.lookaheadRanges` is
       `public internal(set)`, and a caller driving `Parser` directly now finds it
       empty unless it asks for the ranges.
@@ -489,7 +492,7 @@ automatically. They want saying in prose.
 3. **The header-and-tail PR**, which is cut. Everything in Group 8 assumes it.
 4. Groups 3 and 4 in parallel with the above where they do not collide — P11+P12
    is already in flight, P13 is independent of it.
-5. Group 5 once the two questions above are settled.
+5. Group 5 once P16's behaviour change is settled; P17 is dropped.
 6. Group 6 last among the parser work: it is the largest, touches CodeGeneration
    and most parser files, and wants a quiet base.
 7. Group 8 after the header-and-tail PR, in its own order.
