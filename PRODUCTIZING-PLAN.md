@@ -274,7 +274,7 @@ its own small PR if the non-ASCII case is worth chasing separately.
 | | | contents | lines | measured |
 |---|---|---|---|---|
 | [ ] | P16 | Only record lookahead ranges when asked — `d4f3d94e4`, `e8acf42b2` | 63 | −2.7/−2.7, −1.7/−1.9 |
-| [ ] | P17 | Inline the bump allocator's fast path — `7b2b378a4` | 33 | −1.7% / −3.8% |
+| [x] | P17 | Inline the bump allocator's fast path — `7b2b378a4`, cut as `609875bf7` | 33 | **+3.66% / −1.53%** vs `main`; −1.7% / −3.8% at the end of the branch |
 
 ### Group 6 — collections without an `Array` (chained)
 
@@ -450,7 +450,14 @@ large; it needs homes rather than analysis.
 ## Needs your sign-off
 
 - [ ] **P17** rests on `@exclusivity(unchecked)`. Without it the change is a 14%
-      regression, so it is the premise, not a detail.
+      regression, so it is the premise, not a detail. **Do not post it yet:**
+      measured against `main` it *costs* 3.66% of the declaration-heavy parse and
+      saves 1.53% of the non-ASCII one, where at the end of the branch it was
+      −1.7% / −3.8%. Neither side emits a single `swift_beginAccess`, so the
+      attribute is working and exclusivity is not the cause; what changed is what
+      the allocator is asked for. On `main` every node is a fixed 64 bytes, and the
+      shape PRs make a node's size depend on its kind. Re-measure after those land
+      rather than posting a regression on the input that matters more.
 - [ ] **P16** changes observable behaviour: `Parser.lookaheadRanges` is
       `public internal(set)`, and a caller driving `Parser` directly now finds it
       empty unless it asks for the ranges.
