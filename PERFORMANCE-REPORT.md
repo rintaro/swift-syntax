@@ -1039,6 +1039,7 @@ Recorded so they are not re-attempted.
 | `TokenSpec.Matcher.fixedText` (from `private/parse-attrkeywords`) | **+1.4% / +2.4%** | Grows `TokenSpec` from 5 to 24 bytes; it is built on nearly every parser decision. |
 | `final` on `RawSyntaxArena`'s nine members | no gain | `ParsingRawSyntaxArena` being final already lets WMO devirtualize. |
 | Drop `Position.previous` | 0 bytes at the time | True while a position held a buffer pointer: the cursor's flag bytes occupied the padding that dropping one byte would have freed. Superseded by *The position*, which dropped it as part of holding a position as a pointer and a count and was worth 2 to 3%. |
+| Hold a `Lexer.Lexeme`'s boundaries as three pointers rather than three lengths | **+3.3% / +1.6%** | Every parser question about leading or trailing trivia is a zero test, which pointer comparisons answer for free, and the lexer already holds the boundaries — so the shape fits the usage better and measures much worse. What costs is the storage: a `Lexeme` is copied per token and again per lookahead, and three opaque addresses replace three small integers the optimizer could fold and keep in registers. Rewriting every accessor to read the boundaries directly, rather than deriving a distance and adding it back, recovered 0.3 points of the 3.6 and left the rest. |
 | Narrow `Lexer.Lexeme`'s three byte lengths to `UInt32` | flat, at 64 → 48 bytes | The three counts measure spans within one token, so they fit in 32 bits with room to spare, and with the cursor's one-byte fields moved after its state stack and the counts declared after the cursor they pack into its tail padding: a lexeme 48 bytes, a lexeme sequence 104, a lookahead 176. No input moves, on two builds per side over 20 rounds. **Narrowing a field removes no load and no store — it only makes each one narrower, and a four-byte store costs what an eight-byte store costs.** Compare `0ae93a368`, which paid 2% for the same 8 bytes by deleting a stored pointer outright. Every version of it also costs something elsewhere: passing the narrowed spans on to the node wants `RawSyntax.parsedToken` and `RawTokenSyntax.init` to change signature, and leaving that interface alone means an `Int` → `UInt32` → `Int` → `UInt32` round trip per token. Kept on the local `scratch-lexeme-u32` branch (`8427fdd05`) rather than landed. |
 | Move `Cursor` out of `Lexeme` | — | Read per token by `hasProgressed` and `currentState`; out-of-lining trades a copy for a bump allocation per token. |
 | Take `nextToken`'s positional snapshots as pointers | 415 → 414 instructions | Semantically right — `leadingTriviaStart`, `textStart` and `trailingTriviaStart` are read only for `input.baseAddress` — but the optimizer already elides all three. The hand-written version emits one instruction fewer, one memory op more, and a stack frame 16 bytes larger. |
@@ -1117,6 +1118,15 @@ memory operations and frame size answers it outright, with none of the layout
 noise above and no benchmark input to argue about. That is what established that
 `nextToken`'s snapshots are already elided, after a timing run had put the same
 question at +0.2% — a number too small to conclude anything from.
+
+**A precedent bounds the change it was measured on, not the shape of the change.**
+The rejected table records taking `nextToken`'s positional snapshots as pointers at
+415 to 414 instructions, which is nothing, and that was used to predict the same
+for holding a `Lexeme`'s boundaries as pointers. It came out at +3.3%. The
+substitution is identical and the blast radius is not: the first changed locals
+inside one function, the second changed what a struct copied per token and per
+lookahead holds, so every reader and every copy pays. Before reusing a
+measurement, check that what it covered is what the new change touches.
 
 **A leaf-symbol profile diff across two builds mostly measures inlining, not
 work.** Profiling the `UInt32` lexeme experiment showed `Lexer.LexemeSequence.next`
