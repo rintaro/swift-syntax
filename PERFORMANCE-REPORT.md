@@ -959,6 +959,47 @@ releases.
 
 ---
 
+## Taking a token from what the lexer already holds
+
+`scratch-position-buffer-end` (`bf9dbd845`) is four commits against the branch tip
+that together make a parsed token from the lexeme's own values, and end up **0.50%
+faster** on the declaration-heavy input and level on the non-ASCII one.
+
+The layering was the reason to try it and the measurements were the reason it
+survived. `RawSyntaxArena` held a `sourceBufferEnd`, set by a public
+`setSourceBuffer` that exists only to feed a copy heuristic — parser state on the
+arena, and a footgun, since forgetting the call sends every token down the slow
+copy. Passing it instead costs nothing once the conversions go.
+
+| step | decl-heavy | non-ASCII |
+|---|---|---|
+| pass `cursor.input` rather than reading the arena | +1.05% | +0.94% |
+| pass the end pointer rather than the buffer | +0.93% | +0.85% |
+| pass the lexeme's own values, no `SyntaxText` or `Range` | +0.35% | +0.67% |
+| sum the byte lengths with `&+` | −0.04% | +0.42% |
+| store the whole span, derive the trailing length | **−0.50%** | **+0.05%** |
+
+Three things came out of that sequence, none of which was the first guess.
+
+**Halving what crosses the call was worth nothing.** Passing an 8-byte end pointer
+rather than a 16-byte buffer moved decl-heavy 0.12 points, inside the noise floor.
+The cost was never the width.
+
+**Building a `SyntaxText` and a `Range` only to take them apart was worth 0.6
+points.** The parser assembled both from the lexeme's three lengths and the factory
+immediately pulled them back into a length and two offsets. Passing the lengths
+straight through deletes both halves, and `cursor.input` does double duty: its base
+*is* the token's start, since `Lexeme.start` is `cursor.position.pointer` and not
+stored, and its end is the bound the over-read guard needs.
+
+**Overflow checks on three additions per token were worth 0.4 points**, and storing
+the whole span rather than summing it was worth another 0.4. The lexer knows the
+span as one pointer distance, so storing it is free where it is computed, and the
+trailing length — the one thing it displaces — is only ever asked whether it is
+zero.
+
+---
+
 ## Correctness
 
 No commit changes the parsed output. The main instrument was a differential
