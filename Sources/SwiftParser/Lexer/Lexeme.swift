@@ -65,7 +65,18 @@ extension Lexer {
 
     var textByteLength: Int
 
-    var trailingTriviaByteLength: Int
+    /// Byte count of this lexeme's whole text, leading and trailing trivia
+    /// included.
+    ///
+    /// Stored rather than summed from the three spans, because the lexer knows
+    /// the whole span as one pointer distance and every token is built from it,
+    /// while the trailing length is only ever asked whether it is zero.
+    var wholeTextByteLength: Int
+
+    /// Byte count of this lexeme's trailing trivia.
+    var trailingTriviaByteLength: Int {
+      self.wholeTextByteLength &- self.leadingTriviaByteLength &- self.textByteLength
+    }
 
     /// The cursor that produces this lexeme by calling `nextToken` on it.
     /// Used if the token needs to be re-lexed in a different lexer state.
@@ -95,7 +106,7 @@ extension Lexer {
       keyword: Keyword?,
       leadingTriviaLength: Int,
       textLength: Int,
-      trailingTriviaLength: Int,
+      wholeTextLength: Int,
       cursor: Lexer.Cursor
     ) {
       self.rawTokenKind = tokenKind
@@ -104,13 +115,13 @@ extension Lexer {
       self.keyword = keyword
       self.leadingTriviaByteLength = leadingTriviaLength
       self.textByteLength = textLength
-      self.trailingTriviaByteLength = trailingTriviaLength
+      self.wholeTextByteLength = wholeTextLength
       self.cursor = cursor
     }
 
     @_spi(Testing)
     public var byteLength: Int {
-      leadingTriviaByteLength + textByteLength + trailingTriviaByteLength
+      self.wholeTextByteLength
     }
 
     @_spi(Testing)

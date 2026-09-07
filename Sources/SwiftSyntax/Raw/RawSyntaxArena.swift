@@ -297,17 +297,6 @@ public final class ParsingRawSyntaxArena: RawSyntaxArena {
 
   /// The end of the buffer being parsed, once the parser has said where it is.
   ///
-  /// Used only to decide how a token's text may be copied into its node: copying
-  /// a word at a time reads up to seven bytes past a short token's end, which is
-  /// safe while those bytes are still inside the buffer. See
-  /// `RawSyntax.parsedToken(kind:wholeText:textRange:presence:tokenDiagnostic:arena:)`.
-  private(set) var sourceBufferEnd: UnsafePointer<UInt8>?
-
-  /// Tell the arena which buffer the tokens it is about to hold are lexed from.
-  public func setSourceBuffer(_ buffer: UnsafeBufferPointer<UInt8>) {
-    self.sourceBufferEnd = buffer.baseAddress.map { $0 + buffer.count }
-  }
-
   /// Parse `source` into a list of ``RawTriviaPiece`` using `parseTriviaFunction`.
   public func parseTrivia(source: SyntaxText, position: TriviaPosition) -> [RawTriviaPiece] {
     // Must never access mutable state. See `RawSyntaxArenaRef.parseTrivia`.

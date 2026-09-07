@@ -286,7 +286,6 @@ public struct Parser {
 
     // The arena copies each token's text into the token's own node, and needs to
     // know where the buffer ends to copy a word at a time near the end of it.
-    self.arena.setSourceBuffer(input)
 
     self.maximumNestingLevel = maximumNestingLevel ?? Self.defaultMaximumNestingLevel
     self.swiftVersion = swiftVersion ?? Self.defaultSwiftVersion
@@ -504,8 +503,10 @@ public struct Parser {
     self.currentToken = self.lexemes.advance()
     return RawTokenSyntax(
       kind: tok.rawTokenKind,
-      wholeText: tok.wholeText,
-      textRange: tok.textRange,
+      sourceBuffer: tok.cursor.input,
+      leadingTriviaByteLength: tok.leadingTriviaByteLength,
+      textByteLength: tok.textByteLength,
+      wholeTextLength: tok.wholeTextByteLength,
       presence: .present,
       tokenDiagnostic: tok.diagnostic,
       arena: arena
@@ -943,8 +944,10 @@ extension Parser {
 
     let tok = RawTokenSyntax(
       kind: tokenKind,
-      wholeText: SyntaxText(rebasing: current.wholeText[..<endIndex]),
-      textRange: current.textRange.lowerBound..<endIndex,
+      sourceBuffer: current.cursor.input,
+      leadingTriviaByteLength: current.leadingTriviaByteLength,
+      textByteLength: prefix.count,
+      wholeTextLength: current.leadingTriviaByteLength &+ prefix.count,
       presence: .present,
       tokenDiagnostic: tokenDiagnostic,
       arena: self.arena

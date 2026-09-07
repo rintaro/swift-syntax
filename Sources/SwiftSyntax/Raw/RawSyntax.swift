@@ -959,14 +959,28 @@ extension RawSyntax {
   ///   - textRange: Range of the token text in `wholeText`.
   ///   - presence: Whether the token appeared in the source code or if it was synthesized.
   ///   - arena: RawSyntaxArena to the result node data resides.
+  /// Makes a parsed token from what the lexer already holds: the buffer it is
+  /// reading, positioned at the token, and the three byte lengths.
+  ///
+  /// Taking those rather than a `SyntaxText` and a `Range` means neither is built
+  /// only to be taken apart again here, and the buffer answers both where the
+  /// text is and how far `copyText` may read past it.
   internal static func parsedToken(
     kind: RawTokenKind,
-    wholeText: SyntaxText,
-    textRange: Range<SyntaxText.Index>,
+    sourceBuffer: UnsafeBufferPointer<UInt8>,
+    leadingTriviaByteLength: Int,
+    textByteLength: Int,
+    wholeTextLength: Int,
     presence: SourcePresence,
     tokenDiagnostic: TokenDiagnostic?,
     arena: __shared ParsingRawSyntaxArena
   ) -> RawSyntax {
+    let wholeText = SyntaxText(baseAddress: sourceBuffer.baseAddress, count: wholeTextLength)
+    // `&+` because these are byte counts within one token, taken from the lexer,
+    // and cannot overflow: the check is a branch per token on a sum bounded by
+    // the size of the source.
+    let textRange = leadingTriviaByteLength..<(leadingTriviaByteLength &+ textByteLength)
+    let sourceBufferEnd = sourceBuffer.baseAddress.map { $0 + sourceBuffer.count }
     // The text is copied into the node itself, so the tree does not depend on
     // the buffer it was lexed from. `textRange` is 0-based within `wholeText`,
     // so it is unaffected by the copy.
@@ -988,7 +1002,7 @@ extension RawSyntax {
           tokenKind: kind
         ),
         wholeText: wholeText,
-        sourceBufferEnd: arena.sourceBufferEnd
+        sourceBufferEnd: sourceBufferEnd
       )
     }
 
@@ -1007,7 +1021,7 @@ extension RawSyntax {
       arena: arena,
       parsedToken: payload,
       wholeText: wholeText,
-      sourceBufferEnd: arena.sourceBufferEnd
+      sourceBufferEnd: sourceBufferEnd
     )
   }
 
