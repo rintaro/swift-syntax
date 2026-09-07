@@ -961,9 +961,9 @@ releases.
 
 ## Taking a token from what the lexer already holds
 
-`scratch-position-buffer-end` (`bf9dbd845`) is four commits against the branch tip
-that together make a parsed token from the lexeme's own values, and end up **0.50%
-faster** on the declaration-heavy input and level on the non-ASCII one.
+`9b24f1f7f` makes a parsed token from the lexeme's own values, and is **0.50%
+faster** on the declaration-heavy input and level on the non-ASCII one. It reached
+the branch as one commit; the steps below were measured separately on the way.
 
 The layering was the reason to try it and the measurements were the reason it
 survived. `RawSyntaxArena` held a `sourceBufferEnd`, set by a public
