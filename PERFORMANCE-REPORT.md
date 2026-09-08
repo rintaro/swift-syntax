@@ -1000,6 +1000,54 @@ zero.
 
 ---
 
+## Reading a node's tail through one reference
+
+`68889210a` and `65ddf257b` give each shape a `Ref` — a struct holding the pointer
+to that shape's fields in the node's tail, the way `RawSyntax` holds the pointer to
+the header — and move the accessors that read the tail onto it. A caller says
+`raw.parsedToken.wholeText`, where before it paired `parsedToken.pointee.wholeText(base:)`
+with a second accessor for the base, so `smolParsedTokenTextBase`,
+`parsedTokenTextBase` and `childrenOffset` have nothing left to tell and 83 call
+sites lose their `.pointee`. It costs **0.09%** on the declaration-heavy input and
+nothing on the non-ASCII one, and it is here for the shape of the code rather than
+for a number.
+
+| variant | decl-heavy | non-ASCII |
+|---|---|---|
+| token shapes only | +0.035%, +0.041% | flat |
+| token shapes and layout | +0.14%, +0.14%, +0.16% | flat |
+| every member `@inline(__always)` | **+0.092%, +0.093%** | flat |
+
+Two variants measured indistinguishable from the third row and are not kept: holding
+a plain `UnsafePointer` rather than an `ArenaAllocatedPointer`, and letting the three
+properties that read a node's slots reach the fields without the shape check their
+own `switch` already performs.
+
+**The assembly does not contain the cost.** Diffing every function of both binaries,
+normalised for moved constants: 14,435 of 29,201 are byte-identical, `__TEXT` grows
+by 281 instructions in total, and of the 90 functions a profile observes executing,
+11 differ — every one of them only in the `adrp`/`add` pair that addresses a constant
+that moved, as in `add x2, x2, #0x438` against `add x2, x2, #0x9a8`. `nextToken`,
+`lexNormal` and every `makeLayout` specialisation are identical. The 127 functions
+that do change size are off the parse path, and the only structural difference is
+which small accessor gets outlined: one build outlines `RawSyntaxTokenView.rawText`,
+the other outlines four `Ref` getters and puts `textByteLength` behind a
+one-instruction jump to a merged body. So the same code retires 73,000 more
+instructions per parse, about two per layout node, and neither a leaf profile nor the
+disassembly says where.
+
+**What the instruments can and cannot resolve** came out of chasing it, and is worth
+more than the change. Running the *same commit* on both sides puts the
+instruction-count floor at ±25,000 within one pair, 0.03%, and one commit measured
+across pairs spread 59,000, 0.075% — so a single pair cannot resolve 0.05%, and the
+first pair taken here read −83 instructions for a change that two later pairs put at
++30,000. Leaf sampling at 1 ms is blind at this scale for a different reason: 0.15%
+of a 5,300-sample profile is 8 samples, and the largest per-symbol swing between two
+builds of the same source was 28. The instrument that would locate it attributes
+retired instructions to symbols rather than time.
+
+---
+
 ## Correctness
 
 No commit changes the parsed output. The main instrument was a differential
