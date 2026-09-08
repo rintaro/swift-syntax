@@ -40,7 +40,7 @@ public struct RawSyntaxLayoutView {
   }
 
   var recursiveFlags: RecursiveRawSyntaxFlags {
-    return raw.layout.pointee.recursiveFlags
+    return raw.layout.recursiveFlags
   }
 
   /// Creates a new node of the same kind but with children replaced by `elements`.

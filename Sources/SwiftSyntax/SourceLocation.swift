@@ -831,7 +831,7 @@ fileprivate extension RawSyntax {
       position = self.materializedToken.trailingTrivia.forEachEndOfLine(position: position, body: body)
     case .flat, .layout, .layoutWithUnexpected:
       // Handle '#sourceLocation' directive.
-      if self.layout.pointee.kind == .poundSourceLocation {
+      if self.layout.kind == .poundSourceLocation {
         // Do this before `node.forEachEndOfLine` call below so the caller can
         // know the exact position of the directive.
         handleSourceLocationDirective(position, self)

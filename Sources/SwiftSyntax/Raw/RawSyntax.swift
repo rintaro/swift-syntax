@@ -375,6 +375,41 @@ extension RawSyntaxData.MaterializedToken {
   }
 }
 
+extension RawSyntaxData.Layout {
+  /// A layout node's fields in a node's tail, and the slots laid out after them.
+  ///
+  /// - Important: The arena that owns the node must outlive this.
+  struct Ref: Sendable {
+    typealias Fields = RawSyntaxData.Layout
+
+    private let pointer: ArenaAllocatedPointer<Fields>
+
+    @inline(__always)
+    init(_ pointer: UnsafePointer<Fields>) {
+      self.pointer = ArenaAllocatedPointer(pointer)
+    }
+
+    @inline(__always)
+    var childCount: UInt32 { pointer.pointee.childCount }
+    @inline(__always)
+    var byteLength: UInt32 { pointer.pointee.byteLength }
+    @inline(__always)
+    var descendantCount: UInt32 { pointer.pointee.descendantCount }
+    @inline(__always)
+    var kind: SyntaxKind { pointer.pointee.kind }
+    @inline(__always)
+    var recursiveFlags: RecursiveRawSyntaxFlags { pointer.pointee.recursiveFlags }
+
+    /// Where this node's slots begin, a fixed offset past its fields.
+    @inline(__always)
+    var slotBase: UnsafePointer<RawSyntax?> {
+      UnsafeRawPointer(pointer.pointer)
+        .advanced(by: MemoryLayout<Fields>.stride)
+        .assumingMemoryBound(to: RawSyntax?.self)
+    }
+  }
+}
+
 /// Represents the raw tree structure underlying the syntax tree. These nodes
 /// have no notion of identity and only provide structure to the tree. They
 /// are immutable and can be freely shared between syntax nodes.
@@ -391,12 +426,6 @@ public struct RawSyntax: Sendable {
   /// Where a node's tail begins: immediately past its one-word header.
   @inline(__always)
   static var tailOffset: Int { MemoryLayout<RawSyntaxData>.stride }
-
-  /// Where a layout node's children begin: past the header and the metadata.
-  @inline(__always)
-  static var childrenOffset: Int {
-    Self.tailOffset + MemoryLayout<RawSyntaxData.Layout>.stride
-  }
 
   @inline(__always)
   private var tail: UnsafeRawPointer {
@@ -595,10 +624,10 @@ public struct RawSyntax: Sendable {
 
   /// - Precondition: this is a layout node or a collection.
   @inline(__always)
-  var layout: UnsafePointer<RawSyntaxData.Layout> {
+  var layout: RawSyntaxData.Layout.Ref {
     switch self.header {
     case .flat, .layout, .layoutWithUnexpected:
-      return tail.assumingMemoryBound(to: RawSyntaxData.Layout.self)
+      return RawSyntaxData.Layout.Ref(tail.assumingMemoryBound(to: RawSyntaxData.Layout.self))
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
     }
@@ -611,7 +640,8 @@ public struct RawSyntax: Sendable {
   /// The slots this node holds: its real children, followed by its `unexpected`
   /// slots if it kept room for them.
   var physicalSlots: UnsafeBufferPointer<RawSyntax?> {
-    let childCount = Int(tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).pointee.childCount)
+    let layout = self.layout
+    let childCount = Int(layout.childCount)
     let slotCount: Int
     switch self.header {
     case .layoutWithUnexpected:
@@ -621,26 +651,22 @@ public struct RawSyntax: Sendable {
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
     }
-    let start = UnsafeRawPointer(pointer.pointer).advanced(by: Self.childrenOffset)
-      .assumingMemoryBound(to: RawSyntax?.self)
-    return UnsafeBufferPointer(start: start, count: slotCount)
+    return UnsafeBufferPointer(start: layout.slotBase, count: slotCount)
   }
 
   /// Where this node's slots begin, and how many real children it has.
   @inline(__always)
   var slotBase: (base: UnsafePointer<RawSyntax?>, childCount: Int) {
-    let childCount = Int(tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).pointee.childCount)
-    let base = UnsafeRawPointer(pointer.pointer).advanced(by: Self.childrenOffset)
-      .assumingMemoryBound(to: RawSyntax?.self)
-    return (base, childCount)
+    let layout = self.layout
+    return (layout.slotBase, Int(layout.childCount))
   }
 
   /// This node's children as the tree describes them, which for a node that kept
   /// no room for its `unexpected` slots means reading those as nil.
   var logicalChildren: RawLayoutChildren {
-    let childCount = Int(tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).pointee.childCount)
-    let start = UnsafeRawPointer(pointer.pointer).advanced(by: Self.childrenOffset)
-      .assumingMemoryBound(to: RawSyntax?.self)
+    let layout = self.layout
+    let childCount = Int(layout.childCount)
+    let start = layout.slotBase
     let unexpected: UnsafeBufferPointer<RawSyntax?>
     let interleaves: Bool
     switch self.header {
@@ -681,7 +707,7 @@ extension RawSyntax {
   public var kind: SyntaxKind {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken: return .token
-    case .flat, .layout, .layoutWithUnexpected: return self.layout.pointee.kind
+    case .flat, .layout, .layoutWithUnexpected: return self.layout.kind
     }
   }
 
@@ -722,7 +748,7 @@ extension RawSyntax {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return 1
     case .flat, .layout, .layoutWithUnexpected:
-      return self.layout.pointee.descendantCount + 1
+      return self.layout.descendantCount + 1
     }
   }
 
@@ -737,7 +763,7 @@ extension RawSyntax {
     case .materializedToken:
       return self.materializedToken.presence == .present ? self.materializedToken.byteLength : 0
     case .flat, .layout, .layoutWithUnexpected:
-      return self.layout.pointee.byteLength
+      return self.layout.byteLength
     }
   }
 
@@ -747,7 +773,7 @@ extension RawSyntax {
     case .smolParsedToken, .parsedToken, .materializedToken:
       return 1
     case .flat, .layout, .layoutWithUnexpected:
-      return Int(self.layout.pointee.descendantCount) + 1
+      return Int(self.layout.descendantCount) + 1
     }
   }
 
@@ -774,7 +800,7 @@ extension RawSyntax {
         return 0
       }
     case .flat, .layout, .layoutWithUnexpected:
-      return Int(self.layout.pointee.byteLength)
+      return Int(self.layout.byteLength)
     }
   }
 
@@ -1598,8 +1624,8 @@ extension RawSyntax: CustomDebugStringConvertible {
     case .flat, .layout, .layoutWithUnexpected:
       target.write(".layout(")
       target.write(String(describing: kind))
-      target.write(" byteLength=\(Int(self.layout.pointee.byteLength))")
-      target.write(" descendantCount=\(Int(self.layout.pointee.descendantCount))")
+      target.write(" byteLength=\(Int(self.layout.byteLength))")
+      target.write(" descendantCount=\(Int(self.layout.descendantCount))")
       if withChildren {
         for (num, child) in self.logicalChildren.enumerated() {
           target.write("\n")
