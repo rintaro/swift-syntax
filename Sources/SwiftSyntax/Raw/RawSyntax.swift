@@ -227,43 +227,146 @@ internal enum RawSyntaxData: Sendable {
   }
 }
 
-/// Reads a parsed token's fields, and the text that follows them, out of the
-/// node's tail.
 extension RawSyntaxData.SmolParsedToken {
-  /// - Parameter base: where this token's text begins, a fixed offset from the
-  ///   node that holds these fields.
-  func wholeText(base: UnsafePointer<UInt8>) -> SyntaxText {
-    SyntaxText(baseAddress: base, count: Int(self.wholeTextLength))
-  }
-  func tokenText(base: UnsafePointer<UInt8>) -> SyntaxText {
-    SyntaxText(rebasing: self.wholeText(base: base)[self.textRange])
-  }
-  func leadingTriviaText(base: UnsafePointer<UInt8>) -> SyntaxText {
-    SyntaxText(rebasing: self.wholeText(base: base)[..<self.textRange.lowerBound])
-  }
-  func trailingTriviaText(base: UnsafePointer<UInt8>) -> SyntaxText {
-    SyntaxText(rebasing: self.wholeText(base: base)[self.textRange.upperBound...])
+  /// A short parsed token's fields in a node's tail, and the text laid out after
+  /// them.
+  ///
+  /// - Important: The arena that owns the node must outlive this.
+  struct Ref: Sendable {
+    typealias Fields = RawSyntaxData.SmolParsedToken
+
+    private let pointer: ArenaAllocatedPointer<Fields>
+
+    @inline(__always)
+    init(_ pointer: UnsafePointer<Fields>) {
+      self.pointer = ArenaAllocatedPointer(pointer)
+    }
+
+    @inline(__always)
+    var tokenKind: RawTokenKind { pointer.pointee.tokenKind }
+    @inline(__always)
+    var wholeTextLength: UInt8 { pointer.pointee.wholeTextLength }
+    @inline(__always)
+    var textRange: Range<SyntaxText.Index> { pointer.pointee.textRange }
+
+    /// Where this token's text begins, a fixed offset past its fields.
+    @inline(__always)
+    private var textBase: UnsafePointer<UInt8> {
+      UnsafeRawPointer(pointer.pointer)
+        .advanced(by: MemoryLayout<Fields>.stride)
+        .assumingMemoryBound(to: UInt8.self)
+    }
+
+    @inline(__always)
+    var wholeText: SyntaxText {
+      SyntaxText(baseAddress: self.textBase, count: Int(self.wholeTextLength))
+    }
+    @inline(__always)
+    var tokenText: SyntaxText {
+      SyntaxText(rebasing: self.wholeText[self.textRange])
+    }
+    @inline(__always)
+    var leadingTriviaText: SyntaxText {
+      SyntaxText(rebasing: self.wholeText[..<self.textRange.lowerBound])
+    }
+    @inline(__always)
+    var trailingTriviaText: SyntaxText {
+      SyntaxText(rebasing: self.wholeText[self.textRange.upperBound...])
+    }
   }
 }
 
 extension RawSyntaxData.ParsedToken {
-  /// - Parameter base: where this token's text begins, a fixed offset from the
-  ///   node that holds these fields.
-  func wholeText(base: UnsafePointer<UInt8>) -> SyntaxText {
-    SyntaxText(baseAddress: base, count: Int(self.wholeTextLength))
-  }
-  func tokenText(base: UnsafePointer<UInt8>) -> SyntaxText {
-    SyntaxText(rebasing: self.wholeText(base: base)[self.textRange])
-  }
-  func leadingTriviaText(base: UnsafePointer<UInt8>) -> SyntaxText {
-    SyntaxText(rebasing: self.wholeText(base: base)[..<self.textRange.lowerBound])
-  }
-  func trailingTriviaText(base: UnsafePointer<UInt8>) -> SyntaxText {
-    SyntaxText(rebasing: self.wholeText(base: base)[self.textRange.upperBound...])
+  /// A parsed token's fields in a node's tail, and the text laid out after
+  /// them.
+  ///
+  /// - Important: The arena that owns the node must outlive this.
+  struct Ref: Sendable {
+    typealias Fields = RawSyntaxData.ParsedToken
+
+    private let pointer: ArenaAllocatedPointer<Fields>
+
+    @inline(__always)
+    init(_ pointer: UnsafePointer<Fields>) {
+      self.pointer = ArenaAllocatedPointer(pointer)
+    }
+
+    @inline(__always)
+    var tokenKind: RawTokenKind { pointer.pointee.tokenKind }
+    @inline(__always)
+    var wholeTextLength: UInt32 { pointer.pointee.wholeTextLength }
+    @inline(__always)
+    var textRange: Range<SyntaxText.Index> { pointer.pointee.textRange }
+    @inline(__always)
+    var presence: SourcePresence { pointer.pointee.presence }
+    @inline(__always)
+    var tokenDiagnostic: TokenDiagnostic? { pointer.pointee.tokenDiagnostic }
+
+    /// Where this token's text begins, a fixed offset past its fields.
+    @inline(__always)
+    private var textBase: UnsafePointer<UInt8> {
+      UnsafeRawPointer(pointer.pointer)
+        .advanced(by: MemoryLayout<Fields>.stride)
+        .assumingMemoryBound(to: UInt8.self)
+    }
+
+    @inline(__always)
+    var wholeText: SyntaxText {
+      SyntaxText(baseAddress: self.textBase, count: Int(self.wholeTextLength))
+    }
+    @inline(__always)
+    var tokenText: SyntaxText {
+      SyntaxText(rebasing: self.wholeText[self.textRange])
+    }
+    @inline(__always)
+    var leadingTriviaText: SyntaxText {
+      SyntaxText(rebasing: self.wholeText[..<self.textRange.lowerBound])
+    }
+    @inline(__always)
+    var trailingTriviaText: SyntaxText {
+      SyntaxText(rebasing: self.wholeText[self.textRange.upperBound...])
+    }
   }
 }
 
 extension RawSyntaxData.MaterializedToken {
+  /// A materialized token's fields in a node's tail.
+  ///
+  /// - Important: The arena that owns the node must outlive this.
+  struct Ref: Sendable {
+    typealias Fields = RawSyntaxData.MaterializedToken
+
+    private let pointer: ArenaAllocatedPointer<Fields>
+
+    @inline(__always)
+    init(_ pointer: UnsafePointer<Fields>) {
+      self.pointer = ArenaAllocatedPointer(pointer)
+    }
+
+    /// The fields themselves, to make a token that differs from this one in a
+    /// field or two.
+    @inline(__always)
+    var fields: Fields { pointer.pointee }
+
+    @inline(__always)
+    var tokenKind: RawTokenKind { pointer.pointee.tokenKind }
+    @inline(__always)
+    var tokenText: SyntaxText { pointer.pointee.tokenText }
+    @inline(__always)
+    var byteLength: UInt32 { pointer.pointee.byteLength }
+    @inline(__always)
+    var numLeadingTrivia: UInt32 { pointer.pointee.numLeadingTrivia }
+    @inline(__always)
+    var presence: SourcePresence { pointer.pointee.presence }
+    @inline(__always)
+    var tokenDiagnostic: TokenDiagnostic? { pointer.pointee.tokenDiagnostic }
+
+    @inline(__always)
+    var leadingTrivia: RawTriviaPieceBuffer { pointer.pointee.leadingTrivia }
+    @inline(__always)
+    var trailingTrivia: RawTriviaPieceBuffer { pointer.pointee.trailingTrivia }
+  }
+
   var leadingTrivia: RawTriviaPieceBuffer {
     RawTriviaPieceBuffer(rebasing: triviaPieces[..<Int(numLeadingTrivia)])
   }
@@ -459,10 +562,10 @@ public struct RawSyntax: Sendable {
 
   /// - Precondition: this is a short parsed token.
   @inline(__always)
-  var smolParsedToken: UnsafePointer<RawSyntaxData.SmolParsedToken> {
+  var smolParsedToken: RawSyntaxData.SmolParsedToken.Ref {
     switch self.header {
     case .smolParsedToken:
-      return tail.assumingMemoryBound(to: RawSyntaxData.SmolParsedToken.self)
+      return RawSyntaxData.SmolParsedToken.Ref(tail.assumingMemoryBound(to: RawSyntaxData.SmolParsedToken.self))
     case .parsedToken, .materializedToken, .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("not a short parsed token")
     }
@@ -470,10 +573,10 @@ public struct RawSyntax: Sendable {
 
   /// - Precondition: this is a parsed token.
   @inline(__always)
-  var parsedToken: UnsafePointer<RawSyntaxData.ParsedToken> {
+  var parsedToken: RawSyntaxData.ParsedToken.Ref {
     switch self.header {
     case .parsedToken:
-      return tail.assumingMemoryBound(to: RawSyntaxData.ParsedToken.self)
+      return RawSyntaxData.ParsedToken.Ref(tail.assumingMemoryBound(to: RawSyntaxData.ParsedToken.self))
     case .smolParsedToken, .materializedToken, .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("not a parsed token")
     }
@@ -481,10 +584,10 @@ public struct RawSyntax: Sendable {
 
   /// - Precondition: this is a materialized token.
   @inline(__always)
-  var materializedToken: UnsafePointer<RawSyntaxData.MaterializedToken> {
+  var materializedToken: RawSyntaxData.MaterializedToken.Ref {
     switch self.header {
     case .materializedToken:
-      return tail.assumingMemoryBound(to: RawSyntaxData.MaterializedToken.self)
+      return RawSyntaxData.MaterializedToken.Ref(tail.assumingMemoryBound(to: RawSyntaxData.MaterializedToken.self))
     case .smolParsedToken, .parsedToken, .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("not a materialized token")
     }
@@ -499,20 +602,6 @@ public struct RawSyntax: Sendable {
     case .smolParsedToken, .parsedToken, .materializedToken:
       preconditionFailure("not a layout node")
     }
-  }
-
-  /// Where a short parsed token's text begins.
-  @inline(__always)
-  var smolParsedTokenTextBase: UnsafePointer<UInt8> {
-    tail.advanced(by: MemoryLayout<RawSyntaxData.SmolParsedToken>.stride)
-      .assumingMemoryBound(to: UInt8.self)
-  }
-
-  /// Where a parsed token's text begins.
-  @inline(__always)
-  var parsedTokenTextBase: UnsafePointer<UInt8> {
-    tail.advanced(by: MemoryLayout<RawSyntaxData.ParsedToken>.stride)
-      .assumingMemoryBound(to: UInt8.self)
   }
 
   /// The node's children, which are tail allocated after its metadata.
@@ -641,12 +730,12 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken:
       // Present by construction, so nothing to test.
-      return UInt32(self.smolParsedToken.pointee.wholeTextLength)
+      return UInt32(self.smolParsedToken.wholeTextLength)
     case .parsedToken:
-      let fields = self.parsedToken.pointee
-      return fields.presence == .present ? fields.wholeTextLength : 0
+      let token = self.parsedToken
+      return token.presence == .present ? token.wholeTextLength : 0
     case .materializedToken:
-      return self.materializedToken.pointee.presence == .present ? self.materializedToken.pointee.byteLength : 0
+      return self.materializedToken.presence == .present ? self.materializedToken.byteLength : 0
     case .flat, .layout, .layoutWithUnexpected:
       return self.layout.pointee.byteLength
     }
@@ -670,17 +759,17 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken:
       // Present by construction, so nothing to test.
-      return Int(self.smolParsedToken.pointee.wholeTextLength)
+      return Int(self.smolParsedToken.wholeTextLength)
     case .parsedToken:
-      let fields = self.parsedToken.pointee
-      if fields.presence == .present {
-        return Int(fields.wholeTextLength)
+      let token = self.parsedToken
+      if token.presence == .present {
+        return Int(token.wholeTextLength)
       } else {
         return 0
       }
     case .materializedToken:
-      if self.materializedToken.pointee.presence == .present {
-        return Int(self.materializedToken.pointee.byteLength)
+      if self.materializedToken.presence == .present {
+        return Int(self.materializedToken.byteLength)
       } else {
         return 0
       }
@@ -784,18 +873,18 @@ extension RawSyntax {
     switch self.header {
     case .smolParsedToken:
       // Present by construction.
-      try body(self.smolParsedToken.pointee.wholeText(base: self.smolParsedTokenTextBase), /*isEphemeral*/ false)
+      try body(self.smolParsedToken.wholeText, /*isEphemeral*/ false)
     case .parsedToken:
-      if self.parsedToken.pointee.presence == .present {
-        try body(self.parsedToken.pointee.wholeText(base: self.parsedTokenTextBase), /*isEphemeral*/ false)
+      if self.parsedToken.presence == .present {
+        try body(self.parsedToken.wholeText, /*isEphemeral*/ false)
       }
     case .materializedToken:
-      if self.materializedToken.pointee.presence == .present {
-        for p in self.materializedToken.pointee.leadingTrivia {
+      if self.materializedToken.presence == .present {
+        for p in self.materializedToken.leadingTrivia {
           try p.withSyntaxText(body: body)
         }
-        try body(self.materializedToken.pointee.tokenText, /*isEphemeral*/ false)
-        for p in self.materializedToken.pointee.trailingTrivia {
+        try body(self.materializedToken.tokenText, /*isEphemeral*/ false)
+        for p in self.materializedToken.trailingTrivia {
           try p.withSyntaxText(body: body)
         }
       }
@@ -836,16 +925,16 @@ extension RawSyntax: TextOutputStreamable, CustomStringConvertible {
     switch self.header {
     case .smolParsedToken:
       // Present by construction.
-      String(syntaxText: self.smolParsedToken.pointee.wholeText(base: self.smolParsedTokenTextBase)).write(to: &target)
+      String(syntaxText: self.smolParsedToken.wholeText).write(to: &target)
     case .parsedToken:
-      if self.parsedToken.pointee.presence == .present {
-        String(syntaxText: self.parsedToken.pointee.wholeText(base: self.parsedTokenTextBase)).write(to: &target)
+      if self.parsedToken.presence == .present {
+        String(syntaxText: self.parsedToken.wholeText).write(to: &target)
       }
     case .materializedToken:
-      if self.materializedToken.pointee.presence == .present {
-        for p in self.materializedToken.pointee.leadingTrivia { p.write(to: &target) }
-        String(syntaxText: self.materializedToken.pointee.tokenText).write(to: &target)
-        for p in self.materializedToken.pointee.trailingTrivia { p.write(to: &target) }
+      if self.materializedToken.presence == .present {
+        for p in self.materializedToken.leadingTrivia { p.write(to: &target) }
+        String(syntaxText: self.materializedToken.tokenText).write(to: &target)
+        for p in self.materializedToken.trailingTrivia { p.write(to: &target) }
       }
     case .flat, .layout, .layoutWithUnexpected:
       for case let child? in self.logicalChildren {
@@ -1489,22 +1578,22 @@ extension RawSyntax: CustomDebugStringConvertible {
     switch self.header {
     case .smolParsedToken:
       target.write(".parsedToken(")
-      target.write(String(describing: self.smolParsedToken.pointee.tokenKind))
+      target.write(String(describing: self.smolParsedToken.tokenKind))
       target.write(
-        " wholeText=\(self.smolParsedToken.pointee.wholeText(base: self.smolParsedTokenTextBase).debugDescription)"
+        " wholeText=\(self.smolParsedToken.wholeText.debugDescription)"
       )
-      target.write(" textRange=\(self.smolParsedToken.pointee.textRange.description)")
+      target.write(" textRange=\(self.smolParsedToken.textRange.description)")
     case .parsedToken:
       target.write(".parsedToken(")
-      target.write(String(describing: self.parsedToken.pointee.tokenKind))
-      target.write(" wholeText=\(self.parsedToken.pointee.wholeText(base: self.parsedTokenTextBase).debugDescription)")
-      target.write(" textRange=\(self.parsedToken.pointee.textRange.description)")
+      target.write(String(describing: self.parsedToken.tokenKind))
+      target.write(" wholeText=\(self.parsedToken.wholeText.debugDescription)")
+      target.write(" textRange=\(self.parsedToken.textRange.description)")
     case .materializedToken:
       target.write(".materializedToken(")
-      target.write(String(describing: self.materializedToken.pointee.tokenKind))
-      target.write(" text=\(self.materializedToken.pointee.tokenText.debugDescription)")
-      target.write(" numLeadingTrivia=\(self.materializedToken.pointee.numLeadingTrivia)")
-      target.write(" byteLength=\(self.materializedToken.pointee.byteLength)")
+      target.write(String(describing: self.materializedToken.tokenKind))
+      target.write(" text=\(self.materializedToken.tokenText.debugDescription)")
+      target.write(" numLeadingTrivia=\(self.materializedToken.numLeadingTrivia)")
+      target.write(" byteLength=\(self.materializedToken.byteLength)")
       break
     case .flat, .layout, .layoutWithUnexpected:
       target.write(".layout(")

@@ -44,11 +44,11 @@ public struct RawSyntaxTokenView: Sendable {
   public var rawKind: RawTokenKind {
     switch raw.header {
     case .smolParsedToken:
-      return raw.smolParsedToken.pointee.tokenKind
+      return raw.smolParsedToken.tokenKind
     case .parsedToken:
-      return raw.parsedToken.pointee.tokenKind
+      return raw.parsedToken.tokenKind
     case .materializedToken:
-      return raw.materializedToken.pointee.tokenKind
+      return raw.materializedToken.tokenKind
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'tokenKind' is not available for non-token node")
     }
@@ -59,11 +59,11 @@ public struct RawSyntaxTokenView: Sendable {
   public var rawText: SyntaxText {
     switch raw.header {
     case .smolParsedToken:
-      return raw.smolParsedToken.pointee.tokenText(base: raw.smolParsedTokenTextBase)
+      return raw.smolParsedToken.tokenText
     case .parsedToken:
-      return raw.parsedToken.pointee.tokenText(base: raw.parsedTokenTextBase)
+      return raw.parsedToken.tokenText
     case .materializedToken:
-      return raw.materializedToken.pointee.tokenText
+      return raw.materializedToken.tokenText
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'rawText' is not available for non-token node")
     }
@@ -74,11 +74,11 @@ public struct RawSyntaxTokenView: Sendable {
   public var leadingTriviaByteLength: Int {
     switch raw.header {
     case .smolParsedToken:
-      return raw.smolParsedToken.pointee.leadingTriviaText(base: raw.smolParsedTokenTextBase).count
+      return raw.smolParsedToken.leadingTriviaText.count
     case .parsedToken:
-      return raw.parsedToken.pointee.leadingTriviaText(base: raw.parsedTokenTextBase).count
+      return raw.parsedToken.leadingTriviaText.count
     case .materializedToken:
-      return raw.materializedToken.pointee.leadingTrivia.reduce(0) { $0 + $1.byteLength }
+      return raw.materializedToken.leadingTrivia.reduce(0) { $0 + $1.byteLength }
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'leadingTriviaByteLength' is not available for non-token node")
     }
@@ -89,11 +89,11 @@ public struct RawSyntaxTokenView: Sendable {
   public var trailingTriviaByteLength: Int {
     switch raw.header {
     case .smolParsedToken:
-      return raw.smolParsedToken.pointee.trailingTriviaText(base: raw.smolParsedTokenTextBase).count
+      return raw.smolParsedToken.trailingTriviaText.count
     case .parsedToken:
-      return raw.parsedToken.pointee.trailingTriviaText(base: raw.parsedTokenTextBase).count
+      return raw.parsedToken.trailingTriviaText.count
     case .materializedToken:
-      return raw.materializedToken.pointee.trailingTrivia.reduce(0) { $0 + $1.byteLength }
+      return raw.materializedToken.trailingTrivia.reduce(0) { $0 + $1.byteLength }
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'trailingTriviaByteLength' is not available for non-token node")
     }
@@ -104,16 +104,16 @@ public struct RawSyntaxTokenView: Sendable {
     switch raw.header {
     case .smolParsedToken:
       return raw.arenaReference.parseTrivia(
-        source: raw.smolParsedToken.pointee.leadingTriviaText(base: raw.smolParsedTokenTextBase),
+        source: raw.smolParsedToken.leadingTriviaText,
         position: .leading
       )
     case .parsedToken:
       return raw.arenaReference.parseTrivia(
-        source: raw.parsedToken.pointee.leadingTriviaText(base: raw.parsedTokenTextBase),
+        source: raw.parsedToken.leadingTriviaText,
         position: .leading
       )
     case .materializedToken:
-      return Array(raw.materializedToken.pointee.leadingTrivia)
+      return Array(raw.materializedToken.leadingTrivia)
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'leadingRawTriviaPieces' is called on non-token raw syntax")
     }
@@ -124,16 +124,16 @@ public struct RawSyntaxTokenView: Sendable {
     switch raw.header {
     case .smolParsedToken:
       return raw.arenaReference.parseTrivia(
-        source: raw.smolParsedToken.pointee.trailingTriviaText(base: raw.smolParsedTokenTextBase),
+        source: raw.smolParsedToken.trailingTriviaText,
         position: .trailing
       )
     case .parsedToken:
       return raw.arenaReference.parseTrivia(
-        source: raw.parsedToken.pointee.trailingTriviaText(base: raw.parsedTokenTextBase),
+        source: raw.parsedToken.trailingTriviaText,
         position: .trailing
       )
     case .materializedToken:
-      return Array(raw.materializedToken.pointee.trailingTrivia)
+      return Array(raw.materializedToken.trailingTrivia)
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'trailingRawTriviaPieces' is called on non-token raw syntax")
     }
@@ -156,11 +156,11 @@ public struct RawSyntaxTokenView: Sendable {
   public func leadingTrivia<T>(_ body: (SyntaxText) -> T) -> T {
     switch raw.header {
     case .smolParsedToken:
-      return body(raw.smolParsedToken.pointee.leadingTriviaText(base: raw.smolParsedTokenTextBase))
+      return body(raw.smolParsedToken.leadingTriviaText)
     case .parsedToken:
-      return body(raw.parsedToken.pointee.leadingTriviaText(base: raw.parsedTokenTextBase))
+      return body(raw.parsedToken.leadingTriviaText)
     case .materializedToken:
-      var leadingTriviaStr = Trivia(pieces: raw.materializedToken.pointee.leadingTrivia.map(TriviaPiece.init))
+      var leadingTriviaStr = Trivia(pieces: raw.materializedToken.leadingTrivia.map(TriviaPiece.init))
         .description
       return leadingTriviaStr.withSyntaxText(body)
     case .flat, .layout, .layoutWithUnexpected:
@@ -173,11 +173,11 @@ public struct RawSyntaxTokenView: Sendable {
   public func trailingTrivia<T>(_ body: (SyntaxText) -> T) -> T {
     switch raw.header {
     case .smolParsedToken:
-      return body(raw.smolParsedToken.pointee.trailingTriviaText(base: raw.smolParsedTokenTextBase))
+      return body(raw.smolParsedToken.trailingTriviaText)
     case .parsedToken:
-      return body(raw.parsedToken.pointee.trailingTriviaText(base: raw.parsedTokenTextBase))
+      return body(raw.parsedToken.trailingTriviaText)
     case .materializedToken:
-      var trailingTriviaStr = Trivia(pieces: raw.materializedToken.pointee.trailingTrivia.map(TriviaPiece.init))
+      var trailingTriviaStr = Trivia(pieces: raw.materializedToken.trailingTrivia.map(TriviaPiece.init))
         .description
       return trailingTriviaStr.withSyntaxText(body)
     case .flat, .layout, .layoutWithUnexpected:
@@ -221,7 +221,7 @@ public struct RawSyntaxTokenView: Sendable {
       // Mutate a copy. This returns a modified token and leaves the one it was
       // called on alone, and with the fields behind a pointer, writing through it
       // would instead change that token for every node holding it.
-      var materialized = raw.materializedToken.pointee
+      var materialized = raw.materializedToken.fields
       materialized.tokenKind = rawKind
       materialized.tokenText = text
       return RawSyntax(arena: arena, materializedToken: materialized)
@@ -276,27 +276,27 @@ public struct RawSyntaxTokenView: Sendable {
     arena.addChild(self.raw.arenaReference)
     switch raw.header {
     case .smolParsedToken:
-      let fields = raw.smolParsedToken.pointee
+      let token = raw.smolParsedToken
       return rebuiltParsedToken(
-        tokenKind: fields.tokenKind,
-        wholeText: fields.wholeText(base: raw.smolParsedTokenTextBase),
-        textRange: fields.textRange,
+        tokenKind: token.tokenKind,
+        wholeText: token.wholeText,
+        textRange: token.textRange,
         presence: newValue,
         tokenDiagnostic: nil,
         arena: arena
       )
     case .parsedToken:
-      let fields = raw.parsedToken.pointee
+      let token = raw.parsedToken
       return rebuiltParsedToken(
-        tokenKind: fields.tokenKind,
-        wholeText: fields.wholeText(base: raw.parsedTokenTextBase),
-        textRange: fields.textRange,
+        tokenKind: token.tokenKind,
+        wholeText: token.wholeText,
+        textRange: token.textRange,
         presence: newValue,
-        tokenDiagnostic: fields.tokenDiagnostic,
+        tokenDiagnostic: token.tokenDiagnostic,
         arena: arena
       )
     case .materializedToken:
-      var materialized = raw.materializedToken.pointee
+      var materialized = raw.materializedToken.fields
       materialized.presence = newValue
       return RawSyntax(arena: arena, materializedToken: materialized)
     default:
@@ -310,11 +310,11 @@ public struct RawSyntaxTokenView: Sendable {
   public var textByteLength: Int {
     switch raw.header {
     case .smolParsedToken:
-      return raw.smolParsedToken.pointee.tokenText(base: raw.smolParsedTokenTextBase).count
+      return raw.smolParsedToken.tokenText.count
     case .parsedToken:
-      return raw.parsedToken.pointee.tokenText(base: raw.parsedTokenTextBase).count
+      return raw.parsedToken.tokenText.count
     case .materializedToken:
-      return raw.materializedToken.pointee.tokenText.count
+      return raw.materializedToken.tokenText.count
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'textByteLength' is not available for non-token node")
     }
@@ -330,18 +330,18 @@ public struct RawSyntaxTokenView: Sendable {
     switch raw.header {
     case .smolParsedToken:
       return TokenKind.fromRaw(
-        kind: raw.smolParsedToken.pointee.tokenKind,
-        text: String(syntaxText: raw.smolParsedToken.pointee.tokenText(base: raw.smolParsedTokenTextBase))
+        kind: raw.smolParsedToken.tokenKind,
+        text: String(syntaxText: raw.smolParsedToken.tokenText)
       )
     case .parsedToken:
       return TokenKind.fromRaw(
-        kind: raw.parsedToken.pointee.tokenKind,
-        text: String(syntaxText: raw.parsedToken.pointee.tokenText(base: raw.parsedTokenTextBase))
+        kind: raw.parsedToken.tokenKind,
+        text: String(syntaxText: raw.parsedToken.tokenText)
       )
     case .materializedToken:
       return TokenKind.fromRaw(
-        kind: raw.materializedToken.pointee.tokenKind,
-        text: String(syntaxText: raw.materializedToken.pointee.tokenText)
+        kind: raw.materializedToken.tokenKind,
+        text: String(syntaxText: raw.materializedToken.tokenText)
       )
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'formKind' is not available for non-token node")
@@ -354,9 +354,9 @@ public struct RawSyntaxTokenView: Sendable {
     case .smolParsedToken:
       return .present
     case .parsedToken:
-      return raw.parsedToken.pointee.presence
+      return raw.parsedToken.presence
     case .materializedToken:
-      return raw.materializedToken.pointee.presence
+      return raw.materializedToken.presence
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'presence' is not available for non-token node")
     }
@@ -368,9 +368,9 @@ public struct RawSyntaxTokenView: Sendable {
     case .smolParsedToken:
       return nil
     case .parsedToken:
-      return raw.parsedToken.pointee.tokenDiagnostic
+      return raw.parsedToken.tokenDiagnostic
     case .materializedToken:
-      return raw.materializedToken.pointee.tokenDiagnostic
+      return raw.materializedToken.tokenDiagnostic
     case .flat, .layout, .layoutWithUnexpected:
       preconditionFailure("'tokenDiagnostic' is not available for non-token node")
     }
@@ -381,27 +381,27 @@ public struct RawSyntaxTokenView: Sendable {
     arena.addChild(self.raw.arenaReference)
     switch raw.header {
     case .smolParsedToken:
-      let fields = raw.smolParsedToken.pointee
+      let token = raw.smolParsedToken
       return rebuiltParsedToken(
-        tokenKind: fields.tokenKind,
-        wholeText: fields.wholeText(base: raw.smolParsedTokenTextBase),
-        textRange: fields.textRange,
+        tokenKind: token.tokenKind,
+        wholeText: token.wholeText,
+        textRange: token.textRange,
         presence: .present,
         tokenDiagnostic: tokenDiagnostic,
         arena: arena
       ).cast(RawTokenSyntax.self)
     case .parsedToken:
-      let fields = raw.parsedToken.pointee
+      let token = raw.parsedToken
       return rebuiltParsedToken(
-        tokenKind: fields.tokenKind,
-        wholeText: fields.wholeText(base: raw.parsedTokenTextBase),
-        textRange: fields.textRange,
-        presence: fields.presence,
+        tokenKind: token.tokenKind,
+        wholeText: token.wholeText,
+        textRange: token.textRange,
+        presence: token.presence,
         tokenDiagnostic: tokenDiagnostic,
         arena: arena
       ).cast(RawTokenSyntax.self)
     case .materializedToken:
-      var materialized = raw.materializedToken.pointee
+      var materialized = raw.materializedToken.fields
       materialized.tokenDiagnostic = tokenDiagnostic
       return RawSyntax(arena: arena, materializedToken: materialized)
         .cast(RawTokenSyntax.self)

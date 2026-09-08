@@ -816,19 +816,19 @@ fileprivate extension RawSyntax {
     var position = position
     switch self.header {
     case .smolParsedToken:
-      position = self.smolParsedToken.pointee.wholeText(base: self.smolParsedTokenTextBase).forEachEndOfLine(
+      position = self.smolParsedToken.wholeText.forEachEndOfLine(
         position: position,
         body: body
       )
     case .parsedToken:
-      position = self.parsedToken.pointee.wholeText(base: self.parsedTokenTextBase).forEachEndOfLine(
+      position = self.parsedToken.wholeText.forEachEndOfLine(
         position: position,
         body: body
       )
     case .materializedToken:
-      position = self.materializedToken.pointee.leadingTrivia.forEachEndOfLine(position: position, body: body)
-      position = self.materializedToken.pointee.tokenText.forEachEndOfLine(position: position, body: body)
-      position = self.materializedToken.pointee.trailingTrivia.forEachEndOfLine(position: position, body: body)
+      position = self.materializedToken.leadingTrivia.forEachEndOfLine(position: position, body: body)
+      position = self.materializedToken.tokenText.forEachEndOfLine(position: position, body: body)
+      position = self.materializedToken.trailingTrivia.forEachEndOfLine(position: position, body: body)
     case .flat, .layout, .layoutWithUnexpected:
       // Handle '#sourceLocation' directive.
       if self.layout.pointee.kind == .poundSourceLocation {
