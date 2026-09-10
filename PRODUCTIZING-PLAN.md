@@ -64,9 +64,9 @@ happened.
 
 ## Progress
 
-`origin/main` is `018aecfa9`. Read the state from git rather than from this
-prose, which has fallen behind twice; the tables below carry `[x]` for built and
-this section for what has landed.
+`origin/main` is `c37ede18b`, which is what P28 and P29 are cut from. Read the
+state from git rather than from this prose, which has fallen behind twice; the
+tables below carry `[x]` for built and this section for what has landed.
 
 **Merged upstream:** P2, P4, P5+P6, P7, P10, P14, P15.
 
@@ -82,6 +82,8 @@ against current `main`, and P11+P12's base predates P5.
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-22-accessor-benchmark` | `2ffdbfac8` | P22, the read-path instrument |
 | `perf-parser-30-tail-alloc` | `cde9eead0` | the node header and tail allocation |
+| `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
+| `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
 The integration branch has since grown a sixth cluster that did not come off the
 original branch at all — the Cursor/Position split, described below. It is a PR
@@ -424,8 +426,8 @@ allocation that did not need to happen.
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [ ] | P28 | Push a skipping state without allocating an array to hold it — `a5ac88b83` | 24 | −1.6% / **−3.9%** / −0.7% |
-| [ ] | P29 | Ask a spec set for its cases once — `3ce750382`, reverted in `cb62d8055`, re-applied as `a196f3daa` | 14 | **−2.0% / −1.3%** in retired instructions |
+| [x] | P28 | Push a skipping state without allocating an array to hold it — `a5ac88b83` | 24 | **−2.4%** declaration-heavy and flat non-ASCII vs `main`; −1.6% / **−3.9%** / −0.7% at its own base |
+| [x] | P29 | Ask a spec set for its cases once — `3ce750382`, reverted in `cb62d8055`, re-applied as `a196f3daa` | 14 | **−1.2% / −0.84%** vs `main`, against −2.0% / −1.3% at its own base, all in retired instructions |
 
 Percentages are collections, declaration-heavy and non-ASCII, each against the
 commit's own parent. The spreads are opposite and that is the point: skipping
@@ -437,6 +439,23 @@ malformed input and every speculative parse take. `canRecoverTo(anyIn:)` asked
 `specSet.allCases` three times — four with alternate token introspection enabled,
 which is why the hoist has to go above that `#if` — and each call builds a fresh
 `Array`, one of which it then reduced through a second array it discarded.
+
+Measuring the two against `main` sharpened both. Nearly all of P28 is the `+=`
+rewrite and next to none of it is the capacity: reserving it, measured on its own,
+is 0.04%, because growth was never the cost — `skip(initialState:)` calls
+`swift_allocObject` six times, once per push site, where appending twice calls it
+not at all. Instrumenting the peak depth per call is what put the reservation at 8:
+over 749 files the deepest stack is 7 and 9,043 of the 9,059 calls reach 1 or 3,
+while corrupted input goes as deep as 55 and grows there as it did before. And
+skipping is not a recovery path in any useful sense — the declaration-heavy input
+makes 625 of its 1,362 calls for the 625 attributes that carry an argument, which
+is why that input is the one that gains.
+
+P29's shape is load-bearing rather than stylistic. Writing the `lazy.map` as
+`\.spec.recoveryPrecedence` costs 33.7M instructions on the declaration-heavy input
+and 20.3M on the non-ASCII one — 24% and 17% of a parse, twenty times what the
+hoist saves, and enough to make the change a 23% regression against `main` — under
+swiftlang-6.5.0.12.4, which still carries rdar://186588859.
 
 Two notes for review. **P29 must keep the closure.** The hoist itself is free; the
 cost that got it reverted was the same commit rewriting
