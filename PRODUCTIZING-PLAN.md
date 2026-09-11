@@ -81,7 +81,7 @@ against current `main`, and P11+P12's base predates P5.
 | `perf-parser-03-diagnostic-combine` | `21e3f862b` | P3, rebased onto current `main` |
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-22-accessor-benchmark` | `2ffdbfac8` | P22, the read-path instrument |
-| `perf-parser-30-tail-alloc` | `cde9eead0` | the node header and tail allocation |
+| `perf-parser-30-tail-alloc` | `442944f70` | the node header and tail allocation, then reading that tail through one reference |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
@@ -311,10 +311,11 @@ call sites, not ideas.
 
 ### The node's header and its tail — cut, and it goes first
 
-`perf-parser-30-tail-alloc` (`cde9eead0`) makes `RawSyntaxData` the header — an
+`perf-parser-30-tail-alloc` (`442944f70`) makes `RawSyntaxData` the header — an
 enum over the arena reference whose cases name the shape — and puts that shape's
-fields in the same allocation, immediately past it. 302 insertions over six
-files.
+fields in the same allocation, immediately past it. Two commits: `cde9eead0` does
+that, at 411 insertions against 2,325 deletions over 21 files, and `442944f70`
+reads the tail through one reference, at 189 against 88 over four.
 
 | | |
 |---|---|
@@ -326,6 +327,16 @@ files.
 
 It deliberately changes nothing else: the fields keep their types and order, and
 a layout node's children and a parsed token's text keep their own allocations.
+
+The second commit gives each shape a `Ref` — a struct holding the pointer to that
+shape's fields, as `RawSyntax` holds the pointer to the header — so a field is read
+through it rather than through `pointee`, and the text and trivia accessors move
+onto it from extensions on the field structs that had no other callers. It measures
+**+19k and +66k instructions**, inside the floor, and fingerprints are identical
+over the 749 corpus files and 120 corrupted ones. It is here for what comes after
+rather than for a number: the shape PRs each add a way to read a tail, and this is
+where a parsed token's text accessors go once that text moves into the tail, which
+is what makes the same change cost 0.09% when applied to the whole branch instead.
 
 **This reverses the order this plan used to give.** It said tail allocation had
 to follow Group 7 because `77a7fc600` and `ffa99ce81` shrink the payload it
