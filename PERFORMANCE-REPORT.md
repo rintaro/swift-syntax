@@ -1202,6 +1202,53 @@ conversion over three hundred cases unless forced. At roughly 60,000 layout node
 in the declaration-heavy input, the two saved stores are worth about 0.15% — enough
 to be worth measuring rather than assuming, and the measurement was not made.
 
+### A consumer this branch made 2.17× slower, and nothing noticed
+
+`syntaxTextBytes` returns a tree's text as bytes, and `SourceLocationConverter.init`
+asks for it once per file, so every diagnostic and every location conversion starts
+there. It appended each token's text to an array, coalescing adjacent texts into one
+append where it could — and on `main` it always could: the arena held a copy of the
+whole source, every token's text pointed into that copy, so a tree's text was one
+contiguous run and a whole file arrived as a single `append`. One `memcpy` per file.
+
+Copying a parsed token's text into its own tail ended that. No two texts are
+adjacent any more, so the loop became an append per token with the array growing
+underneath it, and the flag that told the loop whether it could hold a pointer past
+the call stopped mattering at all:
+
+| `syntaxTextBytes` over the 468 KB tree | instructions | ms |
+|---|---|---|
+| `main` | 7,702,702 | 0.521 |
+| the branch, before the fix | **16,682,199** | **0.870** |
+| allocated once, padded copy — `34d91654b` | 10,897,019 | 0.495 |
+| walking the slots a node kept — `130cfe568` | 7,700,284 | 0.531 |
+
+The first commit allocates once, since ``byteLength`` says exactly how much text a
+tree holds, and copies with `copyText` a whole unit at a time for the two shapes
+whose text the tail padded for it — interned text and described trivia have no
+slack and are copied exactly, which is why it walks the tree itself rather than
+through `withEachSyntaxText(body:)`.
+
+**The larger half was the traversal, and it was not what was being looked for.** It
+asked `logicalChildren` for every position a kind's layout names, two per child for a
+node that interleaves. A node keeps room for its `unexpected` slots only when one is
+occupied, so for almost every node half those positions were nil and each cost a
+bounds check, a branch and a division to say so. Reading the slots a node actually
+kept — real children in source order, interleaved by hand only where something
+unexpected exists — is what closed the gap.
+
+Two things to carry. **An optimisation can depend on a memory layout without saying
+so**: the coalescing was correct, well commented, and silently became dead weight and
+then a 2× regression when the layout beneath it changed. Grep for what an
+optimisation assumes, not just for what it does. And **nothing in the repository
+measured a consumer of the tree**, which is how a 2.17× regression on the path every
+diagnostic takes went unnoticed through a dozen measured commits; `harness/textbench.swift`
+now does, parsing once and timing `syntaxTextBytes`, and it is worth extending to the
+other read paths before the compaction PRs touch them.
+
+Verified byte for byte rather than by fingerprint: `syntaxTextBytes` equals the source
+for all 749 corpus files and all 120 corrupted ones.
+
 ### Whether a small function is inlined, and how to tell
 
 `makeLayout` carries `@inline(__always)` because narrowing `Layout`'s fields once
