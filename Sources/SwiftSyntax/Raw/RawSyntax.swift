@@ -763,10 +763,27 @@ extension RawSyntax {
           piece.withSyntaxText { text, _ in exact(text) }
         }
       }
-    case .flat, .layout, .layoutWithUnexpected:
-      for case let child? in self.logicalChildren {
+    case .flat, .layout:
+      // Every slot this node keeps is a real child, in source order: a kind that
+      // interleaves keeps room for its `unexpected` slots only when one is occupied,
+      // and `logicalChildren` would walk two positions per child to say so.
+      let layout = self.layout
+      let slots = UnsafeBufferPointer(start: layout.slotBase, count: Int(layout.childCount))
+      for case let child? in slots {
         child.writeSyntaxTextBytes(to: destination, at: &written)
       }
+    case .layoutWithUnexpected:
+      // Real children first, then the `unexpected` slots. Source order interleaves
+      // them: a slot before each child, and one after the last.
+      let layout = self.layout
+      let childCount = Int(layout.childCount)
+      let real = layout.slotBase
+      let unexpected = layout.slotBase + childCount
+      for index in 0..<childCount {
+        unexpected[index]?.writeSyntaxTextBytes(to: destination, at: &written)
+        real[index]?.writeSyntaxTextBytes(to: destination, at: &written)
+      }
+      unexpected[childCount]?.writeSyntaxTextBytes(to: destination, at: &written)
     }
   }
 }
