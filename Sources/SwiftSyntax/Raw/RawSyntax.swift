@@ -500,89 +500,6 @@ public struct RawSyntax: Sendable {
     }
   }
 
-  /// A token that is present, carries no diagnostic, and whose text is short
-  /// enough to measure in a byte, which is almost every token in a file.
-  init(
-    arena: __shared RawSyntaxArena,
-    smolParsedToken token: RawSyntaxData.SmolParsedToken,
-    wholeText: SyntaxText,
-    sourceBufferEnd: UnsafePointer<UInt8>?
-  ) {
-    let fieldsSize = MemoryLayout<RawSyntaxData.SmolParsedToken>.stride
-    let (node, tail) = Self.allocate(
-      .smolParsedToken(RawSyntaxArenaRef(arena)),
-      tailByteCount: fieldsSize + Self.textByteCount(for: wholeText.count),
-      arena: arena
-    )
-    tail.assumingMemoryBound(to: RawSyntaxData.SmolParsedToken.self).initialize(to: token)
-    Self.copyText(wholeText, to: tail.advanced(by: fieldsSize), sourceBufferEnd: sourceBufferEnd)
-    self = node
-  }
-
-  init(
-    arena: __shared RawSyntaxArena,
-    parsedToken token: RawSyntaxData.ParsedToken,
-    wholeText: SyntaxText,
-    sourceBufferEnd: UnsafePointer<UInt8>? = nil
-  ) {
-    // The text is rounded up to a word: it is the last thing in the node, the
-    // next node is word aligned anyway, and it lets the copy write whole words.
-    let fieldsSize = MemoryLayout<RawSyntaxData.ParsedToken>.stride
-    let (node, tail) = Self.allocate(
-      .parsedToken(RawSyntaxArenaRef(arena)),
-      tailByteCount: fieldsSize + Self.textByteCount(for: wholeText.count),
-      arena: arena
-    )
-    tail.assumingMemoryBound(to: RawSyntaxData.ParsedToken.self).initialize(to: token)
-    Self.copyText(wholeText, to: tail.advanced(by: fieldsSize), sourceBufferEnd: sourceBufferEnd)
-    self = node
-  }
-
-  init(arena: __shared RawSyntaxArena, materializedToken token: RawSyntaxData.MaterializedToken) {
-    let (node, tail) = Self.allocate(
-      .materializedToken(RawSyntaxArenaRef(arena)),
-      tailByteCount: MemoryLayout<RawSyntaxData.MaterializedToken>.stride,
-      arena: arena
-    )
-    tail.assumingMemoryBound(to: RawSyntaxData.MaterializedToken.self).initialize(to: token)
-    self = node
-  }
-
-  /// Copies `children` into the node's tail.
-  ///
-  /// `makeLayout` builds its children in place instead; this is for the nodes
-  /// made by replacing a child or trivia in an existing one.
-  init(
-    arena: __shared RawSyntaxArena,
-    layoutKind kind: SyntaxKind,
-    children: RawSyntaxBuffer,
-    byteLength: UInt32,
-    descendantCount: UInt32,
-    recursiveFlags: RecursiveRawSyntaxFlags
-  ) {
-    let (node, tail) = Self.allocate(
-      .layout(RawSyntaxArenaRef(arena)),
-      tailByteCount: MemoryLayout<RawSyntaxData.Layout>.stride
-        + children.count * MemoryLayout<RawSyntax?>.stride,
-      arena: arena
-    )
-    tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).initialize(
-      to: RawSyntaxData.Layout(
-        childCount: UInt32(children.count),
-        byteLength: byteLength,
-        descendantCount: descendantCount,
-        kind: kind,
-        recursiveFlags: recursiveFlags
-      )
-    )
-    let destination = tail.advanced(by: MemoryLayout<RawSyntaxData.Layout>.stride)
-      .assumingMemoryBound(to: RawSyntax?.self)
-    for (offset, child) in children.enumerated() {
-      destination.advanced(by: offset).initialize(to: child)
-    }
-    self = node
-  }
-
   /// Which of the four shapes this node has, and the arena that owns it.
   @inline(__always)
   var header: RawSyntaxData {
@@ -1108,16 +1025,16 @@ extension RawSyntax {
         kind != .keyword || Keyword(SyntaxText(rebasing: wholeText[textRange])) != nil,
         "If kind is keyword, the text must be a known token kind"
       )
-      return RawSyntax(
-        arena: arena,
-        smolParsedToken: RawSyntaxData.SmolParsedToken(
+      return Self.allocateSmolParsedToken(
+        RawSyntaxData.SmolParsedToken(
           wholeTextLength: UInt8(wholeText.count),
           textLowerBound: UInt8(textRange.lowerBound),
           textUpperBound: UInt8(textRange.upperBound),
           tokenKind: kind
         ),
         wholeText: wholeText,
-        sourceBufferEnd: sourceBufferEnd
+        sourceBufferEnd: sourceBufferEnd,
+        arena: arena
       )
     }
 
@@ -1132,12 +1049,50 @@ extension RawSyntax {
       kind != .keyword || Keyword(SyntaxText(rebasing: wholeText[textRange])) != nil,
       "If kind is keyword, the text must be a known token kind"
     )
-    return RawSyntax(
-      arena: arena,
-      parsedToken: payload,
+    return Self.allocateParsedToken(
+      payload,
       wholeText: wholeText,
-      sourceBufferEnd: sourceBufferEnd
+      sourceBufferEnd: sourceBufferEnd,
+      arena: arena
     )
+  }
+
+  /// A token that is present, carries no diagnostic, and whose text is short
+  /// enough to measure in a byte, which is almost every token in a file.
+  private static func allocateSmolParsedToken(
+    _ token: RawSyntaxData.SmolParsedToken,
+    wholeText: SyntaxText,
+    sourceBufferEnd: UnsafePointer<UInt8>?,
+    arena: __shared RawSyntaxArena
+  ) -> RawSyntax {
+    let fieldsSize = MemoryLayout<RawSyntaxData.SmolParsedToken>.stride
+    let (node, tail) = Self.allocate(
+      .smolParsedToken(RawSyntaxArenaRef(arena)),
+      tailByteCount: fieldsSize + Self.textByteCount(for: wholeText.count),
+      arena: arena
+    )
+    tail.assumingMemoryBound(to: RawSyntaxData.SmolParsedToken.self).initialize(to: token)
+    Self.copyText(wholeText, to: tail.advanced(by: fieldsSize), sourceBufferEnd: sourceBufferEnd)
+    return node
+  }
+
+  static func allocateParsedToken(
+    _ token: RawSyntaxData.ParsedToken,
+    wholeText: SyntaxText,
+    sourceBufferEnd: UnsafePointer<UInt8>? = nil,
+    arena: __shared RawSyntaxArena
+  ) -> RawSyntax {
+    // The text is rounded up to a word: it is the last thing in the node, the
+    // next node is word aligned anyway, and it lets the copy write whole words.
+    let fieldsSize = MemoryLayout<RawSyntaxData.ParsedToken>.stride
+    let (node, tail) = Self.allocate(
+      .parsedToken(RawSyntaxArenaRef(arena)),
+      tailByteCount: fieldsSize + Self.textByteCount(for: wholeText.count),
+      arena: arena
+    )
+    tail.assumingMemoryBound(to: RawSyntaxData.ParsedToken.self).initialize(to: token)
+    Self.copyText(wholeText, to: tail.advanced(by: fieldsSize), sourceBufferEnd: sourceBufferEnd)
+    return node
   }
 
   /// "Designated" factory method to create a materialized token node.
@@ -1182,7 +1137,20 @@ extension RawSyntax {
       tokenDiagnostic: tokenDiagnostic
     )
     precondition(kind != .keyword || Keyword(text) != nil, "If kind is keyword, the text must be a known token kind")
-    return RawSyntax(arena: arena, materializedToken: payload)
+    return Self.allocateMaterializedToken(payload, arena: arena)
+  }
+
+  static func allocateMaterializedToken(
+    _ token: RawSyntaxData.MaterializedToken,
+    arena: __shared RawSyntaxArena
+  ) -> RawSyntax {
+    let (node, tail) = Self.allocate(
+      .materializedToken(RawSyntaxArenaRef(arena)),
+      tailByteCount: MemoryLayout<RawSyntaxData.MaterializedToken>.stride,
+      arena: arena
+    )
+    tail.assumingMemoryBound(to: RawSyntaxData.MaterializedToken.self).initialize(to: token)
+    return node
   }
 
   /// Factory method to create a materialized token node.
@@ -1318,13 +1286,13 @@ extension RawSyntax {
     arena: __shared RawSyntaxArena
   ) -> RawSyntax {
     validateLayout(layout: layout, as: kind)
-    return RawSyntax(
-      arena: arena,
-      layoutKind: kind,
+    return Self.allocateLayout(
+      kind: kind,
       children: layout,
       byteLength: byteLength,
       descendantCount: descendantCount,
-      recursiveFlags: recursiveFlags
+      recursiveFlags: recursiveFlags,
+      arena: arena
     )
   }
 
@@ -1337,14 +1305,49 @@ extension RawSyntax {
     arena: __shared RawSyntaxArena
   ) -> RawSyntax {
     validateLayout(layout: layout, as: kind)
-    return RawSyntax(
-      arena: arena,
-      layoutKind: kind,
+    return Self.allocateLayout(
+      kind: kind,
       children: layout,
       byteLength: UInt32(byteLength),
       descendantCount: UInt32(descendantCount),
-      recursiveFlags: recursiveFlags
+      recursiveFlags: recursiveFlags,
+      arena: arena
     )
+  }
+
+  /// Copies `children` into the node's tail.
+  ///
+  /// `makeLayout` builds its children in place instead; this is for the nodes
+  /// made by replacing a child or the trivia of a token in an existing one.
+  private static func allocateLayout(
+    kind: SyntaxKind,
+    children: RawSyntaxBuffer,
+    byteLength: UInt32,
+    descendantCount: UInt32,
+    recursiveFlags: RecursiveRawSyntaxFlags,
+    arena: __shared RawSyntaxArena
+  ) -> RawSyntax {
+    let (node, tail) = Self.allocate(
+      .layout(RawSyntaxArenaRef(arena)),
+      tailByteCount: MemoryLayout<RawSyntaxData.Layout>.stride
+        + children.count * MemoryLayout<RawSyntax?>.stride,
+      arena: arena
+    )
+    tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).initialize(
+      to: RawSyntaxData.Layout(
+        childCount: UInt32(children.count),
+        byteLength: byteLength,
+        descendantCount: descendantCount,
+        kind: kind,
+        recursiveFlags: recursiveFlags
+      )
+    )
+    let destination = tail.advanced(by: MemoryLayout<RawSyntaxData.Layout>.stride)
+      .assumingMemoryBound(to: RawSyntax?.self)
+    for (offset, child) in children.enumerated() {
+      destination.advanced(by: offset).initialize(to: child)
+    }
+    return node
   }
 
   /// Factory method to create a layout node.

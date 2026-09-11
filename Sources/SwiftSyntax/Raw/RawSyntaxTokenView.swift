@@ -224,7 +224,7 @@ public struct RawSyntaxTokenView: Sendable {
       var materialized = raw.materializedToken.fields
       materialized.tokenKind = rawKind
       materialized.tokenText = text
-      return RawSyntax(arena: arena, materializedToken: materialized)
+      return RawSyntax.allocateMaterializedToken(materialized, arena: arena)
     default:
       preconditionFailure("'withKind()' is called on non-token raw syntax")
     }
@@ -258,16 +258,16 @@ public struct RawSyntaxTokenView: Sendable {
         arena: arena
       )
     }
-    return RawSyntax(
-      arena: arena,
-      parsedToken: RawSyntaxData.ParsedToken(
+    return RawSyntax.allocateParsedToken(
+      RawSyntaxData.ParsedToken(
         tokenKind: tokenKind,
         wholeTextLength: wholeText.count,
         textRange: textRange,
         presence: presence,
         tokenDiagnostic: tokenDiagnostic
       ),
-      wholeText: wholeText
+      wholeText: wholeText,
+      arena: arena
     )
   }
 
@@ -298,7 +298,7 @@ public struct RawSyntaxTokenView: Sendable {
     case .materializedToken:
       var materialized = raw.materializedToken.fields
       materialized.presence = newValue
-      return RawSyntax(arena: arena, materializedToken: materialized)
+      return RawSyntax.allocateMaterializedToken(materialized, arena: arena)
     default:
       preconditionFailure("'withKind()' is called on non-token raw syntax")
     }
@@ -403,7 +403,7 @@ public struct RawSyntaxTokenView: Sendable {
     case .materializedToken:
       var materialized = raw.materializedToken.fields
       materialized.tokenDiagnostic = tokenDiagnostic
-      return RawSyntax(arena: arena, materializedToken: materialized)
+      return RawSyntax.allocateMaterializedToken(materialized, arena: arena)
         .cast(RawTokenSyntax.self)
     default:
       preconditionFailure("'withTokenDiagnostic' is not available for non-token node")
