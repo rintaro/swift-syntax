@@ -63,7 +63,7 @@ public struct RawTernaryExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .ternaryExpr,
       childCount: 5,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -171,7 +171,7 @@ public struct RawThenStmtSyntax: RawStmtSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .thenStmt,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -248,7 +248,7 @@ public struct RawThrowStmtSyntax: RawStmtSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .throwStmt,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -329,7 +329,7 @@ public struct RawThrowsClauseSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .throwsClause,
       childCount: 4,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -428,7 +428,7 @@ public struct RawTryExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .tryExpr,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -517,7 +517,7 @@ public struct RawTupleExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .tupleExpr,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -600,7 +600,7 @@ public struct RawTuplePatternElementListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .tuplePatternElementList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -666,7 +666,7 @@ public struct RawTuplePatternElementSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .tuplePatternElement,
       childCount: 4,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -765,7 +765,7 @@ public struct RawTuplePatternSyntax: RawPatternSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .tuplePattern,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -848,7 +848,7 @@ public struct RawTupleTypeElementListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .tupleTypeElementList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -920,7 +920,7 @@ public struct RawTupleTypeElementSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .tupleTypeElement,
       childCount: 7,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1049,7 +1049,7 @@ public struct RawTupleTypeSyntax: RawTypeSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .tupleType,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1146,7 +1146,7 @@ public struct RawTypeAliasDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .typeAliasDecl,
       childCount: 7,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1273,7 +1273,7 @@ public struct RawTypeAnnotationSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .typeAnnotation,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1350,7 +1350,7 @@ public struct RawTypeEffectSpecifiersSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .typeEffectSpecifiers,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1425,7 +1425,7 @@ public struct RawTypeExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .typeExpr,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1492,7 +1492,7 @@ public struct RawTypeInitializerClauseSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .typeInitializerClause,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1602,7 +1602,7 @@ public struct RawTypeSpecifierListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .typeSpecifierList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -1696,7 +1696,7 @@ public struct RawUnexpectedCodeDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .unexpectedCodeDecl,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: .flat,
       arena: arena
     ) { layout in
 
@@ -1747,7 +1747,7 @@ public struct RawUnexpectedNodesSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .unexpectedNodes,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -1809,7 +1809,7 @@ public struct RawUnresolvedAsExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .unresolvedAsExpr,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1884,7 +1884,7 @@ public struct RawUnresolvedIsExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .unresolvedIsExpr,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1953,7 +1953,7 @@ public struct RawUnresolvedTernaryExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .unresolvedTernaryExpr,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2040,7 +2040,7 @@ public struct RawUnsafeExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .unsafeExpr,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2149,7 +2149,7 @@ public struct RawUsingDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .usingDecl,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2226,7 +2226,7 @@ public struct RawValueBindingPatternSyntax: RawPatternSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .valueBindingPattern,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2307,7 +2307,7 @@ public struct RawVariableDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .variableDecl,
       childCount: 4,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2400,7 +2400,7 @@ public struct RawVersionComponentListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .versionComponentList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -2462,7 +2462,7 @@ public struct RawVersionComponentSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .versionComponent,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2539,7 +2539,7 @@ public struct RawVersionTupleSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .versionTuple,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2616,7 +2616,7 @@ public struct RawWhereClauseSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .whereClause,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2695,7 +2695,7 @@ public struct RawWhileStmtSyntax: RawStmtSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .whileStmt,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2780,7 +2780,7 @@ public struct RawWildcardPatternSyntax: RawPatternSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .wildcardPattern,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2879,7 +2879,7 @@ public struct RawYieldStmtSyntax: RawStmtSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .yieldStmt,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2952,7 +2952,7 @@ public struct RawYieldedExpressionListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .yieldedExpressionList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -3014,7 +3014,7 @@ public struct RawYieldedExpressionSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .yieldedExpression,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -3093,7 +3093,7 @@ public struct RawYieldedExpressionsClauseSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .yieldedExpressionsClause,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 

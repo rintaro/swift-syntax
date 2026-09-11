@@ -59,7 +59,7 @@ public struct RawEditorPlaceholderDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .editorPlaceholderDecl,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -144,7 +144,7 @@ public struct RawEditorPlaceholderExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .editorPlaceholderExpr,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -207,7 +207,7 @@ public struct RawEffectsAttributeArgumentListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .effectsAttributeArgumentList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -273,7 +273,7 @@ public struct RawEnumCaseDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .enumCaseDecl,
       childCount: 4,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -366,7 +366,7 @@ public struct RawEnumCaseElementListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .enumCaseElementList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -432,7 +432,7 @@ public struct RawEnumCaseElementSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .enumCaseElement,
       childCount: 4,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -531,7 +531,7 @@ public struct RawEnumCaseParameterClauseSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .enumCaseParameterClause,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -614,7 +614,7 @@ public struct RawEnumCaseParameterListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .enumCaseParameterList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -686,7 +686,7 @@ public struct RawEnumCaseParameterSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .enumCaseParameter,
       childCount: 7,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -825,7 +825,7 @@ public struct RawEnumDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .enumDecl,
       childCount: 8,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -958,7 +958,7 @@ public struct RawExprListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .exprList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -1057,7 +1057,7 @@ public struct RawExpressionPatternSyntax: RawPatternSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .expressionPattern,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1130,7 +1130,7 @@ public struct RawExpressionSegmentSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .expressionSegment,
       childCount: 5,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1235,7 +1235,7 @@ public struct RawExpressionStmtSyntax: RawStmtSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .expressionStmt,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1312,7 +1312,7 @@ public struct RawExtensionDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .extensionDecl,
       childCount: 7,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1437,7 +1437,7 @@ public struct RawFallThroughStmtSyntax: RawStmtSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .fallThroughStmt,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1502,7 +1502,7 @@ public struct RawFloatLiteralExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .floatLiteralExpr,
       childCount: 1,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1587,7 +1587,7 @@ public struct RawForStmtSyntax: RawStmtSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .forStmt,
       childCount: 11,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1754,7 +1754,7 @@ public struct RawForceUnwrapExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .forceUnwrapExpr,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1839,7 +1839,7 @@ public struct RawFunctionCallExprSyntax: RawExprSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .functionCallExpr,
       childCount: 6,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -1968,7 +1968,7 @@ public struct RawFunctionDeclSyntax: RawDeclSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .functionDecl,
       childCount: 8,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2105,7 +2105,7 @@ public struct RawFunctionEffectSpecifiersSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .functionEffectSpecifiers,
       childCount: 2,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2184,7 +2184,7 @@ public struct RawFunctionParameterClauseSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .functionParameterClause,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2267,7 +2267,7 @@ public struct RawFunctionParameterListSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .functionParameterList,
       childCount: elements.count,
-      hasUnexpected: false,
+      storage: .flat,
       arena: arena
     ) { layout in
         guard var ptr = layout.baseAddress else {
@@ -2343,7 +2343,7 @@ public struct RawFunctionParameterSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .functionParameter,
       childCount: 9,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2492,7 +2492,7 @@ public struct RawFunctionSignatureSyntax: RawSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .functionSignature,
       childCount: 3,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 
@@ -2585,7 +2585,7 @@ public struct RawFunctionTypeSyntax: RawTypeSyntaxNodeProtocol {
     let raw = RawSyntax.makeLayout(
       kind: .functionType,
       childCount: 5,
-      hasUnexpected: hasUnexpected,
+      storage: hasUnexpected ? .interleavedWithUnexpected : .interleaved,
       arena: arena
     ) { layout in
 

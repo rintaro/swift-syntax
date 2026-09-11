@@ -125,7 +125,7 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
             /// count and a free that gathering them elsewhere does not need.
             public init(elements: RawSyntaxNodeList<\(element)>, arena: __shared RawSyntaxArena) {
               let raw = RawSyntax.makeLayout(
-                kind: .\(node.memberCallName), childCount: elements.count, hasUnexpected: false, arena: arena) { layout in
+                kind: .\(node.memberCallName), childCount: elements.count, storage: .flat, arena: arena) { layout in
                   guard var ptr = layout.baseAddress else { return }
                   for elem in elements.buffer {
                     ptr.initialize(to: elem.raw)
@@ -199,16 +199,22 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
                 }
               }
 
-              let hasUnexpected =
+              // A kind interleaves `unexpected` slots exactly when its layout has
+              // any, which is known here; whether one is occupied is not.
+              if unexpectedChildren.isEmpty {
+                DeclSyntax("let hasUnexpected = false")
+              } else {
+                let occupied = unexpectedChildren.map { "\($0.baseCallName) != nil" }.joined(separator: " || ")
+                DeclSyntax("let hasUnexpected = \(raw: occupied)")
+              }
+              let storage =
                 unexpectedChildren.isEmpty
-                ? "false"
-                : unexpectedChildren.map { "\($0.baseCallName) != nil" }.joined(separator: " || ")
-
-              DeclSyntax("let hasUnexpected = \(raw: hasUnexpected)")
+                ? ".flat"
+                : "hasUnexpected ? .interleavedWithUnexpected : .interleaved"
               DeclSyntax(
                 """
                 let raw = RawSyntax.makeLayout(
-                  kind: .\(node.memberCallName), childCount: \(raw: realChildren.count), hasUnexpected: hasUnexpected, arena: arena) { layout in
+                  kind: .\(node.memberCallName), childCount: \(raw: realChildren.count), storage: \(raw: storage), arena: arena) { layout in
                   \(list)
                 }
                 """

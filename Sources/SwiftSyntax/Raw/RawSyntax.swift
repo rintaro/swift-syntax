@@ -1263,6 +1263,22 @@ extension RawSyntax {
 
 extension RawSyntax {
 
+  /// Where a layout node keeps its children, which the node's header records and
+  /// its caller knows: the generated initializers statically, from whether their
+  /// node has `unexpected` slots at all, and `hasUnexpected` for whether any of
+  /// them is occupied.
+  public enum LayoutStorage {
+    /// Children with no `unexpected` slots among them: every collection, and the
+    /// layout kinds that do not interleave.
+    case flat
+    /// A kind that interleaves `unexpected` slots, in a node where every one of
+    /// them is empty, so it keeps room only for its real children.
+    case interleaved
+    /// A kind that interleaves `unexpected` slots, in a node where at least one is
+    /// occupied, so it keeps its real children and then all of them.
+    case interleavedWithUnexpected
+  }
+
   /// Makes a layout node whose caller knows how many real children it has and
   /// whether any of its `unexpected` slots is occupied, and writes them where they
   /// will live: the real children first, then the `unexpected` slots if there are
@@ -1275,8 +1291,9 @@ extension RawSyntax {
   ///   - kind: Syntax kind, which decides whether this node interleaves
   ///     `unexpected` slots with its children at all.
   ///   - childCount: Number of real children, which `initializer` writes first.
-  ///   - hasUnexpected: Whether the node keeps room for its `unexpected` slots,
-  ///     which `initializer` writes after the real children.
+  ///   - storage: Where this node keeps its children. `initializer` writes the
+  ///     `unexpected` slots after the real ones for `interleavedWithUnexpected`,
+  ///     and writes only real children otherwise.
   ///   - isMaximumNestingLevelOverflow: Whether the parse gave up nesting here.
   ///   - arena: RawSyntaxArena in which the node is allocated.
   ///   - initializer: A closure that initializes every slot.
@@ -1288,21 +1305,29 @@ extension RawSyntax {
   public static func makeLayout(
     kind: SyntaxKind,
     childCount: Int,
-    hasUnexpected: Bool,
+    storage: LayoutStorage,
     isMaximumNestingLevelOverflow: Bool = false,
     arena: __shared RawSyntaxArena,
     initializingWith initializer: (UnsafeMutableBufferPointer<RawSyntax?>) -> Void
   ) -> RawSyntax {
+    assert(
+      (storage == .flat) != kind.interleavesUnexpectedChildren,
+      "a node's storage must agree with whether its kind interleaves"
+    )
     let arenaRef = RawSyntaxArenaRef(arena)
     let header: RawSyntaxData
-    if !kind.interleavesUnexpectedChildren {
+    let slotCount: Int
+    switch storage {
+    case .flat:
       header = .flat(arenaRef)
-    } else if hasUnexpected {
-      header = .layoutWithUnexpected(arenaRef)
-    } else {
+      slotCount = childCount
+    case .interleaved:
       header = .layout(arenaRef)
+      slotCount = childCount
+    case .interleavedWithUnexpected:
+      header = .layoutWithUnexpected(arenaRef)
+      slotCount = 2 * childCount + 1
     }
-    let slotCount = hasUnexpected ? 2 * childCount + 1 : childCount
     let (node, tail) = Self.allocate(
       header,
       tailByteCount: MemoryLayout<RawSyntaxData.Layout>.stride
@@ -1393,10 +1418,12 @@ extension RawSyntax {
         }
       }
 
+      let storage: LayoutStorage =
+        !interleaves ? .flat : (hasUnexpected ? .interleavedWithUnexpected : .interleaved)
       return Self.makeLayout(
         kind: kind,
         childCount: childCount,
-        hasUnexpected: hasUnexpected,
+        storage: storage,
         isMaximumNestingLevelOverflow: isMaximumNestingLevelOverflow,
         arena: arena
       ) { slots in
@@ -1425,8 +1452,16 @@ extension RawSyntax {
     kind: SyntaxKind,
     arena: __shared RawSyntaxArena
   ) -> RawSyntax {
-    // The builder computes the same flags from no children at all.
-    return .makeLayout(kind: kind, childCount: 0, hasUnexpected: false, arena: arena) { _ in }
+    // The builder computes the same flags from no children at all. A kind that
+    // interleaves has an `unexpected` slot even with no children between them, so
+    // asking is not the same as passing `.flat`, and this is not a path a parse
+    // takes.
+    return .makeLayout(
+      kind: kind,
+      childCount: 0,
+      storage: kind.interleavesUnexpectedChildren ? .interleaved : .flat,
+      arena: arena
+    ) { _ in }
   }
 
   static func makeLayout(
