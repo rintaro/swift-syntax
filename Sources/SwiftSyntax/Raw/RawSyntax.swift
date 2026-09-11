@@ -1262,93 +1262,6 @@ extension RawSyntax {
 }
 
 extension RawSyntax {
-  /// "Designated" factory method to create a layout node.
-  ///
-  /// This should not be called directly.
-  /// Use `makeLayout(arena:kind:uninitializedCount:initializingWith:)` or
-  /// `makeEmptyLayout(arena:kind:)` instead.
-  ///
-  /// - Parameters:
-  ///   - arena: RawSyntaxArena to the result node data resides.
-  ///   - kind: Syntax kind. This should not be `.token`.
-  ///   - layout: Layout buffer of the children.
-  ///   - byteLength: Computed total byte length of this node.
-  ///   - descendantCount: Total number of the descendant nodes in `layout`.
-  /// The counts as they are stored, for
-  /// ``makeLayout(kind:uninitializedCount:isMaximumNestingLevelOverflow:arena:initializingWith:)``,
-  /// which has summed them narrow.
-  fileprivate static func layout(
-    kind: SyntaxKind,
-    layout: RawSyntaxBuffer,
-    byteLength: UInt32,
-    descendantCount: UInt32,
-    recursiveFlags: RecursiveRawSyntaxFlags,
-    arena: __shared RawSyntaxArena
-  ) -> RawSyntax {
-    validateLayout(layout: layout, as: kind)
-    return Self.allocateLayout(
-      kind: kind,
-      children: layout,
-      byteLength: byteLength,
-      descendantCount: descendantCount,
-      recursiveFlags: recursiveFlags,
-      arena: arena
-    )
-  }
-
-  fileprivate static func layout(
-    kind: SyntaxKind,
-    layout: RawSyntaxBuffer,
-    byteLength: Int,
-    descendantCount: Int,
-    recursiveFlags: RecursiveRawSyntaxFlags,
-    arena: __shared RawSyntaxArena
-  ) -> RawSyntax {
-    validateLayout(layout: layout, as: kind)
-    return Self.allocateLayout(
-      kind: kind,
-      children: layout,
-      byteLength: UInt32(byteLength),
-      descendantCount: UInt32(descendantCount),
-      recursiveFlags: recursiveFlags,
-      arena: arena
-    )
-  }
-
-  /// Copies `children` into the node's tail.
-  ///
-  /// `makeLayout` builds its children in place instead; this is for the nodes
-  /// made by replacing a child or the trivia of a token in an existing one.
-  private static func allocateLayout(
-    kind: SyntaxKind,
-    children: RawSyntaxBuffer,
-    byteLength: UInt32,
-    descendantCount: UInt32,
-    recursiveFlags: RecursiveRawSyntaxFlags,
-    arena: __shared RawSyntaxArena
-  ) -> RawSyntax {
-    let (node, tail) = Self.allocate(
-      .layout(RawSyntaxArenaRef(arena)),
-      tailByteCount: MemoryLayout<RawSyntaxData.Layout>.stride
-        + children.count * MemoryLayout<RawSyntax?>.stride,
-      arena: arena
-    )
-    tail.assumingMemoryBound(to: RawSyntaxData.Layout.self).initialize(
-      to: RawSyntaxData.Layout(
-        childCount: UInt32(children.count),
-        byteLength: byteLength,
-        descendantCount: descendantCount,
-        kind: kind,
-        recursiveFlags: recursiveFlags
-      )
-    )
-    let destination = tail.advanced(by: MemoryLayout<RawSyntaxData.Layout>.stride)
-      .assumingMemoryBound(to: RawSyntax?.self)
-    for (offset, child) in children.enumerated() {
-      destination.advanced(by: offset).initialize(to: child)
-    }
-    return node
-  }
 
   /// Factory method to create a layout node.
   ///
@@ -1548,18 +1461,8 @@ extension RawSyntax {
     kind: SyntaxKind,
     arena: __shared RawSyntaxArena
   ) -> RawSyntax {
-    var recursiveFlags = RecursiveRawSyntaxFlags()
-    if kind.hasError {
-      recursiveFlags.insert(.hasError)
-    }
-    return .layout(
-      kind: kind,
-      layout: RawSyntaxBuffer(),
-      byteLength: 0,
-      descendantCount: 0,
-      recursiveFlags: recursiveFlags,
-      arena: arena
-    )
+    // The builder computes the same flags from no children at all.
+    return .makeLayout(kind: kind, childCount: 0, hasUnexpected: false, arena: arena) { _ in }
   }
 
   static func makeLayout(
