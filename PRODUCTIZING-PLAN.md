@@ -82,6 +82,7 @@ against current `main`, and P11+P12's base predates P5.
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-22-accessor-benchmark` | `2ffdbfac8` | P22, the read-path instrument |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
+| `perf-parser-33-parsed-token` | `80e92bd02` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
@@ -376,6 +377,47 @@ Needs saying in the PR: it removes `RawSyntaxData.Payload`, the stored form of a
 layout node's fields, and `RawSyntax.rawData` from the `@_spi(RawSyntax)`
 surface.
 
+### The parsed token's text and its short shape — cut, requires the header-and-tail PR
+
+`perf-parser-33-parsed-token` (`80e92bd02`) is two commits on the branch above.
+
+`a8e1bf18c` puts a parsed token's whole text in the node's tail, past the fields,
+and has the token store three lengths where it stored a `SyntaxText`: 16 bytes of
+base address and count for text the arena already owned, plus the arena's copy of
+the whole source that made those addresses valid. The copy into the tail writes
+whole units rather than bytes, which is what `textByteCount(for:)` sizes the room
+for and `sourceBufferEnd` makes safe — reading the last unit runs past the token,
+so that form is taken only where the lexer's buffer is known to extend that far.
+The factory takes the lexer's buffer and three byte lengths rather than a
+`SyntaxText` and a `Range` built only to be pulled apart, which is where
+`0ae93a368` lands. 232 insertions against 202 deletions over 11 files.
+
+`80e92bd02` gives the common token its own shape: `SmolParsedToken`, four bytes
+for a token that is present, undiagnosed and shorter than 256 bytes, where
+`ParsedToken` needs eighteen. The header's case carries the presence and the
+absent diagnostic, so the fields need not. Every reader gains a case and the two
+paths that give a token a presence or a diagnostic promote it to the full shape.
+273 insertions against 29 deletions over 6 files.
+
+| | against the header-and-tail PR | against `main` |
+|---|---|---|
+| tree memory over the corpus | 24.23× the source → **18.91×**, −21.9% | 26.45× → **18.91×**, −28.5% |
+| slab capacity | 241.6 MB → **191.9 MB** | 262.4 MB → **191.9 MB** |
+| declaration-heavy | −0.72%, −0.67% | — |
+| non-ASCII | −0.51%, −0.57% | — |
+| malformed | −1.16% | — |
+| collections | −0.79% | — |
+
+Two pairs per figure on the two headline inputs, one each on the other two, under
+`swiftlang-6.5.0.12.4`. Tree fingerprints are identical over the 749 corpus files
+and the 120 corrupted ones. **The memory is the point** and the instructions are a
+by-product: a short token is a quarter of the fields and its text needs no separate
+allocation, so a parse asks the arena for a fifth less than the header-and-tail PR
+alone.
+
+Both commits build and test on their own, which is worth keeping if they are ever
+reordered: the short shape's commit reads the tail the first one laid out.
+
 ### ~~Group 7~~ — withdrawn, folded into the shape PRs
 
 | | | contents | lines | effect |
@@ -504,7 +546,7 @@ large; it needs homes rather than analysis.
 
 | | where it belongs |
 |---|---|
-| `0ae93a368` Derive a lexeme's `start` from the cursor it was lexed from — 72 → 64 bytes, ~2% on every input | its own small PR, or with the Cursor/Position split, since it is the same argument about what a lexeme stores |
+| ~~`0ae93a368` Derive a lexeme's `start` from the cursor it was lexed from~~ | **folded into `a8e1bf18c`**, the parsed-token PR: the factory takes the lexer's buffer and lengths, which is the same argument about not storing what the cursor answers |
 | `970d1a7ac` Scan the run of ordinary bytes inside a string literal — −10.7% on the declaration-heavy input | its own PR; independent of everything, and the third instance of the run-scanning shape |
 | `e12075211` Stop tracking `Parser`'s size | fold into P5, which is the PR that introduces the tracking; `Parser` gains stored properties under `SWIFTPARSER_ENABLE_ALTERNATE_TOKEN_INTROSPECTION`, so one expected number cannot describe it |
 | `c01c36234` List the added sources in the CMake builds | **split across the PRs that add those files** — P5 for `MemoryLayout.swift`, Group 6 for `RawSyntaxNodeList.swift` and `RawSyntaxNodeListBuilder.swift`. A PR that adds a file and not its CMake line breaks the CMake build while SwiftPM stays green |
