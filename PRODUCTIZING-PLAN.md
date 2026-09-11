@@ -81,7 +81,7 @@ against current `main`, and P11+P12's base predates P5.
 | `perf-parser-03-diagnostic-combine` | `21e3f862b` | P3, rebased onto current `main` |
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-22-accessor-benchmark` | `2ffdbfac8` | P22, the read-path instrument |
-| `perf-parser-30-tail-alloc` | `442944f70` | the node header and tail allocation, then reading that tail through one reference |
+| `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
@@ -311,11 +311,12 @@ call sites, not ideas.
 
 ### The node's header and its tail — cut, and it goes first
 
-`perf-parser-30-tail-alloc` (`442944f70`) makes `RawSyntaxData` the header — an
+`perf-parser-30-tail-alloc` (`ac52caf57`) makes `RawSyntaxData` the header — an
 enum over the arena reference whose cases name the shape — and puts that shape's
-fields in the same allocation, immediately past it. Two commits: `cde9eead0` does
-that, at 411 insertions against 2,325 deletions over 21 files, and `442944f70`
-reads the tail through one reference, at 189 against 88 over four.
+fields in the same allocation, immediately past it. Three commits: `cde9eead0` does
+that, at 411 insertions against 2,325 deletions over 21 files; `442944f70` reads the
+tail through one reference, at 189 against 88 over four; and `ac52caf57` allocates it
+through one function per shape, at 47 against 38 over two.
 
 | | |
 |---|---|
@@ -337,6 +338,16 @@ over the 749 corpus files and 120 corrupted ones. It is here for what comes afte
 rather than for a number: the shape PRs each add a way to read a tail, and this is
 where a parsed token's text accessors go once that text moves into the tail, which
 is what makes the same change cost 0.09% when applied to the whole branch instead.
+
+The third turns the three initializers that allocate a node into
+`allocateParsedToken`, `allocateMaterializedToken` and `allocateLayout`, each sitting
+below the designated factory that calls it. It is naming rather than work — measured
+on the integration branch at +18k and −25k, inside the floor — and it separates three
+levels that had run together: `parsedToken`, `materializedToken` and `layout` build a
+shape's fields, the `make…` functions are what a caller outside the file asks for, and
+these three only allocate and initialize. The shape PRs add a fourth token shape and
+move a token's text into the tail, so they add parameters to these rather than to a
+block of initializers away from every caller.
 
 **This reverses the order this plan used to give.** It said tail allocation had
 to follow Group 7 because `77a7fc600` and `ffa99ce81` shrink the payload it
