@@ -1692,7 +1692,6 @@ public struct RawUnexpectedCodeDeclSyntax: RawDeclSyntaxNodeProtocol {
   }
 
   public init(unexpectedCode: RawUnexpectedNodesSyntax, arena: __shared RawSyntaxArena) {
-    let hasUnexpected = false
     let raw = RawSyntax.makeLayout(
       kind: .unexpectedCodeDecl,
       childCount: 1,

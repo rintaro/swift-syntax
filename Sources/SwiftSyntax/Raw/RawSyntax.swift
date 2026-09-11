@@ -1448,22 +1448,6 @@ extension RawSyntax {
     }
   }
 
-  static func makeEmptyLayout(
-    kind: SyntaxKind,
-    arena: __shared RawSyntaxArena
-  ) -> RawSyntax {
-    // The builder computes the same flags from no children at all. A kind that
-    // interleaves has an `unexpected` slot even with no children between them, so
-    // asking is not the same as passing `.flat`, and this is not a path a parse
-    // takes.
-    return .makeLayout(
-      kind: kind,
-      childCount: 0,
-      storage: kind.interleavesUnexpectedChildren ? .interleaved : .flat,
-      arena: arena
-    ) { _ in }
-  }
-
   static func makeLayout(
     kind: SyntaxKind,
     from collection: some Collection<RawSyntax?>,

@@ -161,67 +161,62 @@ func rawSyntaxNodesFile(nodesStartingWith: [Character]) -> SourceFileSyntax {
             FunctionParameterSyntax("arena: __shared RawSyntaxArena")
           }
           try InitializerDeclSyntax("public init(\(params))") {
-            if !node.children.isEmpty {
-              // A node that interleaves keeps its real children and its
-              // `unexpected` slots in separate regions, real ones first, so that
-              // the slots can be left out of a node that has nothing to put in
-              // them. A node that does not interleave has only real children.
-              let interleaves = node.interleavesUnexpectedChildren
-              let realChildren = interleaves ? node.children.filter { !$0.isUnexpectedNodes } : node.children
-              let unexpectedChildren = interleaves ? node.children.filter { $0.isUnexpectedNodes } : []
+            // A node that interleaves keeps its real children and its
+            // `unexpected` slots in separate regions, real ones first, so that
+            // the slots can be left out of a node that has nothing to put in
+            // them. A node that does not interleave has only real children.
+            let interleaves = node.interleavesUnexpectedChildren
+            let realChildren = interleaves ? node.children.filter { !$0.isUnexpectedNodes } : node.children
+            let unexpectedChildren = interleaves ? node.children.filter { $0.isUnexpectedNodes } : []
 
-              // Every slot is written exactly once — the `unexpected` ones exist
-              // only when they are being written — so initializing them and then
-              // assigning over them would be a `memset` of the whole tail for
-              // nothing.
-              let list = ExprListSyntax {
-                for (index, child) in realChildren.enumerated() {
-                  let optionalMark = child.isOptional ? "?" : ""
-                  ExprSyntax(
-                    "layout.initializeElement(at: \(raw: index), to: \(child.baseCallName)\(raw: optionalMark).raw)"
-                  )
-                  .with(\.leadingTrivia, .newline)
-                }
-                if !unexpectedChildren.isEmpty {
-                  let assignments = unexpectedChildren.enumerated()
-                    .map {
-                      "layout.initializeElement(at: \(realChildren.count + $0.offset), to: \($0.element.baseCallName)?.raw)"
-                    }
-                    .joined(separator: "\n")
-                  ExprSyntax(
-                    """
-                    if hasUnexpected {
-                      \(raw: assignments)
-                    }
-                    """
-                  )
-                  .with(\.leadingTrivia, .newline)
-                }
+            // Every slot is written exactly once — the `unexpected` ones exist
+            // only when they are being written — so initializing them and then
+            // assigning over them would be a `memset` of the whole tail for
+            // nothing.
+            let list = ExprListSyntax {
+              for (index, child) in realChildren.enumerated() {
+                let optionalMark = child.isOptional ? "?" : ""
+                ExprSyntax(
+                  "layout.initializeElement(at: \(raw: index), to: \(child.baseCallName)\(raw: optionalMark).raw)"
+                )
+                .with(\.leadingTrivia, .newline)
               }
-
-              // A kind interleaves `unexpected` slots exactly when its layout has
-              // any, which is known here; whether one is occupied is not.
-              if unexpectedChildren.isEmpty {
-                DeclSyntax("let hasUnexpected = false")
-              } else {
-                let occupied = unexpectedChildren.map { "\($0.baseCallName) != nil" }.joined(separator: " || ")
-                DeclSyntax("let hasUnexpected = \(raw: occupied)")
+              if !unexpectedChildren.isEmpty {
+                let assignments = unexpectedChildren.enumerated()
+                  .map {
+                    "layout.initializeElement(at: \(realChildren.count + $0.offset), to: \($0.element.baseCallName)?.raw)"
+                  }
+                  .joined(separator: "\n")
+                ExprSyntax(
+                  """
+                  if hasUnexpected {
+                    \(raw: assignments)
+                  }
+                  """
+                )
+                .with(\.leadingTrivia, .newline)
               }
-              let storage =
-                unexpectedChildren.isEmpty
-                ? ".flat"
-                : "hasUnexpected ? .interleavedWithUnexpected : .interleaved"
-              DeclSyntax(
-                """
-                let raw = RawSyntax.makeLayout(
-                  kind: .\(node.memberCallName), childCount: \(raw: realChildren.count), storage: \(raw: storage), arena: arena) { layout in
-                  \(list)
-                }
-                """
-              )
-            } else {
-              DeclSyntax("let raw = RawSyntax.makeEmptyLayout(kind: .\(node.memberCallName), arena: arena)")
             }
+
+            // A kind interleaves `unexpected` slots exactly when its layout has any,
+            // which is known here; whether one of them is occupied is not, so only an
+            // interleaving node works that out.
+            if !unexpectedChildren.isEmpty {
+              let occupied = unexpectedChildren.map { "\($0.baseCallName) != nil" }.joined(separator: " || ")
+              DeclSyntax("let hasUnexpected = \(raw: occupied)")
+            }
+            let storage =
+              unexpectedChildren.isEmpty
+              ? ".flat"
+              : "hasUnexpected ? .interleavedWithUnexpected : .interleaved"
+            DeclSyntax(
+              """
+              let raw = RawSyntax.makeLayout(
+                kind: .\(node.memberCallName), childCount: \(raw: realChildren.count), storage: \(raw: storage), arena: arena) { layout in
+                \(list)
+              }
+              """
+            )
             ExprSyntax("self.init(unchecked: raw)")
           }
 
