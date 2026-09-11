@@ -447,58 +447,6 @@ public struct RawSyntax: Sendable {
     )
   }
 
-  /// The token's text is copied into the node's tail, so the tree holds no
-  /// reference to the buffer it was lexed from.
-  /// The room a token's text needs in a node's tail: enough for `copyText` to
-  /// write whole units without spilling past what was allocated.
-  ///
-  /// Four-byte units for short texts, which most punctuation and operators are:
-  /// a three-byte token then wastes one byte rather than five. Identifiers and
-  /// keywords are longer and keep the eight-byte units.
-  ///
-  /// - Important: `copyText` writes exactly this much, so the two must agree.
-  @inline(__always)
-  static func textByteCount(for count: Int) -> Int {
-    count <= 4 ? (count + 3) & ~3 : (count + 7) & ~7
-  }
-
-  /// Copies `wholeText` into a node's tail, which must have
-  /// `textByteCount(for:)` bytes of room.
-  ///
-  /// A short token is one load and one store this way, where `memcpy` spends
-  /// longer choosing how to copy than it does copying. Reading the last unit
-  /// runs past the token's end, so that form is taken only where those bytes are
-  /// still inside the buffer being lexed.
-  @inline(__always)
-  private static func copyText(
-    _ wholeText: SyntaxText,
-    to destination: UnsafeMutableRawPointer,
-    sourceBufferEnd: UnsafePointer<UInt8>?
-  ) {
-    guard let source = wholeText.baseAddress, !wholeText.isEmpty else { return }
-    let count = wholeText.count
-    guard let sourceBufferEnd,
-      source + Self.textByteCount(for: count) <= sourceBufferEnd
-    else {
-      destination.copyMemory(from: source, byteCount: count)
-      return
-    }
-    if count <= 4 {
-      destination.storeBytes(
-        of: UnsafeRawPointer(source).loadUnaligned(as: UInt32.self),
-        as: UInt32.self
-      )
-    } else {
-      var written = 0
-      while written < count {
-        destination.advanced(by: written).storeBytes(
-          of: UnsafeRawPointer(source + written).loadUnaligned(as: UInt64.self),
-          as: UInt64.self
-        )
-        written += 8
-      }
-    }
-  }
 
   /// Which of the four shapes this node has, and the arena that owns it.
   @inline(__always)
@@ -1093,6 +1041,57 @@ extension RawSyntax {
     tail.assumingMemoryBound(to: RawSyntaxData.ParsedToken.self).initialize(to: token)
     Self.copyText(wholeText, to: tail.advanced(by: fieldsSize), sourceBufferEnd: sourceBufferEnd)
     return node
+  }
+
+  /// The room a token's text needs in a node's tail: enough for `copyText` to write
+  /// whole units without spilling past what was allocated.
+  ///
+  /// Four-byte units for short texts, which most punctuation and operators are: a
+  /// three-byte token then wastes one byte rather than five. Identifiers and
+  /// keywords are longer and keep the eight-byte units.
+  ///
+  /// - Important: `copyText` writes exactly this much, so the two must agree.
+  @inline(__always)
+  private static func textByteCount(for count: Int) -> Int {
+    count <= 4 ? (count + 3) & ~3 : (count + 7) & ~7
+  }
+
+  /// Copies `wholeText` into a node's tail, which must have `textByteCount(for:)`
+  /// bytes of room, so that the tree holds no reference to the buffer the token was
+  /// lexed from.
+  ///
+  /// A short token is one load and one store this way, where `memcpy` spends longer
+  /// choosing how to copy than it does copying. Reading the last unit runs past the
+  /// token's end, so that form is taken only where those bytes are still inside the
+  /// buffer being lexed.
+  private static func copyText(
+    _ wholeText: SyntaxText,
+    to destination: UnsafeMutableRawPointer,
+    sourceBufferEnd: UnsafePointer<UInt8>?
+  ) {
+    guard let source = wholeText.baseAddress, !wholeText.isEmpty else { return }
+    let count = wholeText.count
+    guard let sourceBufferEnd,
+      source + Self.textByteCount(for: count) <= sourceBufferEnd
+    else {
+      destination.copyMemory(from: source, byteCount: count)
+      return
+    }
+    if count <= 4 {
+      destination.storeBytes(
+        of: UnsafeRawPointer(source).loadUnaligned(as: UInt32.self),
+        as: UInt32.self
+      )
+    } else {
+      var written = 0
+      while written < count {
+        destination.advanced(by: written).storeBytes(
+          of: UnsafeRawPointer(source + written).loadUnaligned(as: UInt64.self),
+          as: UInt64.self
+        )
+        written += 8
+      }
+    }
   }
 
   /// "Designated" factory method to create a materialized token node.
