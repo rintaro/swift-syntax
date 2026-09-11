@@ -649,68 +649,30 @@ extension RawSyntax {
 extension RawTriviaPiece {
   /// Call `body` with the syntax text of this trivia piece.
   ///
-  /// If `isEphemeral` is `true`, the ``SyntaxText`` argument is only guaranteed
-  /// to be valid within the call.
-  func withSyntaxText(body: (SyntaxText, _ isEphemeral: Bool) throws -> Void) rethrows {
+  /// - Important: A piece that stores no text is described into a temporary, so the
+  ///   text is only valid within the call.
+  func withSyntaxText(body: (SyntaxText) throws -> Void) rethrows {
     if let syntaxText = storedText {
-      try body(syntaxText, /*isEphemeral*/ false)
+      try body(syntaxText)
       return
     }
 
     var description = ""
     write(to: &description)
     try description.withUTF8 { buffer in
-      try body(
-        SyntaxText(baseAddress: buffer.baseAddress, count: buffer.count),
-        /*isEphemeral*/ true
-      )
+      try body(SyntaxText(baseAddress: buffer.baseAddress, count: buffer.count))
     }
   }
 }
 
 extension RawSyntax {
-  /// Enumerate all of the syntax text present in this node, and all
-  /// of its children, to give a source-accurate view of the bytes.
-  ///
-  /// Unlike `description`, this provides a source-accurate representation
-  /// even in the presence of malformed UTF-8 in the input source.
-  ///
-  /// If `isEphemeral` is `true`, the ``SyntaxText`` arguments passed to the
-  /// visitor are only guaranteed to be valid within that call. Otherwise, they
-  /// are valid as long as the raw syntax is alive.
-  public func withEachSyntaxText(body: (SyntaxText, _ isEphemeral: Bool) throws -> Void) rethrows {
-    switch self.header {
-    case .smolParsedToken:
-      // Present by construction.
-      try body(self.smolParsedToken.wholeText, /*isEphemeral*/ false)
-    case .parsedToken:
-      if self.parsedToken.presence == .present {
-        try body(self.parsedToken.wholeText, /*isEphemeral*/ false)
-      }
-    case .materializedToken:
-      if self.materializedToken.presence == .present {
-        for p in self.materializedToken.leadingTrivia {
-          try p.withSyntaxText(body: body)
-        }
-        try body(self.materializedToken.tokenText, /*isEphemeral*/ false)
-        for p in self.materializedToken.trailingTrivia {
-          try p.withSyntaxText(body: body)
-        }
-      }
-    case .flat, .layout, .layoutWithUnexpected:
-      for case let child? in self.logicalChildren {
-        try child.withEachSyntaxText(body: body)
-      }
-    }
-  }
-
   /// Retrieve the syntax text as an array of bytes that models the input
   /// source even in the presence of invalid UTF-8.
   ///
   /// The result is exactly ``byteLength`` bytes, so it is allocated once rather than
-  /// grown. Its own traversal rather than ``withEachSyntaxText(body:)`` because it
-  /// copies a parsed token's text a whole unit at a time, which is safe only where
-  /// the text was written by `copyText` into room rounded up for it.
+  /// grown, and a parsed token's text is copied a whole unit at a time — which is
+  /// safe only where `copyText` wrote it into room rounded up for it, so the walk
+  /// below has to know which shape it is reading.
   public var syntaxTextBytes: [UInt8] {
     let total = self.byteLength
     // `copyText` may write up to seven bytes past a token's text, so the destination
@@ -756,11 +718,11 @@ extension RawSyntax {
     case .materializedToken:
       if self.materializedToken.presence == .present {
         for piece in self.materializedToken.leadingTrivia {
-          piece.withSyntaxText { text, _ in exact(text) }
+          piece.withSyntaxText { exact($0) }
         }
         exact(self.materializedToken.tokenText)
         for piece in self.materializedToken.trailingTrivia {
-          piece.withSyntaxText { text, _ in exact(text) }
+          piece.withSyntaxText { exact($0) }
         }
       }
     case .flat, .layout:
