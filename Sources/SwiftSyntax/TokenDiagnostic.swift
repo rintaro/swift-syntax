@@ -110,14 +110,14 @@ public struct TokenDiagnostic: Hashable, Sendable {
     }
   }
 
+  /// The offset at which the error is, in bytes relative to the token's leading
+  /// trivia start (i.e. relative to the token's `position`)
+  public let byteOffset: UInt16
+
   /// The unique kind of this diagnostic.
   ///
   /// This kind determines the message that will be shown by the diagnostic.
   public let kind: Kind
-
-  /// The offset at which the error is, in bytes relative to the token's leading
-  /// trivia start (i.e. relative to the token's `position`)
-  public let byteOffset: UInt16
 
   /// Construct a diagnostic of the given `kind` that is anchored at `byteOffset`,
   /// measured in UTF-8 bytes relative to the leading trivia start of the token

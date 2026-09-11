@@ -260,11 +260,12 @@ public struct RawSyntaxTokenView: Sendable {
     }
     return RawSyntax.allocateParsedToken(
       RawSyntaxData.ParsedToken(
+        wholeTextLength: UInt32(wholeText.count),
+        textLowerBound: UInt32(textRange.lowerBound),
+        textUpperBound: UInt32(textRange.upperBound),
+        tokenDiagnostic: tokenDiagnostic,
         tokenKind: tokenKind,
-        wholeTextLength: wholeText.count,
-        textRange: textRange,
-        presence: presence,
-        tokenDiagnostic: tokenDiagnostic
+        presence: presence
       ),
       wholeText: wholeText,
       arena: arena

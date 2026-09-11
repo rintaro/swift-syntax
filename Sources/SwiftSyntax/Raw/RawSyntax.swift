@@ -101,64 +101,24 @@ internal enum RawSyntaxData: Sendable {
     /// address says, at eight bytes for every token in the tree.
     var wholeTextLength: UInt32
 
-    var tokenKind: RawTokenKind
-
-    /// Range of the actual token’s text.
+    /// Bounds of the actual token's text within its whole text.
     ///
-    /// Text in `wholeText` before `textRange.lowerBound` is leading trivia and
-    /// after `textRange.upperBound` is trailing trivia.
+    /// What precedes `textLowerBound` is leading trivia and what follows
+    /// `textUpperBound` is trailing trivia.
     ///
     /// Held as 32-bit offsets: these index within a single token, so an `Int`
     /// apiece is 8 bytes spent on a range no token can reach.
-    var textRange: Range<SyntaxText.Index> {
-      return Int(self.textLowerBound)..<Int(self.textUpperBound)
-    }
+    var textLowerBound: UInt32
+    var textUpperBound: UInt32
 
-    private var textLowerBound: UInt32
-    private var textUpperBound: UInt32
+    var tokenDiagnostic: TokenDiagnostic?
+
+    var tokenKind: RawTokenKind
 
     var presence: SourcePresence
 
-    /// Store the members of ``TokenDiagnostic`` individually so the compiler can pack
-    /// `ParsedToken` more efficiently (saving 2 bytes)
-    /// `tokenDiagnosticByteOffset` is ignored if `tokenDiagnosticKind` is `nil`
-    private var tokenDiagnosticKind: TokenDiagnostic.Kind?
-    private var tokenDiagnosticByteOffset: UInt16
-
-    var tokenDiagnostic: TokenDiagnostic? {
-      get {
-        if let kind = tokenDiagnosticKind {
-          return TokenDiagnostic(kind, byteOffset: tokenDiagnosticByteOffset)
-        } else {
-          return nil
-        }
-      }
-      set {
-        if let newValue {
-          self.tokenDiagnosticKind = newValue.kind
-          self.tokenDiagnosticByteOffset = newValue.byteOffset
-        } else {
-          self.tokenDiagnosticKind = nil
-          self.tokenDiagnosticByteOffset = 0
-        }
-      }
-    }
-
-    init(
-      tokenKind: RawTokenKind,
-      wholeTextLength: Int,
-      textRange: Range<SyntaxText.Index>,
-      presence: SourcePresence,
-      tokenDiagnostic: TokenDiagnostic?
-    ) {
-      self.tokenKind = tokenKind
-      self.wholeTextLength = UInt32(wholeTextLength)
-      // Converting to `UInt32` is the bounds check. See `Layout.init`.
-      self.textLowerBound = UInt32(textRange.lowerBound)
-      self.textUpperBound = UInt32(textRange.upperBound)
-      self.presence = presence
-      self.tokenDiagnosticKind = tokenDiagnostic?.kind
-      self.tokenDiagnosticByteOffset = tokenDiagnostic?.byteOffset ?? 0
+    var textRange: Range<SyntaxText.Index> {
+      return Int(self.textLowerBound)..<Int(self.textUpperBound)
     }
   }
 
@@ -170,49 +130,7 @@ internal enum RawSyntaxData: Sendable {
     var numLeadingTrivia: UInt32
     var byteLength: UInt32
     var presence: SourcePresence
-    /// Store the members of ``TokenDiagnostic`` individually so the compiler can pack
-    /// `ParsedToken` more efficiently (saving 2 bytes)
-    /// `tokenDiagnosticByteOffset` is ignored if `tokenDiagnosticKind` is `nil`
-    private var tokenDiagnosticKind: TokenDiagnostic.Kind?
-    private var tokenDiagnosticByteOffset: UInt16
-
-    init(
-      tokenKind: RawTokenKind,
-      tokenText: SyntaxText,
-      triviaPieces: RawTriviaPieceBuffer,
-      numLeadingTrivia: UInt32,
-      byteLength: UInt32,
-      presence: SourcePresence,
-      tokenDiagnostic: TokenDiagnostic?
-    ) {
-      self.tokenKind = tokenKind
-      self.tokenText = tokenText
-      self.triviaPieces = triviaPieces
-      self.numLeadingTrivia = numLeadingTrivia
-      self.byteLength = byteLength
-      self.presence = presence
-      self.tokenDiagnosticKind = tokenDiagnostic?.kind
-      self.tokenDiagnosticByteOffset = tokenDiagnostic?.byteOffset ?? 0
-    }
-
-    var tokenDiagnostic: TokenDiagnostic? {
-      get {
-        if let kind = tokenDiagnosticKind {
-          return TokenDiagnostic(kind, byteOffset: tokenDiagnosticByteOffset)
-        } else {
-          return nil
-        }
-      }
-      set {
-        if let newValue {
-          self.tokenDiagnosticKind = newValue.kind
-          self.tokenDiagnosticByteOffset = newValue.byteOffset
-        } else {
-          self.tokenDiagnosticKind = nil
-          self.tokenDiagnosticByteOffset = 0
-        }
-      }
-    }
+    var tokenDiagnostic: TokenDiagnostic?
   }
 
   /// Layout node including collections.
@@ -987,11 +905,12 @@ extension RawSyntax {
     }
 
     let payload = RawSyntaxData.ParsedToken(
+      wholeTextLength: UInt32(wholeText.count),
+      textLowerBound: UInt32(textRange.lowerBound),
+      textUpperBound: UInt32(textRange.upperBound),
+      tokenDiagnostic: tokenDiagnostic,
       tokenKind: kind,
-      wholeTextLength: wholeText.count,
-      textRange: textRange,
-      presence: presence,
-      tokenDiagnostic: tokenDiagnostic
+      presence: presence
     )
     precondition(
       kind != .keyword || Keyword(SyntaxText(rebasing: wholeText[textRange])) != nil,
