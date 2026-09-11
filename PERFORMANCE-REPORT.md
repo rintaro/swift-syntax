@@ -1067,6 +1067,19 @@ round-trip fidelity. **Identical for every commit** — 1,400+ files under the
 list the harness used for the earliest commits, 2,987 from the state stack
 commits onward.
 
+**`SWIFTSYNTAX_ENABLE_RAWSYNTAX_VALIDATION` was checking nothing** from the
+compaction commits until `d98869d1f`, and no test could have said so: the flag only
+asserts, and nothing asserted. `validateLayout` took a `RawSyntaxBuffer` — real
+children and `unexpected` slots in one contiguous run — which is what a node stored
+before the shapes changed, and the only caller left was the designated factory that
+the builders had stopped going through. It now takes `RawLayoutChildren`, which
+reads the children back as the tree describes them, and the one function that builds
+every layout node calls it, so nothing can be built unvalidated. With the flag set,
+the suite passes, as do 749 corpus files and 120 corrupted ones. **A validation
+build that validates nothing looks exactly like one that passes**, which is the
+argument for checking that an assertion configuration still has a caller when the
+shape it checks moves.
+
 The corpus contains the files being edited, so a dump taken before an edit and
 compared after it reports the edited file as a difference. That caught me four
 times, and the fix is to take both dumps as a pair each time rather than reuse an
@@ -1227,6 +1240,15 @@ substitution is identical and the blast radius is not: the first changed locals
 inside one function, the second changed what a struct copied per token and per
 lookahead holds, so every reader and every copy pays. Before reusing a
 measurement, check that what it covered is what the new change touches.
+
+**One build in ten lands badly.** Measuring identical source across two builds puts
+the instruction-count floor at ±25,000 within a run pair, 0.03%, and one commit
+measured across pairs spread 59,000, 0.075% — but a single build of `e18b34bec` came
+out at 81.21M instructions where four others of the same source read 79.85M to
+79.92M, 1.6% high. That is 20 times the floor, it reproduced on neither side, and a
+change of a percent measured against it would have looked like a large regression or
+a large win. Two pairs is the minimum, and a figure that disagrees with its
+neighbours by more than a percent is a build, not a result.
 
 **A leaf-symbol profile diff across two builds mostly measures inlining, not
 work.** Profiling the `UInt32` lexeme experiment showed `Lexer.LexemeSequence.next`
