@@ -152,7 +152,7 @@ public class RawSyntaxArena {
   /// When an arena added to another arena, it's owned and is never released
   /// until the parent arena is deinitialized. This can be used when the syntax
   /// tree managed by this arena want to hold a subtree owned by other arena.
-  /// See also `RawSyntax.makeLayout(kind:childCount:hasUnexpected:isMaximumNestingLevelOverflow:arena:initializingWith:)`.
+  /// See also `RawSyntax.makeLayout(kind:childCount:storage:isMaximumNestingLevelOverflow:arena:initializingWith:)`.
   func addChild(_ otherRef: RawSyntaxArenaRef) {
     if RawSyntaxArenaRef(self) == otherRef { return }
 

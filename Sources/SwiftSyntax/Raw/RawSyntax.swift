@@ -656,7 +656,7 @@ extension RawSyntax {
   }
 
   /// ``totalNodes`` and ``byteLength`` as they are stored, for
-  /// ``makeLayout(kind:uninitializedCount:isMaximumNestingLevelOverflow:arena:initializingWith:)``,
+  /// ``makeLayout(kind:uninitializedCount:arena:initializingWith:)``,
   /// which sums both over every child of every node it builds — 300,000 times in
   /// parsing the performance test's declaration-heavy input. Going through the
   /// `Int` forms converts on each one.
@@ -1391,13 +1391,11 @@ extension RawSyntax {
   /// - Parameters:
   ///   - kind: Syntax kind.
   ///   - count: Number of slots `initializer` writes, `unexpected` ones included.
-  ///   - isMaximumNestingLevelOverflow: Whether the parse gave up nesting here.
   ///   - arena: RawSyntaxArena in which the node is allocated.
   ///   - initializer: A closure that initializes every slot.
   public static func makeLayout(
     kind: SyntaxKind,
     uninitializedCount count: Int,
-    isMaximumNestingLevelOverflow: Bool = false,
     arena: __shared RawSyntaxArena,
     initializingWith initializer: (UnsafeMutableBufferPointer<RawSyntax?>) -> Void
   ) -> RawSyntax {
@@ -1424,7 +1422,6 @@ extension RawSyntax {
         kind: kind,
         childCount: childCount,
         storage: storage,
-        isMaximumNestingLevelOverflow: isMaximumNestingLevelOverflow,
         arena: arena
       ) { slots in
         // Real children first, so that reaching one is the same constant index
