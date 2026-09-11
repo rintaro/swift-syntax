@@ -70,9 +70,18 @@ tables below carry `[x]` for built and this section for what has landed.
 
 **Merged upstream:** P2, P4, P5+P6, P7, P10, P14, P15.
 
-**In flight on `rintaro/swift-syntax`,** and not to be rebased unless they
-conflict: P1 (`8b6983df8`) and P11+P12 (`2b3180eb7`). Neither has a measurement
-against current `main`, and P11+P12's base predates P5.
+**Open as pull requests,** and not to be rebased unless they conflict:
+
+| | | branch | what it blocks |
+|---|---|---|---|
+| 3420 | P11+P12 | `perf-parser-11-keyword-specsets` | P13, P18, P19 — they share the parser's declaration and expression files |
+| 3425 | P8+P9 | `perf-parser-09-state-allocator` | P3, the Cursor/Position split, the parsed-token PR — all touch `Cursor.swift` or `Parser.swift` |
+| 3426 | header and tail | `perf-parser-30-tail-alloc` | the parsed-token PR and all of Group 8, by construction |
+| 3427 | string literal run | `perf-parser-31-string-literal-run` | P3 and the Cursor/Position split, on `Cursor.swift` |
+| 3434 | P28 | `perf-parser-28-lookahead-skip` | nothing |
+| 3435 | P29 | `perf-parser-29-specset-allcases` | nothing |
+
+Only **P22** is free of all six: it adds one test file and touches nothing else.
 
 **Cut, verified, unpushed:**
 
@@ -572,14 +581,22 @@ automatically. They want saying in prose.
    flatter them.
 2. **P8+P9**, which is cut and measured at −15.20% / −7.78%, the largest single
    result left. P7 is already upstream, so nothing blocks it.
-3. **The header-and-tail PR**, which is cut. Everything in Group 8 assumes it.
-4. Groups 3 and 4 in parallel with the above where they do not collide — P11+P12
+3. **The header-and-tail PR** (3426). Everything below assumes it.
+4. **The parsed-token PR**, which is cut and measured: the tree from 24.23× the
+   source to 18.91×, the parse 0.5% to 1.2% faster depending on the input. It sits
+   on 3426 and shares `Cursor.swift` and `Parser.swift` with 3425 and 3427, so it
+   wants both of those merged first. Its two commits can be reviewed in order —
+   the text into the tail, then the four-byte shape — and each builds and tests on
+   its own.
+5. Groups 3 and 4 in parallel with the above where they do not collide — P11+P12
    is already in flight, P13 is independent of it.
-5. Group 5 once P16's behaviour change is settled; P17 is dropped.
-6. Group 6 last among the parser work: it is the largest, touches CodeGeneration
+6. Group 5 once P16's behaviour change is settled; P17 is dropped.
+7. Group 6 last among the parser work: it is the largest, touches CodeGeneration
    and most parser files, and wants a quiet base.
-7. Group 8 after the header-and-tail PR, in its own order.
-8. Group 9 whenever convenient. Two small diffs in two files, dependent on
+8. Group 8 after the header-and-tail PR and the parsed-token PR, in its own order:
+   both reshape `RawSyntax.swift`, and compaction is easier to read once a token's
+   shapes are settled.
+9. Group 9 whenever convenient. Two small diffs in two files, dependent on
    nothing, and between them worth more on the declaration-heavy input than most
    of Group 1.
 
