@@ -1376,6 +1376,13 @@ extension RawSyntax {
         recursiveFlags: recursiveFlags
       )
     )
+    // Every layout node is built here, so this is the one place that has to ask.
+    // The children are checked as the tree describes them, `unexpected` slots
+    // included, which is what a node's kind names — a compact node does not store
+    // them that way, so `logicalChildren` is what reads them back.
+    #if SWIFTSYNTAX_ENABLE_RAWSYNTAX_VALIDATION
+    validateLayout(layout: node.logicalChildren, as: kind)
+    #endif
     return node
   }
 
