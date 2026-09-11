@@ -1159,6 +1159,49 @@ Recorded so they are not re-attempted.
 | **Order `TokenDiagnostic` to remove its padding** — `byteOffset` before `kind` | **+0.28% / +0.25%** | Two bytes of `size` that no allocation sees: with the kind first the struct is 4 bytes and with the offset first it is 3, and the stride is 4 either way, so `ParsedToken` still strides 20 and `MaterializedToken` 56. What the padding was buying is a single aligned access. `Lexer.Lexeme.diagnostic.getter` is the whole story — `ldur w0, [x20, #0x2]` and `ret` becomes `ldrb w8, [x20, #0x4]`, `ldrh w9, [x20, #0x2]`, `orr w0, w9, w8, lsl #16`, `ret` — because a 3-byte value has to be spliced from a halfword and a byte where a 4-byte one is one word, tag included, since the tag lives in `Kind`'s spare bits. Over the 40 most-changed functions that is **+237 `ldrh`, +160 `strh` and +161 `orr`** against 68 fewer `stur` and 57 fewer `ldp`; 237 functions grew, all of them parser functions that build or copy a lexeme, and the binary grew 16 KB. **Padding a struct up to a power of two is what lets the whole value move in one instruction**, so removing tail padding is not free even when the stride does not move — the opposite of the intuition that a smaller `size` is never worse. Kept as the collapse of the two field structs' diagnostics, which deletes two getter and setter pairs and two initializers; only the field order was reverted, in `1a226ef8b`. |
 | Shrink `LexemeSequence` further | ~0.5–1.1% | Only 24 of its 128 bytes are shared/constant; the rest is genuinely per-lookahead. Removing them means dropping the `Sequence` conformance, since `next()` takes no arguments. |
 
+### What a value's size costs, and where it does not
+
+The `TokenDiagnostic` row above cost 0.28% for two bytes of `size` that no
+allocation sees. The rule it teaches is narrow: **a value small enough to travel in
+a register wants a size of 1, 2, 4 or 8 bytes**, because anything else has to be
+spliced together when it is returned, passed, or copied as part of an enclosing
+value. Above that size a copy is proportional and padding buys nothing.
+
+Every type this branch measures, checked against that rule:
+
+| | size / stride | |
+|---|---|---|
+| `TokenDiagnostic` | 4 / 4 | was 3; the one type that was ever in the trap |
+| `TokenSpec` | 5 / 5, align 1 | the only other register-sized odd size. Built from constants and compared in registers — its 14 functions hold no `orr` and no `ldrh`, so nothing splices. It would become exposed if it were ever stored and re-loaded |
+| `Lexer.Cursor.State` | 10 / 16 | no sub-word instruction across the state-stack functions; the two in `getEnumTagSinglePayload` are metadata witnesses |
+| `RawSyntaxData.Layout` | 15 / 16 | written field-wise, read field-wise through its `Ref` |
+| `RawSyntaxData.ParsedToken`, `MaterializedToken` | 18 / 20, 54 / 56 | copied whole only by the token-view rebuild paths |
+| `RawTriviaPiece`, `TriviaPiece` | 17 / 24 | awkward and harmless: too large to splice into a register, and a 17-byte copy is `stp`+`strb` where a padded 24-byte one is `stp`+`str` |
+| `Lexeme` 64, `Cursor` 32, `Position` 16, `LexemeSequence` 120, `Lookahead` 208, `Syntax` 16, `SyntaxData` 32, `SyntaxText` 16, `RawSyntax` 8, `Trivia` 8, `SmolParsedToken` 4, `SyntaxKind` 2, `RawTokenKind` 1, `SourcePresence` 1 | whole words | |
+
+**A struct the compiler fills in place is not copied at all**, which is why three
+padded shapes on hot paths cost nothing. `RawSyntaxData.Layout` is the clearest
+case: its five fields arrive in five registers, just computed, and the builder
+writes each where it belongs.
+
+    stp  w21, w8, [x24, #0x8]    ; childCount at tail+0, byteLength at tail+4
+    str  w19,     [x24, #0x10]   ; descendantCount at tail+8
+    strh w11,     [x24, #0x14]   ; kind at tail+12
+    strb w8,      [x24, #0x16]   ; recursiveFlags at tail+14
+
+Four stores, and the only free merge already taken: two adjacent 32-bit fields in
+one `stp`. **One write is not reachable.** Fifteen bytes needs two 64-bit
+registers, and fusing five values into two costs the `orr`s it would save. Two
+writes are reachable, by packing `kind` and `recursiveFlags` into one `UInt32` —
+`SyntaxKind` needs 9 bits of its 16 and the flags 4 — which would make the struct
+16 bytes written as two `stp w`. It is not done because the reads look like they
+outweigh the writes: `makeLayout` reads `recursiveFlags` for every child, `kind` is
+read by `logicalChildren`, the collection tests and validation, and each such read
+would gain a shift and a mask, with `SyntaxKind(rawValue:)` being a checked
+conversion over three hundred cases unless forced. At roughly 60,000 layout nodes
+in the declaration-heavy input, the two saved stores are worth about 0.15% — enough
+to be worth measuring rather than assuming, and the measurement was not made.
+
 ### The lookahead tracker, in detail
 
 Worth recording in full, because the reasoning was sound and the result was the
