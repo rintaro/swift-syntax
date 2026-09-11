@@ -4,38 +4,48 @@ Branch `perf-parser-2026-woc`, off `main` (`a3cd836bf`).
 Commit hashes below are as of writing; rebasing the branch will change them,
 so the subject lines are the stable reference.
 
-**Parsing is 2.4 to 3.2 times faster, and the tree it produces is 57% smaller**,
-with no change to the parsed output.
+**Parsing is 2.4 to 3.1 times faster, retires half to two fifths of the
+instructions, and the tree it produces is 62% smaller**, with no change to the
+parsed output.
 
-| input | main | branch | |
+Re-measured at `e18b34bec` against the branch's base, both sides built in one
+session with `swiftlang-6.5.0.12.4`, two independent builds per side, medians of
+five rounds of 40 parses. Wall clock first, retired instructions second, since the
+two disagree by a fifth on how much was won:
+
+| input | main | branch | | main | branch | |
+|---|---|---|---|---|---|---|
+| `MinimalCollections.swift.input` (177 KB) | 4.835 ms | 1.602 ms | **3.02×** | 81.40M | 32.52M | 2.50× |
+| concatenated generated sources (468 KB) | 11.808 ms | 3.923 ms | **3.01×** | 194.02M | 79.92M | 2.43× |
+| `nonascii_heavy.swift.input` (388 KB) | 8.522 ms | 3.528 ms | **2.42×** | 153.68M | 77.83M | 1.97× |
+| `corrupt_heavy.swift.input` (603 KB) | 15.223 ms | 5.522 ms | **2.76×** | 238.95M | 112.02M | 2.13× |
+
+The second pair agreed to within 2%: 3.07×, 3.01×, 2.43× and 2.74×.
+
+| tree memory over the 749-file corpus | main | branch | |
 |---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 5.012 ms | 1.696 ms | **2.95×** |
-| concatenated generated sources (468 KB) | 12.303 ms | 3.833 ms | **3.21×** |
-| `nonascii_heavy.swift.input` (388 KB) | 8.518 ms | 3.572 ms | **2.39×** |
+| requested bytes | 26.45× the source | **10.14×** | −61.7% |
+| slab capacity taken | 258.9 MB | **107.1 MB** | −58.6% |
 
-| tree memory | main | branch | |
-|---|---|---|---|
-| `MinimalCollections.swift.input` | 26.45× the source | **11.20×** | −57.7% |
-| concatenated generated sources | 24.32× | **10.44×** | −57.1% |
-| `nonascii_heavy.swift.input` | 26.87× | **11.20×** | −58.3% |
+Superseded per-input memory figures, measured under `6.5.0.10.5` earlier in this
+work: `MinimalCollections` 26.45× → 11.20×, the generated sources 24.32× → 10.44×,
+and the lost 321 KB non-ASCII input 26.87× → 11.20×.
 
-The non-ASCII row of the timing table is the reproducible 388 KB input; its memory
-row above is still the lost 321 KB one, and has not been re-measured.
-
-Interleaved A/B, 14 rounds, both sides built in one session with the same
-toolchain — `swiftlang-6.5.0.10.5`. **Record the toolchain with any measurement
-here.** Two builds of identical source by 6.5.0.9.6 and 6.5.0.10.5 differed by
+**Record the toolchain with any measurement here.** Two builds of identical source by 6.5.0.9.6 and 6.5.0.10.5 differed by
 47%, which is two orders of magnitude more than the build-layout noise this
 report otherwise warns about; see *A change whose sign depends on the compiler*.
-Per-build medians agreeing to within 0.03 ms. Tree memory is what the arena's allocations
-actually advance its bump pointer by, padding included — not
+Tree memory is what the arena's allocations actually advance its bump pointer by,
+padding included — not
 `totalByteSizeAllocated`, which ignores the padding between allocations and
 understates the branch by about 1.3× of the source.
 
-**On the inputs.** Two of the three are reproducible: `MinimalCollections` ships
-in `Tests/PerformanceTest/Inputs`, and `nonascii_heavy` is 700 repetitions of a
+**On the inputs.** Three of the four are reproducible: `MinimalCollections` ships
+in `Tests/PerformanceTest/Inputs`, `nonascii_heavy` is 700 repetitions of a
 struct whose identifiers, literals and doc comments are CJK, emoji and combining
-marks — 60% non-ASCII bytes. The declaration-heavy input is
+marks — 60% non-ASCII bytes, and `corrupt_heavy` is the first 120 corpus files put
+through four mutations and concatenated by `make-corrupt-heavy.py`, deterministic at
+seed 28, which is the only input here that exercises recovery and token skipping.
+The declaration-heavy input is
 `Sources/SwiftSyntax/generated/*.swift` concatenated in sorted order to 468 KB.
 An earlier 317 KB declaration-heavy file was used for most of the per-commit
 figures below and has since been lost, so those figures are historical: they were
