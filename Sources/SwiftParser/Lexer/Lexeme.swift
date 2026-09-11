@@ -67,10 +67,6 @@ extension Lexer {
 
     /// Byte count of this lexeme's whole text, leading and trailing trivia
     /// included.
-    ///
-    /// Stored rather than summed from the three spans, because the lexer knows
-    /// the whole span as one pointer distance and every token is built from it,
-    /// while the trailing length is only ever asked whether it is zero.
     var wholeTextByteLength: Int
 
     /// Byte count of this lexeme's trailing trivia.
@@ -83,10 +79,6 @@ extension Lexer {
     var cursor: Lexer.Cursor
 
     /// Where this lexeme's text begins, including its leading trivia.
-    ///
-    /// The cursor a lexeme carries is the one `nextToken` was called on, which
-    /// is positioned there, so this is not stored: eight bytes of a lexeme that
-    /// the cursor beside them already answers.
     var start: UnsafePointer<UInt8> {
       self.cursor.position.pointer
     }
