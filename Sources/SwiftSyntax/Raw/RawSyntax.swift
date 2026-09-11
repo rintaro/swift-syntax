@@ -706,23 +706,68 @@ extension RawSyntax {
 
   /// Retrieve the syntax text as an array of bytes that models the input
   /// source even in the presence of invalid UTF-8.
+  ///
+  /// The result is exactly ``byteLength`` bytes, so it is allocated once rather than
+  /// grown. Its own traversal rather than ``withEachSyntaxText(body:)`` because it
+  /// copies a parsed token's text a whole unit at a time, which is safe only where
+  /// the text was written by `copyText` into room rounded up for it.
   public var syntaxTextBytes: [UInt8] {
-    var result: [UInt8] = []
-    var buf: SyntaxText = ""
-    withEachSyntaxText { syntaxText, isEphemeral in
-      if isEphemeral {
-        result.append(contentsOf: buf)
-        result.append(contentsOf: syntaxText)
-        buf = ""
-      } else if let base = buf.baseAddress, base + buf.count == syntaxText.baseAddress {
-        buf = SyntaxText(baseAddress: base, count: buf.count + syntaxText.count)
-      } else {
-        result.append(contentsOf: buf)
-        buf = syntaxText
+    let total = self.byteLength
+    // `copyText` may write up to seven bytes past a token's text, so the destination
+    // carries the same slack the node's tail does. Those bytes stay outside the
+    // array's count.
+    return [UInt8](unsafeUninitializedCapacity: total + 7) { buffer, initialized in
+      var written = 0
+      self.writeSyntaxTextBytes(to: buffer.baseAddress!, at: &written)
+      assert(written == total, "a node's byte length must be the text it holds")
+      initialized = total
+    }
+  }
+
+  /// Writes this node's syntax text into `destination`, advancing `written` by what
+  /// it wrote.
+  private func writeSyntaxTextBytes(to destination: UnsafeMutablePointer<UInt8>, at written: inout Int) {
+    /// Text that a node's tail holds, which `copyText` padded to a whole unit at both
+    /// ends of the copy.
+    func padded(_ text: SyntaxText) {
+      Self.copyText(
+        text,
+        to: UnsafeMutableRawPointer(destination + written),
+        sourceBufferEnd: text.baseAddress.map { $0 + Self.textByteCount(for: text.count) }
+      )
+      written += text.count
+    }
+    /// Text the arena interned or a trivia piece described, which has no slack.
+    func exact(_ text: SyntaxText) {
+      if let base = text.baseAddress, !text.isEmpty {
+        UnsafeMutableRawPointer(destination + written).copyMemory(from: base, byteCount: text.count)
+      }
+      written += text.count
+    }
+
+    switch self.header {
+    case .smolParsedToken:
+      // Present by construction.
+      padded(self.smolParsedToken.wholeText)
+    case .parsedToken:
+      if self.parsedToken.presence == .present {
+        padded(self.parsedToken.wholeText)
+      }
+    case .materializedToken:
+      if self.materializedToken.presence == .present {
+        for piece in self.materializedToken.leadingTrivia {
+          piece.withSyntaxText { text, _ in exact(text) }
+        }
+        exact(self.materializedToken.tokenText)
+        for piece in self.materializedToken.trailingTrivia {
+          piece.withSyntaxText { text, _ in exact(text) }
+        }
+      }
+    case .flat, .layout, .layoutWithUnexpected:
+      for case let child? in self.logicalChildren {
+        child.writeSyntaxTextBytes(to: destination, at: &written)
       }
     }
-    result.append(contentsOf: buf)
-    return result
   }
 }
 
