@@ -1215,10 +1215,14 @@ extension RawSyntax {
   ///   - isMaximumNestingLevelOverflow: Whether the parse gave up nesting here.
   ///   - arena: RawSyntaxArena in which the node is allocated.
   ///   - initializer: A closure that initializes every slot.
-  /// - Important: `@inline(__always)` because this is how every layout node in a
-  ///   tree is built. Narrowing the fields of `Layout` grew it enough that the
-  ///   compiler stopped inlining it, which cost 0.19 ms of a parse — more than the
-  ///   narrowing saved anywhere else.
+  /// - Important: `@inline(__always)` is insurance rather than a live gain. Narrowing
+  ///   the fields of `Layout` once grew this enough that the compiler stopped
+  ///   inlining it, which cost 0.19 ms of a parse — more than the narrowing saved
+  ///   anywhere else. At its present size the inliner takes it unprompted, and
+  ///   removing the attribute measures identical to the instruction: same
+  ///   instruction count, same binary size, no call to this function anywhere. Keep
+  ///   it, because this is how every layout node in a tree is built and the failure
+  ///   was silent.
   @inline(__always)
   public static func makeLayout(
     kind: SyntaxKind,

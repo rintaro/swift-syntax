@@ -1202,6 +1202,44 @@ conversion over three hundred cases unless forced. At roughly 60,000 layout node
 in the declaration-heavy input, the two saved stores are worth about 0.15% — enough
 to be worth measuring rather than assuming, and the measurement was not made.
 
+### Whether a small function is inlined, and how to tell
+
+`makeLayout` carries `@inline(__always)` because narrowing `Layout`'s fields once
+grew it past the inliner's appetite, at 0.19 ms of a parse. Removing the attribute
+now measures **identical**: 806,325 instructions and 71,165 calls in the whole
+binary either way, the same 15,829,592 bytes, and the parse within noise on both
+inputs. The function has since shrunk — the storage mode took a 241-case switch out
+of it and the two builders were consolidated — so the heuristic takes it unprompted.
+The attribute stays as insurance, because every layout node in a tree is built here
+and the failure it guards against was silent, but it is not earning anything today.
+
+**Counting calls to a symbol does not tell you whether it was inlined.** The first
+check said zero call sites reached `makeLayout` in either build and concluded it was
+inlined; that was luck. A generated initializer can reach it through a *specialization*
+under a different mangled name, and mangled names use word substitutions, so grepping
+the disassembly for a type's spelling finds nothing. What settled it was following a
+caller: `RawEnumDeclSyntax.init` is a 15-instruction thunk that tail-calls
+`merged SwiftSyntax.RawStructDeclSyntax.init(…)`, and that body — 171 instructions —
+holds the builder inlined, with only `RawSyntaxArena.allocateNode`,
+`TokenDiagnostic.severity` and a specialized `Set._Variant.insert` left as calls.
+
+That body does the whole node construction, not just the builder: the initializer's
+own `hasUnexpected` test and slot writes, the header choice, the accumulation loop
+over the children, the five field stores, and `arena.addChild`. It is *smaller* than
+the out-of-line `makeLayout` — 171 against 183 — because the storage mode and child
+count are constants at the call site, so the three-way switch and the slot arithmetic
+fold, while the generic copy has to keep them.
+
+**Merging is by shape.** Six initializers reach that body, and each takes 18
+parameters: `RawEnumDeclSyntax`, `RawClassDeclSyntax`, `RawStructDeclSyntax`,
+`RawFunctionDeclSyntax`, `RawSubscriptDeclSyntax` and `RawClosureParameterSyntax` —
+the last of which is not a declaration at all. Same parameter count means the same
+children and `unexpected` slots, so the same code apart from the `SyntaxKind` the
+thunk supplies. Across the binary only **12 of 244 raw-node initializers are merged**,
+serving between 2 and 44 thunks each, one body per parameter count. So inlining a
+builder into 244 initializers costs less than 244 copies: the identically shaped ones
+fold back together afterwards.
+
 ### The lookahead tracker, in detail
 
 Worth recording in full, because the reasoning was sound and the result was the
