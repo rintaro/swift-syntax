@@ -76,12 +76,14 @@ tables below carry `[x]` for built and this section for what has landed.
 |---|---|---|---|
 | 3420 | P11+P12 | `perf-parser-11-keyword-specsets` | P13, P18, P19 — they share the parser's declaration and expression files |
 | 3425 | P8+P9 | `perf-parser-09-state-allocator` | P3, the Cursor/Position split, the parsed-token PR — all touch `Cursor.swift` or `Parser.swift` |
-| 3426 | header and tail | `perf-parser-30-tail-alloc` | the parsed-token PR and all of Group 8, by construction |
+| 3426 | header and tail | `perf-parser-30-tail-alloc` | the parsed-token PR and the layout PR, by construction |
 | 3427 | string literal run | `perf-parser-31-string-literal-run` | P3 and the Cursor/Position split, on `Cursor.swift` |
 | 3434 | P28 | `perf-parser-28-lookahead-skip` | nothing |
 | 3435 | P29 | `perf-parser-29-specset-allcases` | nothing |
+| 3437 | P22 | `perf-parser-22-accessor-benchmark` | nothing, and the layout PR's read figures need it |
 
-Only **P22** is free of all six: it adds one test file and touches nothing else.
+All seven are independent of each other; P22 was the one free of the other six, adding a
+test file and touching nothing else.
 
 **Cut, verified, unpushed:**
 
@@ -89,9 +91,8 @@ Only **P22** is free of all six: it adds one test file and touches nothing else.
 |---|---|---|
 | `perf-parser-03-diagnostic-combine` | `21e3f862b` | P3, rebased onto current `main` |
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
-| `perf-parser-22-accessor-benchmark` | `2ffdbfac8` | P22, the read-path instrument |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
-| `perf-parser-33-parsed-token` | `80e92bd02` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
+| `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
@@ -388,9 +389,9 @@ surface.
 
 ### The parsed token's text and its short shape — cut, requires the header-and-tail PR
 
-`perf-parser-33-parsed-token` (`80e92bd02`) is two commits on the branch above.
+`perf-parser-33-parsed-token` (`eeeee643e`) is two commits on the branch above.
 
-`a8e1bf18c` puts a parsed token's whole text in the node's tail, past the fields,
+`991ee26e3` puts a parsed token's whole text in the node's tail, past the fields,
 and has the token store three lengths where it stored a `SyntaxText`: 16 bytes of
 base address and count for text the arena already owned, plus the arena's copy of
 the whole source that made those addresses valid. The copy into the tail writes
@@ -399,14 +400,25 @@ for and `sourceBufferEnd` makes safe — reading the last unit runs past the tok
 so that form is taken only where the lexer's buffer is known to extend that far.
 The factory takes the lexer's buffer and three byte lengths rather than a
 `SyntaxText` and a `Range` built only to be pulled apart, which is where
-`0ae93a368` lands. 232 insertions against 202 deletions over 11 files.
+`0ae93a368` lands.
 
-`80e92bd02` gives the common token its own shape: `SmolParsedToken`, four bytes
+It also repairs a consumer, which is the part a reviewer will not expect. Collecting
+a tree's bytes coalesced adjacent token texts into one append, and that worked only
+because every token's text pointed into the arena's copy of the source: a whole tree
+was one contiguous run, so a file arrived in a single `append`. Moving the text into
+each node ends that, and left unrepaired it is **2.17× the instructions and 1.70× the
+time** on the path `SourceLocationConverter` takes for every file. It now allocates
+once against the byte length it already knows and copies with `copyText`, which also
+retires `withEachSyntaxText(body:)` — no caller, and it cannot say whether a text has
+the slack a whole-unit copy needs. 283 insertions against 247 deletions over 11
+files.
+
+`eeeee643e` gives the common token its own shape: `SmolParsedToken`, four bytes
 for a token that is present, undiagnosed and shorter than 256 bytes, where
 `ParsedToken` needs eighteen. The header's case carries the presence and the
 absent diagnostic, so the fields need not. Every reader gains a case and the two
 paths that give a token a presence or a diagnostic promote it to the full shape.
-273 insertions against 29 deletions over 6 files.
+268 insertions against 29 deletions over 6 files.
 
 | | against the header-and-tail PR | against `main` |
 |---|---|---|
@@ -445,50 +457,55 @@ above has measured numbers on the corpus. Their commit messages still carry the
 layout reasoning the compaction work builds on, and that reasoning is worth
 lifting into the PR that lands the shape rather than losing it.
 
-### Group 8 — compacting the tree (chained, requires the header-and-tail PR)
+### The layout node — one PR, requires the two above
 
 A non-collection layout node interleaves an `unexpected` slot before its first
 child, between every pair and after the last, so *n* children take 2*n*+1 slots.
 Over the 749 file corpus **not one of 1,132,225 layout nodes had anything in any
 of them** — with every 200th byte deleted it is still under 1% — and those slots
-were 56.8% of every layout child slot in the tree. A node now keeps room for them
-only when it has something to put there.
+were 56.8% of every layout child slot in the tree. A node keeps room for them only
+when it has something to put there.
 
-| | | contents | lines | measured |
-|---|---|---|---|---|
-| [x] | P22 | Read a tree through its typed accessors, as a benchmark — `bb3b8391d`, cut as `2ffdbfac8` | 227 | — |
-| [ ] | P23 | `.collection` as its own header case; field accessors made exhaustive — `f89090804`, `be5232589` | 78 | neutral |
-| [ ] | P24 | Generate whether a kind interleaves its unexpected children — `e7474384d` | 38 [496] | — |
-| [ ] | P25 | Keep no room for unexpected children in a node that has none — `716127f54`, `bb1f9a521`, `587968bf9` | 655 [6,562] | **tree −26%**, parse −1.5%/−1.7% |
-| [ ] | P26 | Reach a child by where it sits, not by where the tree says — `0f3933e09` | 68 [3,596] | reads −4.1% |
-| [ ] | P27 | One flat case, and read its slots without a test — `b9922d00d`, `a05c1a083`, `d5e8375cd` | 210 | reads **−6.5%** |
+**One PR rather than the five rows this replaces.** P23 through P27 were staged as
+separate reviews, and that staging does not survive contact: P23 is a header case
+with both shapes still identical, P24 a generated `SyntaxKind` property, and neither
+does anything until P25 changes what a node stores. P25 cannot be split from its
+mutation tests, and P26 and P27 only pay because P25 moved the children. Landing
+them apart means a reviewer reads the same slots three times and measures noise
+twice. It is not cut yet, so it has no measured size; the figures below are what its
+parts measured on the branch.
 
-**P22 first, and not as a courtesy.** Every performance test in the repository
-builds trees or walks them generically; none reads one through the generated
-accessors, which is what P26 and P27 change. Without it those two measure as
-noise. It counts instructions rather than time, so it resolves effects under a
-percent — but the first run after a build is 5% to 12% high from cold caches, and
-two sessions measuring one commit differ by about 0.4%, which is the floor on any
-comparison across builds.
+| what it contains | drawn from | measured |
+|---|---|---|
+| children into the node's tail | `64487d0b4`, `bb1f9a521` | part of the tree figures below |
+| a collection's own header case, and field accessors made exhaustive | `f89090804`, `be5232589` | neutral |
+| generate whether a kind interleaves its unexpected children | `e7474384d` | — |
+| no room for `unexpected` children in a node that has none, with the mutation tests | `716127f54`, `587968bf9` | **tree −26%**, parse −1.5% / −1.7% |
+| reach a child by where it sits, not by where the tree says | `0f3933e09` | reads −4.1% |
+| one flat case, and read its slots without a test | `b9922d00d`, `a05c1a083`, `d5e8375cd` | reads **−6.5%** |
+| the caller says which storage a node has, rather than the builder asking the kind | `f6222e8a6` | neutral; removes a 241-case switch from every node |
+| one function builds every layout node; `makeEmptyLayout` and the designated factories go | `7f004f8f4`, `f5f720864`, `1ec652738`, `85ead50c1` | neutral, −190 lines |
+| validation follows the children as the tree describes them | `d98869d1f` | restores a configuration that had been checking nothing |
+| the two walks that read a node's children read the slots it kept | `130cfe568`, `bd0697ab7` | `syntaxTextBytes` −34%; `description` and the line scan flat |
 
-**The whole group sits on the header-and-tail PR**, not on Group 7: compaction
-assumes a node's children are tail allocated, which is what `cde9eead0` provides.
-P23 and P24 are prerequisites with nothing to show on their own: P23 is the header
-case with both shapes still identical, P24 a generated `SyntaxKind` property.
+**P22 first, and not as a courtesy.** The read figures above are the ones this PR
+exists for, and nothing else in the repository reads a tree through the generated
+accessors, so without P22 they measure as noise. It counts instructions rather than
+time, which is what resolves an effect under a percent.
 
-**P25 and its mutation tests cannot be split.** Every mutating operation hands its
-layout back to `makeLayout`, which decides the shape afresh — that is what keeps a
-rewritten node compact and what let `SyntaxRewriter` go untouched. Landing the
-compaction without that would silently re-expand every rewritten tree.
-
-Two things a reviewer will want, and neither is in the diffs. `RawSyntaxData` gains
-three shapes where it had one, and the four checked field accessors ended in
-`default:` arms that the compiler could not flag — that is why P23 makes them
-exhaustive before any shape is added. And nearly all of P26 and P27's gain is *not*
+**Two things a reviewer will want, and neither is in the diffs.** `RawSyntaxData`
+gains three shapes where it had one, and the checked field accessors ended in
+`default:` arms the compiler could not flag — which is why the accessors are made
+exhaustive before any shape is added. And nearly all of the read-path gain is *not*
 asking `SyntaxKind` a question the header answers: `isSyntaxCollection` and
 `interleavesUnexpectedChildren` are switches over three hundred kinds that sat on
-per-node paths, which is why merging the flat cases in P27 was worth more than
-every other read-path change together.
+per-node paths, which is why merging the flat cases was worth more than every other
+read-path change together.
+
+**The mutation paths are the risk.** Every mutating operation hands its layout back
+to `makeLayout`, which decides the shape afresh — that is what keeps a rewritten node
+compact and what let `SyntaxRewriter` go untouched. Landing the compaction without
+that would silently re-expand every rewritten tree, so `587968bf9` travels with it.
 
 ### Group 9 — lookahead allocations (standalone, independent of everything else)
 
@@ -555,7 +572,7 @@ large; it needs homes rather than analysis.
 
 | | where it belongs |
 |---|---|
-| ~~`0ae93a368` Derive a lexeme's `start` from the cursor it was lexed from~~ | **folded into `a8e1bf18c`**, the parsed-token PR: the factory takes the lexer's buffer and lengths, which is the same argument about not storing what the cursor answers |
+| ~~`0ae93a368` Derive a lexeme's `start` from the cursor it was lexed from~~ | **folded into `991ee26e3`**, the parsed-token PR: the factory takes the lexer's buffer and lengths, which is the same argument about not storing what the cursor answers |
 | `970d1a7ac` Scan the run of ordinary bytes inside a string literal — −10.7% on the declaration-heavy input | its own PR; independent of everything, and the third instance of the run-scanning shape |
 | `e12075211` Stop tracking `Parser`'s size | fold into P5, which is the PR that introduces the tracking; `Parser` gains stored properties under `SWIFTPARSER_ENABLE_ALTERNATE_TOKEN_INTROSPECTION`, so one expected number cannot describe it |
 | `c01c36234` List the added sources in the CMake builds | **split across the PRs that add those files** — P5 for `MemoryLayout.swift`, Group 6 for `RawSyntaxNodeList.swift` and `RawSyntaxNodeListBuilder.swift`. A PR that adds a file and not its CMake line breaks the CMake build while SwiftPM stays green |
@@ -567,18 +584,19 @@ large; it needs homes rather than analysis.
       empty unless it asks for the ranges.
 - [ ] **P19** removes an initializer from every collection node under
       `@_spi(RawSyntax)`. Nothing outside SwiftParser used it.
-- [ ] **P20/P21** change `RawSyntaxData`'s layout and put `MaterializedToken`
-      behind an indirection, which is visible through `RawSyntaxTokenView`.
+- [ ] **The header-and-tail PR** (3426) changes `RawSyntaxData`'s layout and puts
+      every token's fields behind a pointer, which is visible through
+      `RawSyntaxTokenView`.
 
 CI has `api_breakage_check_enabled: false`, so none of these trip a check
 automatically. They want saying in prose.
 
 ## Suggested order
 
-1. **P22 now**, and P3 with it. P22 is a test file that depends on nothing, and
-   the read-path changes in Group 8 measure as noise without it. Landing it before
-   the changes it measures also keeps it from looking like a benchmark written to
-   flatter them.
+1. **P3**, one commit in one file, once `Cursor.swift` is free. P22 has gone up as
+   3437 — landing it before the changes it measures also keeps it from looking like a
+   benchmark written to flatter them, and the layout PR's read figures are noise
+   without it.
 2. **P8+P9**, which is cut and measured at −15.20% / −7.78%, the largest single
    result left. P7 is already upstream, so nothing blocks it.
 3. **The header-and-tail PR** (3426). Everything below assumes it.
@@ -593,9 +611,9 @@ automatically. They want saying in prose.
 6. Group 5 once P16's behaviour change is settled; P17 is dropped.
 7. Group 6 last among the parser work: it is the largest, touches CodeGeneration
    and most parser files, and wants a quiet base.
-8. Group 8 after the header-and-tail PR and the parsed-token PR, in its own order:
-   both reshape `RawSyntax.swift`, and compaction is easier to read once a token's
-   shapes are settled.
+8. **The layout PR** after the header-and-tail and parsed-token PRs. All three
+   reshape `RawSyntax.swift`, and the layout shapes read more easily once a token's
+   shapes are settled. It is the largest of the three and the only one not yet cut.
 9. Group 9 whenever convenient. Two small diffs in two files, dependent on
    nothing, and between them worth more on the declaration-heavy input than most
    of Group 1.
