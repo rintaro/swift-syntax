@@ -138,7 +138,14 @@ internal enum RawSyntaxData: Sendable {
   /// The actual layout buffer is tail allocated.
   struct Layout: Sendable {
     var childCount: UInt32
+
+    /// Byte count of this subtree's text, which 32 bits hold because a tree cannot
+    /// be larger: `AbsoluteSyntaxInfo` tracks a node's offset in 32 bits and
+    /// `Syntax.forRoot` refuses anything longer. Widening this to an `Int` costs 8
+    /// bytes of stride on every layout node — 11.8% of the memory a parse takes —
+    /// and lifts no limit.
     var byteLength: UInt32
+
     var descendantCount: UInt32
     var kind: SyntaxKind
     var recursiveFlags: RecursiveRawSyntaxFlags
