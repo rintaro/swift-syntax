@@ -1238,14 +1238,28 @@ bounds check, a branch and a division to say so. Reading the slots a node actual
 kept — real children in source order, interleaved by hand only where something
 unexpected exists — is what closed the gap.
 
+**Cutting the layout PR measured the same thing again, on two more consumers.**
+Against the parsed-token branch it sits on, with the compaction in and the traversal
+left reading through the logical form, three consumers of a tree cost more than they
+did before the compaction; with the traversal following the slots a node kept, all
+three cost less. Instructions over the 468 KB tree:
+
+| | `syntaxTextBytes` | `SourceLocationConverter` | `description` |
+|---|---|---|---|
+| compacted, reading the logical form | **+57%** | **+36%** | **+12%** |
+| walking the slots the node kept | −7.5% | −4.9% | −1.0% |
+
+A parse measures identical either way, which is the point: the producer cannot see
+this, and the two states differ by a change no test distinguishes.
+
 Two things to carry. **An optimisation can depend on a memory layout without saying
 so**: the coalescing was correct, well commented, and silently became dead weight and
 then a 2× regression when the layout beneath it changed. Grep for what an
 optimisation assumes, not just for what it does. And **nothing in the repository
 measured a consumer of the tree**, which is how a 2.17× regression on the path every
 diagnostic takes went unnoticed through a dozen measured commits; `harness/textbench.swift`
-now does, parsing once and timing `syntaxTextBytes`, and it is worth extending to the
-other read paths before the compaction PRs touch them.
+now does, parsing once and then timing `syntaxTextBytes`, `description` and the
+location converter, which is how the table above exists at all.
 
 Verified byte for byte rather than by fingerprint: `syntaxTextBytes` equals the source
 for all 749 corpus files and all 120 corrupted ones.

@@ -93,6 +93,7 @@ test file and touching nothing else.
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
 | `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
+| `perf-parser-35-compact-layout` | `69e71b191` | the layout node compacted, **tree 18.91× → 10.14× the source**, parse −3.4% / −3.2% — sits on the branch above |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
@@ -457,7 +458,7 @@ above has measured numbers on the corpus. Their commit messages still carry the
 layout reasoning the compaction work builds on, and that reasoning is worth
 lifting into the PR that lands the shape rather than losing it.
 
-### The layout node — one PR, requires the two above
+### The layout node — cut, one PR, requires the two above
 
 A non-collection layout node interleaves an `unexpected` slot before its first
 child, between every pair and after the last, so *n* children take 2*n*+1 slots.
@@ -472,8 +473,38 @@ with both shapes still identical, P24 a generated `SyntaxKind` property, and nei
 does anything until P25 changes what a node stores. P25 cannot be split from its
 mutation tests, and P26 and P27 only pay because P25 moved the children. Landing
 them apart means a reviewer reads the same slots three times and measures noise
-twice. It is not cut yet, so it has no measured size; the figures below are what its
-parts measured on the branch.
+twice.
+
+`perf-parser-35-compact-layout` at `69e71b191`, five commits over 25 files, 7,677
+insertions against 4,647 deletions — of which 6,700 lines are the regenerated raw
+nodes. It was ported rather than cherry-picked: the commits it comes from predate a
+token's shapes, so the layout work is re-expressed against the shapes the
+parsed-token PR leaves behind.
+
+| | commit | what it is |
+|---|---|---|
+| 1 | `dd36b5a9f` | children into the tail, the two extra header cases, the storage mode, the two builders, validation through `logicalChildren` |
+| 2 | `f11f0d4b6` | the mutation tests |
+| 3 | `36bad794a` | the three source-order walks read the slots a node kept |
+| 4 | `63621f327` | the generated accessors reach a child by where it sits |
+| 5 | `69e71b191` | a flat node's slots read without asking its kind |
+
+**Measured against its own base**, two independent builds per side: the tree over the
+corpus 182.3 MB → **97.8 MB**, which is 18.91× the source down to **10.14×**; a parse
+**−3.4%** on the declaration-heavy input and **−3.2%** on the non-ASCII one, the two
+pairs agreeing within 0.02%. All 749 corpus fingerprints unchanged, walking every node
+with `viewMode: .all`.
+
+**The consumer side is why the walk travels with the compaction.** Compacting alone
+leaves the three source-order walks reading through `logicalChildren`, which costs a
+bounds check, a branch and a division per position on a node that no longer stores
+those positions: collecting a tree's syntax text **+57%** instructions against the
+base, the source location converter **+36%**, `description` **+12%**. With `36bad794a`
+they are −7.5%, −4.9% and −1.0% instead. Nothing in the test suite noticed either
+state.
+
+The rows below are what the parts measured on the branch they were developed on, kept
+because two of them are the only figures there are for the read path.
 
 | what it contains | drawn from | measured |
 |---|---|---|
@@ -612,8 +643,9 @@ automatically. They want saying in prose.
 7. Group 6 last among the parser work: it is the largest, touches CodeGeneration
    and most parser files, and wants a quiet base.
 8. **The layout PR** after the header-and-tail and parsed-token PRs. All three
-   reshape `RawSyntax.swift`, and the layout shapes read more easily once a token's
-   shapes are settled. It is the largest of the three and the only one not yet cut.
+   reshape `RawSyntax.swift`, and it is cut on top of the parsed-token branch, so it
+   goes out once that one has. The largest of the three, and the one whose read
+   figures need 3437 to be read as anything but noise.
 9. Group 9 whenever convenient. Two small diffs in two files, dependent on
    nothing, and between them worth more on the declaration-heavy input than most
    of Group 1.
