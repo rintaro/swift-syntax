@@ -1289,7 +1289,33 @@ fixed per-node cost rather than anything per element.
 
 Writing that buffer from the two regions a node keeps — a nil for each `unexpected`
 position it kept no room for, the child at each odd position — removes the computation
-without changing any index a client uses. Two lessons, and the second is the expensive
+without changing any index a client uses.
+
+**A third of that regression was not the design at all, and a profile found it in one
+step.** With the buffer written from the regions, a reader still paid 3.3% on a visitor
+walk. Sampling both binaries and sorting by top of stack showed
+`AbsoluteSyntaxInfo.advancedBySibling` holding its own frame on the compacted side and
+appearing nowhere on the other. That function is `internal`: a symbol for it in the
+binary means it is called rather than inlined, and `nm` confirmed the symbol exists on
+one side only. Disassembling its caller said why — building a node's data buffer had
+grown to **766 instructions against 271**, because both buffer shapes lived in one
+function with `createDataImpl` inlined into each, and at that size the inliner stopped
+taking a five-line function that runs once per slot of every node.
+
+Splitting the two shapes into two functions and marking `advancedBySibling`
+`@inline(__always)` recovers it. Against the tree as it was before the compaction, all
+three read paths then sit slightly below where they started:
+
+| | after two repairs | after the third |
+|---|---|---|
+| an empty `SyntaxVisitor` walk | +3.3% | **−1.4%** |
+| a tree read through its typed accessors | +1.4% | **−0.1%** |
+| every child through `children(viewMode:)` | +1.4% | **−1.1%** |
+
+Two pairs agreeing within 0.13 points. What to carry: **an inlining decision is a
+function of the caller's size, so making a caller bigger silently un-inlines what it
+calls** — the same failure as `makeLayout` earlier in this work, found the same way, and
+worth suspecting first whenever a change that should be neutral costs a few percent. Two lessons, and the second is the expensive
 one: **a benchmark can be named after a path it barely exercises**, and **a change that
 moves where a child sits is paid for twice, once in the raw tree and once in the
 `Syntax` layer that indexes it**. Getting the sibling advancement wrong while rewriting

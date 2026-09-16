@@ -93,7 +93,7 @@ test file and touching nothing else.
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
 | `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
-| `perf-parser-35-compact-layout` | `3edb3dd87` | the layout node compacted, **tree 18.91× → 10.14× the source**, parse −3.4% / −3.2%, client reads +1.0% — sits on the branch above |
+| `perf-parser-35-compact-layout` | `7aa4d8bfc` | the layout node compacted, **tree 18.91× → 10.14× the source**, parse −3.4% / −3.2%, client reads −0.1% to −1.4% — sits on the branch above |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
@@ -475,7 +475,7 @@ mutation tests, and P26 and P27 only pay because P25 moved the children. Landing
 them apart means a reviewer reads the same slots three times and measures noise
 twice.
 
-`perf-parser-35-compact-layout` at `3edb3dd87`, six commits over 26 files. It was
+`perf-parser-35-compact-layout` at `7aa4d8bfc`, seven commits over 27 files. It was
 ported rather than cherry-picked: the commits it comes from predate a token's shapes,
 so the layout work is re-expressed against the shapes the parsed-token PR leaves
 behind.
@@ -488,6 +488,7 @@ behind.
 | 4 | `11c26c9f8` | the generated raw accessors reach a child by where it sits |
 | 5 | `dce32744a` | a node's `SyntaxData` buffer written from the slots it kept |
 | 6 | `3edb3dd87` | a flat node's slots read without asking its kind |
+| 7 | `7aa4d8bfc` | the data buffer's two shapes split, so what they call stays inlined |
 
 **Measured against its own base**, two independent builds per side: the tree over the
 corpus 182.3 MB → **97.8 MB**, which is 18.91× the source down to **10.14×**; a parse
@@ -505,9 +506,9 @@ division for each one, on a node that no longer stores them:
 | collecting a tree's syntax text | +57% | −7.5% |
 | `SourceLocationConverter` | +36% | −4.9% |
 | `description` | +12% | −1.0% |
-| an empty `SyntaxVisitor` walk | +18.7% | **+3.3%** |
-| reading a tree through its typed accessors | +6.5% | **+1.4%** |
-| reaching every child through `children(viewMode:)` | — | +1.4% |
+| an empty `SyntaxVisitor` walk | +18.7% | **−1.4%** |
+| reading a tree through its typed accessors | +6.5% | **−0.1%** |
+| reaching every child through `children(viewMode:)` | +1.4% | **−1.1%** |
 
 The first three are what `36bad794a` repairs, in the walks themselves. The last two
 are what `dce32744a` repairs, in `SyntaxDataArena`: every `Syntax` child is reached by
@@ -516,10 +517,19 @@ entry per position its kind names, and filling it by asking `children` per posit
 where a client's cost went. Writing it from the two regions a node keeps removes that
 without changing a single index a client uses.
 
-**A parse is unaffected by either** — it builds no `SyntaxData` and walks no tree — so
-the parse figures above hold with both repairs in place. The residual few percent on a
-reader is real and unexplained; it is what is left after both repairs, on two
-instruments that agree within half a point.
+**A parse is unaffected by any of them** — it builds no `SyntaxData` and walks no tree —
+so the parse figures above hold with all three repairs in place.
+
+**The third repair is `7aa4d8bfc`, and it was an inlining regression rather than a
+design one.** After the first two, a reader still paid 3.3% on a visitor walk, and a
+profile named the cause: `AbsoluteSyntaxInfo.advancedBySibling` had its own frame on
+this branch and none at all before it. It is `internal`, so a symbol for it means it is
+called rather than inlined, and the reason is that the function calling it had grown —
+both buffer shapes in one body, `createDataImpl` inlined into each, 766 instructions
+against 271 — until the inliner stopped taking a five-line function that runs once per
+slot of every node. Splitting the shapes into two functions and marking that one
+`@inline(__always)` closes the gap, and takes all three read paths slightly below where
+they were before the compaction.
 
 **What the earlier −4.1% and −6.5% were.** They were measured through a benchmark
 that dispatched on the typed enum and then recursed through `children(viewMode:)`,
