@@ -93,7 +93,7 @@ test file and touching nothing else.
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
 | `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
-| `perf-parser-35-compact-layout` | `69e71b191` | the layout node compacted, **tree 18.91× → 10.14× the source**, parse −3.4% / −3.2% — sits on the branch above |
+| `perf-parser-35-compact-layout` | `3edb3dd87` | the layout node compacted, **tree 18.91× → 10.14× the source**, parse −3.4% / −3.2%, client reads +1.0% — sits on the branch above |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
@@ -475,36 +475,56 @@ mutation tests, and P26 and P27 only pay because P25 moved the children. Landing
 them apart means a reviewer reads the same slots three times and measures noise
 twice.
 
-`perf-parser-35-compact-layout` at `69e71b191`, five commits over 25 files, 7,677
-insertions against 4,647 deletions — of which 6,700 lines are the regenerated raw
-nodes. It was ported rather than cherry-picked: the commits it comes from predate a
-token's shapes, so the layout work is re-expressed against the shapes the
-parsed-token PR leaves behind.
+`perf-parser-35-compact-layout` at `3edb3dd87`, six commits over 26 files. It was
+ported rather than cherry-picked: the commits it comes from predate a token's shapes,
+so the layout work is re-expressed against the shapes the parsed-token PR leaves
+behind.
 
 | | commit | what it is |
 |---|---|---|
 | 1 | `dd36b5a9f` | children into the tail, the two extra header cases, the storage mode, the two builders, validation through `logicalChildren` |
 | 2 | `f11f0d4b6` | the mutation tests |
 | 3 | `36bad794a` | the three source-order walks read the slots a node kept |
-| 4 | `63621f327` | the generated accessors reach a child by where it sits |
-| 5 | `69e71b191` | a flat node's slots read without asking its kind |
+| 4 | `11c26c9f8` | the generated raw accessors reach a child by where it sits |
+| 5 | `dce32744a` | a node's `SyntaxData` buffer written from the slots it kept |
+| 6 | `3edb3dd87` | a flat node's slots read without asking its kind |
 
 **Measured against its own base**, two independent builds per side: the tree over the
 corpus 182.3 MB → **97.8 MB**, which is 18.91× the source down to **10.14×**; a parse
-**−3.4%** on the declaration-heavy input and **−3.2%** on the non-ASCII one, the two
-pairs agreeing within 0.02%. All 749 corpus fingerprints unchanged, walking every node
+**−3.4%** on the declaration-heavy input and **−3.2%** on the non-ASCII one, three
+pairs agreeing within 0.03%. All 749 corpus fingerprints unchanged, walking every node
 with `viewMode: .all`.
 
-**The consumer side is why the walk travels with the compaction.** Compacting alone
-leaves the three source-order walks reading through `logicalChildren`, which costs a
-bounds check, a branch and a division per position on a node that no longer stores
-those positions: collecting a tree's syntax text **+57%** instructions against the
-base, the source location converter **+36%**, `description` **+12%**. With `36bad794a`
-they are −7.5%, −4.9% and −1.0% instead. Nothing in the test suite noticed either
-state.
+**Two commits here exist because compacting a node's slots taxes everything that
+reads them, and neither cost was visible until the instrument was fixed.** A reader
+that goes through the positions a kind names pays a bounds check, a branch and a
+division for each one, on a node that no longer stores them:
 
-The rows below are what the parts measured on the branch they were developed on, kept
-because two of them are the only figures there are for the read path.
+| against the pre-compaction base | without the repair | with it |
+|---|---|---|
+| collecting a tree's syntax text | +57% | −7.5% |
+| `SourceLocationConverter` | +36% | −4.9% |
+| `description` | +12% | −1.0% |
+| an empty `SyntaxVisitor` walk | +18.7% | **+2.7%** |
+| reading a tree through its typed accessors | +6.5% | **+1.0%** |
+
+The first three are what `36bad794a` repairs, in the walks themselves. The last two
+are what `dce32744a` repairs, in `SyntaxDataArena`: every `Syntax` child is reached by
+its index in the layout as the tree describes it, so each node gets a buffer with an
+entry per position its kind names, and filling it by asking `children` per position is
+where a client's cost went. Writing it from the two regions a node keeps removes that
+without changing a single index a client uses.
+
+**A parse is unaffected by either** — it builds no `SyntaxData` and walks no tree — so
+the parse figures above hold with both repairs in place.
+
+**What the earlier −4.1% and −6.5% were.** They were measured through a benchmark
+that dispatched on the typed enum and then recursed through `children(viewMode:)`,
+which is the generic walk, and asked a collection only for its `count`. The
+accessor path it was named after was a minority of what it measured. Rewritten to
+recurse through the accessors and iterate each list as a `SyntaxCollection`, it puts
+`11c26c9f8` within its noise and shows what the table above shows. The rows below are
+kept as a record of what the parts measured on the branch they were developed on.
 
 | what it contains | drawn from | measured |
 |---|---|---|

@@ -1252,6 +1252,50 @@ three cost less. Instructions over the 468 KB tree:
 A parse measures identical either way, which is the point: the producer cannot see
 this, and the two states differ by a change no test distinguishes.
 
+### An instrument that measured the wrong path, and what it hid
+
+The benchmark written to watch the read path — `AccessorPerformanceTests` — dispatched
+on the typed enum for a node's base kind and then recursed through
+`children(viewMode:)`. That is the generic walk: it visits every position a kind's
+layout names and builds a `Syntax` for each. So the accessors it was named after were a
+thin layer over the thing they were supposed to be compared against, each node's
+children were read twice, and the collections that carry a file — a type's members, a
+function body's statements — were asked only for their `count` and never iterated,
+though smaller ones like a call's arguments were. Rewritten to recurse into the children
+it reads and to iterate each list as a `SyntaxCollection`, the way ASTGen does, with a
+coverage test holding the generically walked share under a percent.
+
+Correcting it changed a conclusion. Compacting the layout had been recorded as a
+read-path win of 4.1% and then 6.5%, both measured for the accessor commits alone,
+against a base that already had the compaction. What no instrument had measured was the
+compaction's own cost to a reader, and it is large:
+
+| against the pre-compaction tree | before the repair | after |
+|---|---|---|
+| an empty `SyntaxVisitor` walk | **+18.7%** | +2.7% |
+| a tree read through its typed accessors | +6.5% | +1.0% |
+
+The mechanism took one more measurement to pin down. Suspicion fell on
+`SyntaxCollection`'s iterator, which casts each element to its concrete type — but that
+code is identical on both sides, so it cannot produce a difference, and the empty
+visitor walk, which neither casts nor touches a typed accessor, regressed *more*. What
+the two share is that every `Syntax` child is reached by its index in the layout as the
+tree describes it, so `SyntaxDataArena` gives each node a buffer with an entry per
+position its kind names and fills it by asking `children` for each position in turn.
+After compaction each of those answers is computed — a bounds check, a branch, a
+division — where before it was a load. The absolute regression was the same ~2.9M
+instructions in both benchmarks over totals differing by 3×, which is the signature of a
+fixed per-node cost rather than anything per element.
+
+Writing that buffer from the two regions a node keeps — a nil for each `unexpected`
+position it kept no room for, the child at each odd position — removes the computation
+without changing any index a client uses. Two lessons, and the second is the expensive
+one: **a benchmark can be named after a path it barely exercises**, and **a change that
+moves where a child sits is paid for twice, once in the raw tree and once in the
+`Syntax` layer that indexes it**. Getting the sibling advancement wrong while rewriting
+that loop produces a tree whose nodes report each other's positions; the suite catches
+it in a dozen places at once, which is the one part of this that went well.
+
 Two things to carry. **An optimisation can depend on a memory layout without saying
 so**: the coalescing was correct, well commented, and silently became dead weight and
 then a 2× regression when the layout beneath it changed. Grep for what an
