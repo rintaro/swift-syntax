@@ -27,9 +27,9 @@ struct AbsoluteSyntaxInfo: Sendable {
     if let raw {
       // '&+' operations are safe because we have the preconditions in 'forRoot(_:)'.
       return AbsoluteSyntaxInfo(
-        offset: offset &+ UInt32(truncatingIfNeeded: raw.totalLength.utf8Length),
+        offset: offset &+ raw.byteLength32,
         layoutIndexInParent: layoutIndexInParent &+ 1,
-        indexInTree: indexInTree &+ UInt32(truncatingIfNeeded: raw.totalNodes)
+        indexInTree: indexInTree &+ raw.totalNodes32
       )
     } else {
       return AbsoluteSyntaxInfo(

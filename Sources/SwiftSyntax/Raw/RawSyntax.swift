@@ -562,11 +562,11 @@ extension RawSyntax {
     }
   }
 
-  /// ``totalNodes`` and ``byteLength`` as they are stored, for
-  /// ``makeLayout(kind:uninitializedCount:arena:initializingWith:)``,
-  /// which sums both over every child of every node it builds — 300,000 times in
-  /// parsing the performance test's declaration-heavy input. Going through the
-  /// `Int` forms converts on each one.
+  /// ``totalNodes`` and ``byteLength`` as they are stored, for the two places that
+  /// sum them over a node's children: building a layout node, and advancing a
+  /// sibling's absolute position. Both do it once per child of every node — 300,000
+  /// times over in parsing the performance test's declaration-heavy input — and the
+  /// `Int` forms convert on each one.
   var totalNodes32: UInt32 {
     switch self.header {
     case .smolParsedToken, .parsedToken, .materializedToken:
