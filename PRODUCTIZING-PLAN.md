@@ -505,8 +505,9 @@ division for each one, on a node that no longer stores them:
 | collecting a tree's syntax text | +57% | −7.5% |
 | `SourceLocationConverter` | +36% | −4.9% |
 | `description` | +12% | −1.0% |
-| an empty `SyntaxVisitor` walk | +18.7% | **+2.7%** |
-| reading a tree through its typed accessors | +6.5% | **+1.0%** |
+| an empty `SyntaxVisitor` walk | +18.7% | **+3.3%** |
+| reading a tree through its typed accessors | +6.5% | **+1.4%** |
+| reaching every child through `children(viewMode:)` | — | +1.4% |
 
 The first three are what `36bad794a` repairs, in the walks themselves. The last two
 are what `dce32744a` repairs, in `SyntaxDataArena`: every `Syntax` child is reached by
@@ -516,7 +517,9 @@ where a client's cost went. Writing it from the two regions a node keeps removes
 without changing a single index a client uses.
 
 **A parse is unaffected by either** — it builds no `SyntaxData` and walks no tree — so
-the parse figures above hold with both repairs in place.
+the parse figures above hold with both repairs in place. The residual few percent on a
+reader is real and unexplained; it is what is left after both repairs, on two
+instruments that agree within half a point.
 
 **What the earlier −4.1% and −6.5% were.** They were measured through a benchmark
 that dispatched on the typed enum and then recursed through `children(viewMode:)`,
