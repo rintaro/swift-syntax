@@ -305,6 +305,31 @@ extension RawSyntaxLayoutView {
     }
   }
 
+  /// This node's slots as two regions, for a reader that wants to place them where
+  /// the tree describes them without asking which position each one is: the real
+  /// children, and the `unexpected` slots, which are empty for a node that kept no
+  /// room for them.
+  ///
+  /// - Precondition: this is a layout node that interleaves `unexpected` slots.
+  @_spi(RawSyntax)
+  @inline(__always)
+  public var interleavedRegions: (real: UnsafeBufferPointer<RawSyntax?>, unexpected: UnsafeBufferPointer<RawSyntax?>)? {
+    let (base, childCount) = raw.slotBase
+    switch raw.header {
+    case .layout:
+      return (UnsafeBufferPointer(start: base, count: childCount), UnsafeBufferPointer(start: nil, count: 0))
+    case .layoutWithUnexpected:
+      return (
+        UnsafeBufferPointer(start: base, count: childCount),
+        UnsafeBufferPointer(start: base + childCount, count: childCount + 1)
+      )
+    case .flat:
+      return nil
+    case .smolParsedToken, .parsedToken, .materializedToken:
+      preconditionFailure("not a layout node")
+    }
+  }
+
   /// The elements of this collection.
   ///
   /// - Precondition: this is a collection.

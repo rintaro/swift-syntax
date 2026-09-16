@@ -474,22 +474,37 @@ final class SyntaxDataArena: @unchecked Sendable {
       return UnsafeBufferPointer(allocated)
     }
 
-    let rawChildren = layoutView.children
-    let allocated = self.allocator.allocate(SyntaxDataReference?.self, count: rawChildren.count)
+    // An interleaving node's buffer has a slot per position its kind names, so it is
+    // written from the two regions the node keeps: a slot before each child, the
+    // child, and a slot after the last. Asking `children` for each position instead
+    // would work out where that position sits, per position, per node.
+    let (real, unexpected) = layoutView.interleavedRegions!
+    let allocated = self.allocator.allocate(SyntaxDataReference?.self, count: 2 * real.count + 1)
 
     var ptr = allocated.baseAddress!
     var absoluteInfo = parent.pointee.absoluteInfo.advancedToFirstChild()
-    for raw in rawChildren {
-      let dataRef: SyntaxDataReference?
+
+    @inline(__always)
+    func place(_ raw: RawSyntax?) {
       if let raw {
-        dataRef = Self.createDataImpl(allocator: self.allocator, raw: raw, parent: parent, absoluteInfo: absoluteInfo)
+        ptr.initialize(
+          to: Self.createDataImpl(allocator: self.allocator, raw: raw, parent: parent, absoluteInfo: absoluteInfo)
+        )
       } else {
-        dataRef = nil
+        ptr.initialize(to: nil)
       }
-      ptr.initialize(to: dataRef)
+      // Every position advances the layout index, occupied or not: it is the index
+      // of the slot, not of the child.
       absoluteInfo = absoluteInfo.advancedBySibling(raw)
       ptr += 1
     }
+
+    let hasUnexpected = !unexpected.isEmpty
+    for index in 0..<real.count {
+      place(hasUnexpected ? unexpected[index] : nil)
+      place(real[index])
+    }
+    place(hasUnexpected ? unexpected[real.count] : nil)
     return UnsafeBufferPointer(allocated)
   }
 
