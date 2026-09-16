@@ -8,23 +8,41 @@ so the subject lines are the stable reference.
 instructions, and the tree it produces is 62% smaller**, with no change to the
 parsed output.
 
-Re-measured at `e18b34bec` against the branch's base, both sides built in one
-session with `swiftlang-6.5.0.12.4`, two independent builds per side, medians of
-five rounds of 40 parses. Wall clock first, retired instructions second, since the
-two disagree by a fifth on how much was won:
+Re-measured at `39cbd0f93` against the branch's base, both sides built in one session
+with `swiftlang-6.5.0.12.5`, two independent builds per side, best of five rounds of 40
+parses. Wall clock first, retired instructions second, since the two disagree by a fifth
+on how much was won:
 
 | input | main | branch | | main | branch | |
 |---|---|---|---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.835 ms | 1.602 ms | **3.02×** | 81.40M | 32.52M | 2.50× |
-| concatenated generated sources (468 KB) | 11.808 ms | 3.923 ms | **3.01×** | 194.02M | 79.92M | 2.43× |
-| `nonascii_heavy.swift.input` (388 KB) | 8.522 ms | 3.528 ms | **2.42×** | 153.68M | 77.83M | 1.97× |
-| `corrupt_heavy.swift.input` (603 KB) | 15.223 ms | 5.522 ms | **2.76×** | 238.95M | 112.02M | 2.13× |
+| `MinimalCollections.swift.input` (177 KB) | 4.833 ms | 1.577 ms | **3.06×** | 81.42M | 32.48M | 2.51× |
+| concatenated generated sources (468 KB) | 11.324 ms | 3.694 ms | **3.07×** | 193.91M | 79.79M | 2.43× |
+| `nonascii_heavy.swift.input` (388 KB) | 8.192 ms | 3.460 ms | **2.37×** | 153.56M | 77.76M | 1.97× |
+| `corrupt_heavy.swift.input` (603 KB) | 15.339 ms | 5.509 ms | **2.78×** | 239.02M | 112.00M | 2.13× |
 
-The second pair agreed to within 2%: 3.07×, 3.01×, 2.43× and 2.74×.
+The second pair agreed to within 3%: 2.99×, 2.97×, 2.42× and 2.82×.
+
+**Reading a tree is faster too**, which is the question the tree shrinking invites.
+Instructions against main, from the same two pairs:
+
+| | main | branch | |
+|---|---|---|---|
+| `syntaxTextBytes` over the 468 KB tree | 7.69M | 6.41M | −16.7% |
+| `SourceLocationConverter.init` | 29.21M | 27.15M | −7.0% |
+| `description` | 34.75M | 34.32M | −1.2% |
+| a tree read through its typed accessors | 34.94M | 34.73M | −0.6% |
+| an empty `SyntaxVisitor` walk | 12.00M | 11.70M | −2.5% |
+| every child through `children(viewMode:)` | 23.03M | 22.56M | −2.0% |
+
+**The toolchain moved under this work and the headline did not.** The table above is
+`6.5.0.12.5`; the same four inputs under `6.5.0.12.4` gave 3.02×, 3.01×, 2.42× and
+2.76×, and the instruction ratios agreed to two decimal places. That is worth stating
+because it is not what the toolchain sensitivity below would predict — a compiler change
+can be worth 47% on one commit and nothing on a whole branch.
 
 | tree memory over the 749-file corpus | main | branch | |
 |---|---|---|---|
-| requested bytes | 26.45× the source | **10.14×** | −61.7% |
+| requested bytes | 26.45× the source | **10.14×** | −61.6% |
 | slab capacity taken | 258.9 MB | **107.1 MB** | −58.6% |
 
 Superseded per-input memory figures, measured under `6.5.0.10.5` earlier in this

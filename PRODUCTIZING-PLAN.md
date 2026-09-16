@@ -50,8 +50,12 @@ Every number in this document was taken with both sides built in one session by
 one toolchain. Say which, because it matters more than it should: two patch
 releases of the same compiler differ by up to 47% on identical source, and one
 eight-line change was free under `6.5.0.9.6` and 19% slower under `6.5.0.10.5`
-(rdar://186588859, key path folding). The current default is `6.5.0.11.3`, which
-is within 0.5% of `6.5.0.10.5` on this branch.
+(rdar://186588859, key path folding). The current default is `6.5.0.12.5`. It moves
+the headline by less than the noise — the four inputs measure 3.06×, 3.07×, 2.37× and
+2.78× against `main` where `6.5.0.12.4` gave 3.02×, 3.01×, 2.42× and 2.76×, with the
+instruction ratios equal to two decimal places — and `6.5.0.11.3` before it was within
+0.5% of `6.5.0.10.5` on this branch. Whether it still carries rdar://186588859 has not
+been checked.
 
 Prefer retired instructions to wall clock for anything under a few percent. A
 timing run's floor across builds is about 0.4% and the first run after a build is
