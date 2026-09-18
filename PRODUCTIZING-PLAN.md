@@ -84,10 +84,11 @@ the string literal run scan (3427).
 | 3426 | header and tail | `perf-parser-30-tail-alloc` | the parsed-token PR and the layout PR, by construction |
 | 3437 | P22 | `perf-parser-22-accessor-benchmark` | nothing, and the layout PR's read figures need it |
 
-All four are independent of each other. **3420 conflicts with current `main`** and needs
-a rebase: `79abfd1c8` renamed a keyword from `using` to `default` in a spec set that
-P11+P12 rewrites, which is a two-line resolution in `TokenSpecSet.swift`. The other
-three apply cleanly, checked with `git merge-tree` against `1f995c731`.
+All four are independent of each other. **3420 is rebased onto `1f995c731`** as
+`2ea5d3b1f`: `79abfd1c8` renamed a keyword from `using` to `default` inside the switch
+P11+P12 rewrites, so the rename was carried into the new form, and the eleven
+`FileDefaultDeclarationTests` that came with it pass. It is not force-pushed. The other
+three apply cleanly, checked with `git merge-tree`.
 
 **What landing 3427 unblocked:** P3 and the Cursor/Position split were waiting on it for
 `Cursor.swift`, and both now apply cleanly.
@@ -100,6 +101,7 @@ against the base each was cut from, so a rebase means re-measuring before postin
 | branch | commit | what it is |
 |---|---|---|
 | `perf-parser-03-diagnostic-combine` | `21e3f862b` | P3, rebased onto current `main` |
+| `perf-parser-16-lookahead-ranges` | `f7d88c52f` | P16 on `1f995c731`, **−2.9% / −2.5% / −3.1% / −0.1%** across the four inputs |
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
 | `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
@@ -297,19 +299,30 @@ its own small PR if the non-ASCII case is worth chasing separately.
 
 | | | contents | lines | measured |
 |---|---|---|---|---|
-| [ ] | P16 | Only record lookahead ranges when asked — `d4f3d94e4`, `e8acf42b2` | 63 | −2.7/−2.7, −1.7/−1.9 |
+| [x] | P16 | Only record lookahead ranges for a parse that hands them on — `d4f3d94e4`, `e8acf42b2` | 63 | **−2.9%, −2.5%, −3.1%, −0.1%** |
 
-**3421 changed P16's ground, and P16 is one line short of correct.** `main` now
-preserves lookahead ranges across incremental parses and for reused nodes, and
-`Parser.init` seeds `self.lookaheadRanges = parseTransition.previousLookaheadRanges`
-when it is given a transition. P16 gates recording on `collectsLookaheadRanges`, which
-the two `parseIncrementally` entry points set to true and everything else defaults to
-false. Those entry points stay correct; a caller that constructs `Parser` directly with
-a transition would carry the previous ranges forward, record none of its own, and hand
-the next reparse something quietly stale rather than empty. The gate has to include the
-transition — record when asked **or** when parsing incrementally — and with that P16
-keeps what it measured, a plain parse not paying for a hash table insertion per node.
-3421's tests are the ones to run against it.
+**Cut as `perf-parser-16-lookahead-ranges`, `f7d88c52f`, one commit on `1f995c731`.**
+Measured over two independent build pairs, agreeing within 0.05 points: **−2.94%** on
+`MinimalCollections`, **−2.47%** on the declaration-heavy input, **−3.03%** on the
+non-ASCII one, and **−0.09%** on `corrupt_heavy` — nothing at all on the last, which is
+the one input that spends its parse recovering rather than registering reusable nodes.
+
+**3421 changed P16's ground, and the correction is in the gate.** `main` preserves
+lookahead ranges across incremental parses and for reused nodes, and `Parser.init` seeds
+them from the transition it is given. P16 gates recording on `collectsLookaheadRanges`,
+which the `parseIncrementally` entry points set to true and everything else defaults to
+false, so the gate now includes the transition: record when asked **or** when parsing
+incrementally.
+
+**What that gate prevents is lost reuse, not incorrectness** — which took a test to
+establish rather than reasoning, and the first two attempts at that test passed against
+the bug. `IncrementalParseLookup` refuses to reuse a node it has no recorded range for,
+so a parse that records nothing produces a correct tree and a correct result; what it
+hands the next reparse simply describes none of the nodes it created, and that reparse
+re-parses all of them. Nothing fails, nothing is stale, reuse just quietly stops.
+`testLookaheadRangesAreRecordedForAnIncrementalParseWithoutAsking` pins it by asserting
+that a node the middle parse created is reused by the parse after it; with the gate on
+the argument alone it fails with nothing reusable at all.
 | ~~P17~~ | | ~~Inline the bump allocator's fast path~~ — `7b2b378a4` | 33 | **dropped**: +3.66% on the declaration-heavy input against `main` |
 
 **P17 is dropped, and its premise is the reason.** The commit marks the bump
@@ -666,10 +679,9 @@ large; it needs homes rather than analysis.
 ## Needs your sign-off
 
 - [ ] **P16** changes observable behaviour: `Parser.lookaheadRanges` is
-      `public internal(set)`, and a caller driving `Parser` directly now finds it
-      empty unless it asks for the ranges. **3421 landed on `main` and gave those
-      ranges a real consumer**, so this needs one more line before it goes out; see
-      Group 5.
+      `public internal(set)`, and a caller driving `Parser` directly for a *full*
+      parse now finds it empty unless it passes `collectsLookaheadRanges: true`. An
+      incremental parse records either way, so no reuse is lost; see Group 5.
 - [ ] **P19** removes an initializer from every collection node under
       `@_spi(RawSyntax)`. Nothing outside SwiftParser used it.
 - [ ] **The header-and-tail PR** (3426) changes `RawSyntaxData`'s layout and puts
