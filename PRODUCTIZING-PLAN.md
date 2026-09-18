@@ -68,11 +68,12 @@ happened.
 
 ## Progress
 
-`origin/main` is `c37ede18b`, which is what P28 and P29 are cut from. Read the
-state from git rather than from this prose, which has fallen behind twice; the
-tables below carry `[x]` for built and this section for what has landed.
+`origin/main` is `1f995c731`. Read the state from git rather than from this prose,
+which has fallen behind twice; the tables below carry `[x]` for built and this
+section for what has landed.
 
-**Merged upstream:** P2, P4, P5+P6, P7, P10, P14, P15.
+**Merged upstream:** P2, P4, P5+P6, P7, P10, P14, P15, P28 (3434), P29 (3435), and
+the string literal run scan (3427).
 
 **Open as pull requests,** and not to be rebased unless they conflict:
 
@@ -81,15 +82,20 @@ tables below carry `[x]` for built and this section for what has landed.
 | 3420 | P11+P12 | `perf-parser-11-keyword-specsets` | P13, P18, P19 — they share the parser's declaration and expression files |
 | 3425 | P8+P9 | `perf-parser-09-state-allocator` | P3, the Cursor/Position split, the parsed-token PR — all touch `Cursor.swift` or `Parser.swift` |
 | 3426 | header and tail | `perf-parser-30-tail-alloc` | the parsed-token PR and the layout PR, by construction |
-| 3427 | string literal run | `perf-parser-31-string-literal-run` | P3 and the Cursor/Position split, on `Cursor.swift` |
-| 3434 | P28 | `perf-parser-28-lookahead-skip` | nothing |
-| 3435 | P29 | `perf-parser-29-specset-allcases` | nothing |
 | 3437 | P22 | `perf-parser-22-accessor-benchmark` | nothing, and the layout PR's read figures need it |
 
-All seven are independent of each other; P22 was the one free of the other six, adding a
-test file and touching nothing else.
+All four are independent of each other. **3420 conflicts with current `main`** and needs
+a rebase: `79abfd1c8` renamed a keyword from `using` to `default` in a spec set that
+P11+P12 rewrites, which is a two-line resolution in `TokenSpecSet.swift`. The other
+three apply cleanly, checked with `git merge-tree` against `1f995c731`.
 
-**Cut, verified, unpushed:**
+**What landing 3427 unblocked:** P3 and the Cursor/Position split were waiting on it for
+`Cursor.swift`, and both now apply cleanly.
+
+**Cut, verified, unpushed.** All of these predate `1f995c731` by 52 commits. Only the
+layout branch conflicts, and only in generated files — `main` gained syntax nodes, so
+regenerating after the rebase settles it. Every measurement quoted for these was taken
+against the base each was cut from, so a rebase means re-measuring before posting.
 
 | branch | commit | what it is |
 |---|---|---|
@@ -292,6 +298,18 @@ its own small PR if the non-ASCII case is worth chasing separately.
 | | | contents | lines | measured |
 |---|---|---|---|---|
 | [ ] | P16 | Only record lookahead ranges when asked — `d4f3d94e4`, `e8acf42b2` | 63 | −2.7/−2.7, −1.7/−1.9 |
+
+**3421 changed P16's ground, and P16 is one line short of correct.** `main` now
+preserves lookahead ranges across incremental parses and for reused nodes, and
+`Parser.init` seeds `self.lookaheadRanges = parseTransition.previousLookaheadRanges`
+when it is given a transition. P16 gates recording on `collectsLookaheadRanges`, which
+the two `parseIncrementally` entry points set to true and everything else defaults to
+false. Those entry points stay correct; a caller that constructs `Parser` directly with
+a transition would carry the previous ranges forward, record none of its own, and hand
+the next reparse something quietly stale rather than empty. The gate has to include the
+transition — record when asked **or** when parsing incrementally — and with that P16
+keeps what it measured, a plain parse not paying for a hash table insertion per node.
+3421's tests are the ones to run against it.
 | ~~P17~~ | | ~~Inline the bump allocator's fast path~~ — `7b2b378a4` | 33 | **dropped**: +3.66% on the declaration-heavy input against `main` |
 
 **P17 is dropped, and its premise is the reason.** The commit marks the bump
@@ -649,7 +667,9 @@ large; it needs homes rather than analysis.
 
 - [ ] **P16** changes observable behaviour: `Parser.lookaheadRanges` is
       `public internal(set)`, and a caller driving `Parser` directly now finds it
-      empty unless it asks for the ranges.
+      empty unless it asks for the ranges. **3421 landed on `main` and gave those
+      ranges a real consumer**, so this needs one more line before it goes out; see
+      Group 5.
 - [ ] **P19** removes an initializer from every collection node under
       `@_spi(RawSyntax)`. Nothing outside SwiftParser used it.
 - [ ] **The header-and-tail PR** (3426) changes `RawSyntaxData`'s layout and puts
