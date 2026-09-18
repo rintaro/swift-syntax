@@ -100,7 +100,7 @@ against the base each was cut from, so a rebase means re-measuring before postin
 
 | branch | commit | what it is |
 |---|---|---|
-| `perf-parser-03-diagnostic-combine` | `21e3f862b` | P3, rebased onto current `main` |
+| `perf-parser-03-diagnostic-combine` | `f2c0b794a` | P3 on `1f995c731`, **−1.4% / −1.5% / −1.0% / −3.3%** across the four inputs |
 | `perf-parser-16-lookahead-ranges` | `f7d88c52f` | P16 on `1f995c731`, **−2.9% / −2.5% / −3.1% / −0.1%** across the four inputs |
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
@@ -124,7 +124,7 @@ each change against its own parent, on the two performance inputs.
 |---|---|---|---|---|
 | [x] | P1 | Make the allocator and parsing arena `final` — `5806dcec2` | 4 | **neutral** on `main`: +0.6%/+0.1%, and −0.2%/−0.1% at its own base. The report's −6% is wrong. |
 | [x] | P2 | ASCII fast path when advancing over a scalar — `817307a17` | 13 | **−11.3% / −10.6%** vs `main` |
-| [x] | P3 | Combine a token diagnostic only when there is one — `f43212b5b` | 12 | −0.5% / −0.5% vs `main`, indistinguishable from noise; 1.0% / 1.0% on the full branch |
+| [x] | P3 | Combine a token diagnostic only when there is one — `f43212b5b` | 12 | **−1.4% / −1.5% / −1.0% / −3.3%** against `1f995c731` |
 | [x] | P4 | Size a parsing arena's slabs for the source — `0c23ecf96` | 48 | **−0.5% / −0.4%** vs `main`, against −2.0/−1.0 at its own base. Slab allocations 412→18 and 519→17; waste up to 4.4% |
 
 Reviewable in minutes each. **The "about 20% between them" I first claimed rests
@@ -150,6 +150,18 @@ was re-measured at 4.4% on this base, in the message and in the doc comment.
 
 P4's cherry-pick conflicts on one line, `collectsLookaheadRanges`, which belongs
 to P16. Resolve by taking P4's side without it.
+
+**P3 re-measured on `1f995c731`, and it is worth more there than it was.** Against the
+old base it was −0.5%, inside the noise; against current `main` it is −1.39%, −1.46%,
+−0.97% and **−3.27%** over the four inputs, three pairs agreeing within 0.04 points. The
+largest win is on the corrupted input, which is where token diagnostics actually occur,
+and the smallest on the non-ASCII one.
+
+It is also a clean demonstration of why this plan says to prefer instructions. On the
+declaration-heavy input wall clock read +0.64%, +0.83% and then −1.06% across three
+independent build pairs — sign unstable, magnitude about a percent either way — while the
+instruction count read −1.46%, −1.47% and −1.43%. Quoting the wall clock from either of
+the first two pairs would have reported a regression that does not exist.
 
 ### Group 2 — the lexer's cursor (chained: same struct, same test)
 
