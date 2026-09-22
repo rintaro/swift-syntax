@@ -68,35 +68,39 @@ happened.
 
 ## Progress
 
-`origin/main` is `1f995c731`. Read the state from git rather than from this prose,
+`origin/main` is `f04893882`. Read the state from git rather than from this prose,
 which has fallen behind twice; the tables below carry `[x]` for built and this
 section for what has landed.
 
-**Merged upstream:** P2, P4, P5+P6, P7, P10, P14, P15, P28 (3434), P29 (3435), and
-the string literal run scan (3427).
+**Merged upstream:** P2, P4, P5+P6, P7, P10, P14, P15, P22 (3437), P28 (3434),
+P29 (3435), P11+P12 (3420), and the string literal run scan (3427).
 
 **Open as pull requests,** and not to be rebased unless they conflict:
 
 | | | branch | what it blocks |
 |---|---|---|---|
-| 3420 | P11+P12 | `perf-parser-11-keyword-specsets` | P13, P18, P19 — they share the parser's declaration and expression files |
 | 3425 | P8+P9 | `perf-parser-09-state-allocator` | P3, the Cursor/Position split, the parsed-token PR — all touch `Cursor.swift` or `Parser.swift` |
 | 3426 | header and tail | `perf-parser-30-tail-alloc` | the parsed-token PR and the layout PR, by construction |
-| 3437 | P22 | `perf-parser-22-accessor-benchmark` | nothing, and the layout PR's read figures need it |
 
-All four are independent of each other. **3420 is rebased onto `1f995c731`** as
-`2ea5d3b1f`: `79abfd1c8` renamed a keyword from `using` to `default` inside the switch
-P11+P12 rewrites, so the rename was carried into the new form, and the eleven
-`FileDefaultDeclarationTests` that came with it pass. It is not force-pushed. The other
-three apply cleanly, checked with `git merge-tree`.
+Both apply cleanly to `f04893882`, checked with `git merge-tree`, and both are 62
+commits behind it.
+
+**What landing 3420 unblocked:** P13, P18 and P19, which share the parser's declaration
+and expression files with it. **What landing 3437 settled:** the layout PR's read
+figures have their instrument upstream, and it is the corrected one — `c4ea3b82b`, which
+recurses through the accessors and iterates each list as a `SyntaxCollection` rather than
+walking `children(viewMode:)`. Any branch cut from `main` now carries it, so measuring a
+read path no longer needs the benchmark grafted on from elsewhere.
 
 **What landing 3427 unblocked:** P3 and the Cursor/Position split were waiting on it for
 `Cursor.swift`, and both now apply cleanly.
 
-**Cut, verified, unpushed.** All of these predate `1f995c731` by 52 commits. Only the
-layout branch conflicts, and only in generated files — `main` gained syntax nodes, so
-regenerating after the rebase settles it. Every measurement quoted for these was taken
-against the base each was cut from, so a rebase means re-measuring before posting.
+**Cut, verified, unpushed.** P3 and P16 sit on `1f995c731`, ten commits back; the rest
+predate `f04893882` by 62. Only the layout branch conflicts, and only in generated files
+— `main` has gained syntax nodes, so regenerating after the rebase settles it. Every
+measurement quoted here was taken against the base it was cut from, so a rebase means
+re-measuring before posting; P3 is the standing warning about that, having read −0.5% on
+its old base and −1.4% to −3.3% on `1f995c731`.
 
 | branch | commit | what it is |
 |---|---|---|
@@ -705,29 +709,32 @@ automatically. They want saying in prose.
 
 ## Suggested order
 
-1. **P3**, one commit in one file, once `Cursor.swift` is free. P22 has gone up as
-   3437 — landing it before the changes it measures also keeps it from looking like a
-   benchmark written to flatter them, and the layout PR's read figures are noise
-   without it.
-2. **P8+P9**, which is cut and measured at −15.20% / −7.78%, the largest single
-   result left. P7 is already upstream, so nothing blocks it.
-3. **The header-and-tail PR** (3426). Everything below assumes it.
-4. **The parsed-token PR**, which is cut and measured: the tree from 24.23× the
-   source to 18.91×, the parse 0.5% to 1.2% faster depending on the input. It sits
-   on 3426 and shares `Cursor.swift` and `Parser.swift` with 3425 and 3427, so it
-   wants both of those merged first. Its two commits can be reviewed in order —
-   the text into the tail, then the four-byte shape — and each builds and tests on
-   its own.
-5. Groups 3 and 4 in parallel with the above where they do not collide — P11+P12
-   is already in flight, P13 is independent of it.
-6. Group 5 once P16's behaviour change is settled; P17 is dropped.
+1. **P16**, cut on `1f995c731` and measured at −2.9% / −2.5% / −3.1% / −0.1%. It
+   touches `Parser.swift`, `ParseSourceFile.swift` and `IncrementalParseTransition.swift`
+   and overlaps nothing else that is cut, so it can go out whenever. Needs the sign-off
+   on `Parser.lookaheadRanges`.
+2. **P8+P9** (3425), open and measured at −15.20% / −7.78%, the largest single result
+   left, and the thing three other branches are queued behind in `Cursor.swift`.
+3. **P3**, cut on `1f995c731` and measured at −1.4% / −1.5% / −1.0% / −3.3%. One
+   commit in one file, but that file is `Cursor.swift`, so it follows 3425.
+4. **The header-and-tail PR** (3426). Everything below assumes it.
+5. **The parsed-token PR**, cut and measured: the tree from 24.23× the source to
+   18.91×, the parse 0.5% to 1.2% faster depending on the input. It sits on 3426 and
+   shares `Cursor.swift` and `Parser.swift` with 3425, so it wants that merged first.
+   Its two commits can be reviewed in order — the text into the tail, then the
+   four-byte shape — and each builds and tests on its own.
+6. Groups 3 and 4 in parallel with the above where they do not collide; P11+P12 is
+   upstream, so P13, P18 and P19 are free of it.
 7. Group 6 last among the parser work: it is the largest, touches CodeGeneration
    and most parser files, and wants a quiet base.
 8. **The layout PR** after the header-and-tail and parsed-token PRs. All three
    reshape `RawSyntax.swift`, and it is cut on top of the parsed-token branch, so it
-   goes out once that one has. The largest of the three, and the one whose read
-   figures need 3437 to be read as anything but noise.
-9. Group 9 whenever convenient. Two small diffs in two files, dependent on
+   goes out once that one has. Its read figures are measured through the benchmark
+   3437 put upstream, so they can be reproduced by anyone.
+9. **The Cursor/Position split**, after 3425, which it overlaps in four files. Its end
+   state merges onto `main` cleanly and passes the suite; replaying its six commits
+   does not, so it either goes out squashed or gets a hand-resolved rebase.
+10. Group 9 whenever convenient. Two small diffs in two files, dependent on
    nothing, and between them worth more on the declaration-heavy input than most
    of Group 1.
 
