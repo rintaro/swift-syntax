@@ -105,7 +105,7 @@ its old base and −1.4% to −3.3% on `1f995c731`.
 | branch | commit | what it is |
 |---|---|---|
 | `perf-parser-03-diagnostic-combine` | `f2c0b794a` | P3 on `1f995c731`, **−1.4% / −1.5% / −1.0% / −3.3%** across the four inputs |
-| `perf-parser-16-lookahead-ranges` | `f7d88c52f` | P16 on `1f995c731`, **−2.9% / −2.5% / −3.1% / −0.1%** across the four inputs |
+| `perf-parser-16-lookahead-ranges` | `5cd2106ab` | P16 on `1f995c731`, **−2.9% / −2.5% / −3.0% / −0.1%** across the four inputs; posted as 3447, red once, fixed |
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
 | `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
@@ -329,6 +329,30 @@ them from the transition it is given. P16 gates recording on `collectsLookaheadR
 which the `parseIncrementally` entry points set to true and everything else defaults to
 false, so the gate now includes the transition: record when asked **or** when parsing
 incrementally.
+
+**3447 went red on sourcekit-lsp, and the default was why.** The failure was
+`SourceKitLSPTests.LocalSwiftTests.testIncrementalParse`, with
+`Expectation '[reused node callback called]' not fulfilled`.
+`SyntaxTreeManager` drives a chain of `Parser`s itself — it constructs one, parses, and
+builds an `IncrementalParseResult` from `parser.lookaheadRanges` — so its *first* parse
+has no transition, recorded nothing under an opt-in default, and handed on an empty
+table; after which nothing was ever reusable. The gate covers a parse that is *given* a
+transition, not one that will be *handed on*, and nothing in the signature distinguishes
+them.
+
+`collectsLookaheadRanges` therefore defaults to **true**, preserving what every caller
+holding its own `Parser` gets today, and the opt-out sits on `Parser.parse(source:)` and
+its buffer sibling, which hand back a tree and nothing else. The measurement is
+unchanged — the benchmark parses through exactly those entry points — at −2.86%, −2.51%,
+−3.02% and −0.17% over two pairs.
+
+**Two things this leaves open.** The compiler's ASTGen constructs `Parser` directly and
+never reads the ranges, so it keeps paying until a one-line change there passes
+`collectsLookaheadRanges: false`; that is where most of this win actually lives, and it
+is a separate `swift` change. And `parseIncrementally` takes no `languageFeatures`, which
+is why sourcekit-lsp hand-rolls the parse at all (`091e802f`, "Pass experimental features
+to SwiftParser using build settings") — giving it that parameter would let the next
+client use the API meant for this instead of reconstructing it.
 
 **What that gate prevents is lost reuse, not incorrectness** — which took a test to
 establish rather than reasoning, and the first two attempts at that test passed against
@@ -694,10 +718,10 @@ large; it needs homes rather than analysis.
 
 ## Needs your sign-off
 
-- [ ] **P16** changes observable behaviour: `Parser.lookaheadRanges` is
-      `public internal(set)`, and a caller driving `Parser` directly for a *full*
-      parse now finds it empty unless it passes `collectsLookaheadRanges: true`. An
-      incremental parse records either way, so no reuse is lost; see Group 5.
+- [x] **P16** no longer changes observable behaviour: `collectsLookaheadRanges`
+      defaults to true, so a caller holding its own `Parser` sees what it saw before,
+      and only `Parser.parse(source:)` — which returns a tree and nothing else — opts
+      out. Settled by 3447 going red on sourcekit-lsp; see Group 5.
 - [ ] **P19** removes an initializer from every collection node under
       `@_spi(RawSyntax)`. Nothing outside SwiftParser used it.
 - [ ] **The header-and-tail PR** (3426) changes `RawSyntaxData`'s layout and puts
