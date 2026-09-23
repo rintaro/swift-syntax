@@ -6,21 +6,22 @@ so the subject lines are the stable reference.
 
 **Parsing is 2.4 to 3.1 times faster, retires half to two fifths of the
 instructions, and the tree it produces is 62% smaller**, with no change to the
-parsed output.
+parsed output. Most of it is upstream: against current `main` rather than the base the
+branch started from, what is left to land is 1.3× on the declaration-heavy input.
 
-Re-measured at `39cbd0f93` against the branch's base, both sides built in one session
+Re-measured at `20e87eccf` against the branch's base, both sides built in one session
 with `swiftlang-6.5.0.12.5`, two independent builds per side, best of five rounds of 40
 parses. Wall clock first, retired instructions second, since the two disagree by a fifth
 on how much was won:
 
 | input | main | branch | | main | branch | |
 |---|---|---|---|---|---|---|
-| `MinimalCollections.swift.input` (177 KB) | 4.833 ms | 1.577 ms | **3.06×** | 81.42M | 32.48M | 2.51× |
-| concatenated generated sources (468 KB) | 11.324 ms | 3.694 ms | **3.07×** | 193.91M | 79.79M | 2.43× |
-| `nonascii_heavy.swift.input` (388 KB) | 8.192 ms | 3.460 ms | **2.37×** | 153.56M | 77.76M | 1.97× |
-| `corrupt_heavy.swift.input` (603 KB) | 15.339 ms | 5.509 ms | **2.78×** | 239.02M | 112.00M | 2.13× |
+| `MinimalCollections.swift.input` (177 KB) | 5.020 ms | 1.618 ms | **3.10×** | 81.39M | 31.58M | 2.58× |
+| concatenated generated sources (468 KB) | 11.606 ms | 3.711 ms | **3.13×** | 193.80M | 78.49M | 2.47× |
+| `nonascii_heavy.swift.input` (388 KB) | 8.361 ms | 3.477 ms | **2.40×** | 153.48M | 76.75M | 2.00× |
+| `corrupt_heavy.swift.input` (603 KB) | 15.513 ms | 5.561 ms | **2.79×** | 238.90M | 108.94M | 2.19× |
 
-The second pair agreed to within 3%: 2.99×, 2.97×, 2.42× and 2.82×.
+The second pair agreed to within 2%: 3.06×, 3.18×, 2.43× and 2.80×.
 
 **Reading a tree is faster too**, which is the question the tree shrinking invites.
 Instructions against main, from the same two pairs:

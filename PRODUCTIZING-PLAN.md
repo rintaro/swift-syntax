@@ -729,7 +729,8 @@ and costs clarity. Unmeasured either way.
 ### Keyword lookup by the bytes as an integer — cut off `main`
 
 `perf-parser-36-keyword-lookup` (`616abc45f`), two files: the template and the generated
-`Keyword.swift`. Off `e9289aa44`, independent of everything else here.
+`Keyword.swift`. Off `e9289aa44`, independent of everything else here, and on the
+integration branch as `20e87eccf`.
 
 `Keyword.init(_ text:)` switches on the text's length, then over the keywords of that
 length as string literals. That second switch compiles to a chain of byte comparisons
