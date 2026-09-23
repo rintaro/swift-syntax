@@ -270,22 +270,30 @@ scanning work is a larger share of a slow parse.
 
 ### The Cursor/Position split — cut, and held
 
-`perf-parser-32-position-compaction` (`92f924887`) holds all six as one PR, 270
-insertions and 129 deletions over six files. It applies to current `main` with one
-conflict, in the layout test's numbers, and passes the suite.
+`perf-parser-32-position-compaction` (`f568c63ed`) holds all six as one PR, rebased onto
+`e9289aa44`. Two conflicts: `Cursor.swift`, where the landed string literal run scan and
+this branch's move of the byte-scanning family both add to the same extension and both
+belong, and the layout test's numbers. Builds, suite passes, lint clean.
 
 **The hold is over:** it waited on `perf-parser-09-state-allocator`, which landed as
 3425. What that leaves is a rebase whose only conflict is the layout test's numbers,
 since 3425 changed `Lexer.Cursor`'s size — and a re-measurement, because the size claim
 below was about the shape `Cursor` had before it.
 
-**One finding that changes what to claim for it.** On `main`,
-`Lexer.Cursor.Position` goes from 17/24 bytes to 16/16, but `Lexer.Cursor` stays
-at 57/64 — the eight bytes fall into padding rather than shrinking the enclosing
-type, so `Lexeme`, `LexemeSequence` and `Lookahead` do not shrink either. The
-value here is cheaper operations, from dropping the stored look-behind byte, not
-smaller types. That only becomes a size win once the state stack work lands and
-`Cursor` is repacked. Do not quote it as a memory change.
+**Measured on `e9289aa44`**, two pairs agreeing within 0.04 points: **−0.33%** on
+`MinimalCollections`, **−0.48%** on the declaration-heavy input, **−2.26%** on the
+non-ASCII one and **−1.54%** on the corrupted one. That is a fraction of what the parts
+measured on the branch they came from, and the reason is everything that has landed since:
+P14, P15 and the string literal run scan took most of the traffic off the paths this
+moves, and the inlining that replaces P2's ASCII fast path is worth less the less that
+path runs. What is left is a real win on non-ASCII source and close to noise on ASCII.
+
+**The size claim was expected to change with 3425 and did not.** `Position` goes from
+17/24 bytes to 16/16 as before, but `Lexer.Cursor` stays at 32/32 — the prediction was
+that repacking `Cursor` would turn those eight bytes into a size win, and measuring it
+says they land in padding again, with `Lexeme` at 72, `LexemeSequence` at 128 and
+`Lookahead` at 224 all unchanged. The value here is cheaper operations from dropping the
+stored look-behind byte. Do not quote it as a memory change.
 
 
 Five commits, all off the back of review of P2 rather than off the original
@@ -746,8 +754,9 @@ automatically. They want saying in prose.
 1. **P16** is up as 3447 on `e9289aa44`, measured at −3.8% / −3.1% / −3.6% / −0.1%.
 2. **P3**, cut and measured at −1.4% / −1.5% / −1.0% / −3.3% against `1f995c731`. One
    commit in one file, conflict-free on `e9289aa44`, wants re-measuring there.
-3. **The Cursor/Position split**, whose hold ended with 3425. Six commits, or one
-   squashed; its `MemoryLayoutTest` numbers move because 3425 changed `Cursor`.
+3. **The Cursor/Position split**, rebased onto `e9289aa44` as `f568c63ed` and measured
+   there at −0.3% / −0.5% / −2.3% / −1.5%. Whether six commits touching the lexer's core
+   are worth that is a judgement call; the non-ASCII input is where it earns its keep.
 4. **The header-and-tail PR** (3426). Everything below assumes it.
 5. **The parsed-token PR**, cut and measured: the tree from 24.23× the source to
    18.91×, the parse 0.5% to 1.2% faster depending on the input. It sits on 3426 and
