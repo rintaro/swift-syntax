@@ -116,6 +116,7 @@ moving base alone, and P3 from −0.5% to −1.4% earlier. Neither commit change
 | branch | commit | what it is |
 |---|---|---|
 | `perf-parser-03-diagnostic-combine` | `4c132607d` | P3 on `e9289aa44`, **−1.9% / −2.0% / −1.3% / −3.7%** across the four inputs |
+| `perf-parser-36-keyword-lookup` | `616abc45f` | keyword lookup by the packed bytes, **−2.2% / −1.3% / −1.0% / −2.6%** across the four inputs |
 | `perf-parser-16-lookahead-ranges` | `832894e03` | P16 on `e9289aa44`, **−3.8% / −3.1% / −3.6% / −0.1%** across the four inputs; posted as 3447, red once, fixed |
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
@@ -724,6 +725,41 @@ than 62 judgements, and the payoff sits in their tail: the median is 4 cases but
 The 54 hand-written conformances are the same size as the generated median and
 live in parser source people read, so adding a stored global to each buys little
 and costs clarity. Unmeasured either way.
+
+### Keyword lookup by the bytes as an integer — cut off `main`
+
+`perf-parser-36-keyword-lookup` (`616abc45f`), two files: the template and the generated
+`Keyword.swift`. Off `e9289aa44`, independent of everything else here.
+
+`Keyword.init(_ text:)` switches on the text's length, then over the keywords of that
+length as string literals. That second switch compiles to a chain of byte comparisons
+that **reloads the text for every candidate it rejects** — 48 loads in the length-6
+initializer — and `lexIdentifier` asks for every identifier in a file, so a miss walks
+the whole bucket. Profiling a release parse put the lookup at **3.1% of leaf samples**,
+with `_length6` the most expensive bucket.
+
+Reading the bytes once into a `UInt64` and switching on that integer gives the compiler
+something it can search. Measured, two pairs agreeing within 0.03 points: **−2.21%** on
+`MinimalCollections`, **−1.32%** on the declaration-heavy input, **−1.04%** on the
+non-ASCII one and **−2.56%** on the corrupted one. Lengths above eight keep the text
+switch; the loads tell the story:
+
+| | `main` | packed |
+|---|---|---|
+| `_length3` | 111 instructions, 24 loads | 89, **2** |
+| `_length4` | 169, 24 | 175, **1** |
+| `_length6` | 245, 48 | 210, **3** |
+| `_length8` | 236, 26 | 265, **1** |
+| `_length10` | 136, 22 | unchanged |
+
+Some buckets gain instructions while losing loads, which is the trade taken.
+
+**Ordering the cases by frequency is not worth trying on top of this**, which it would
+have been before: LLVM sorts case values when lowering a `switch`, so the emitted code is
+a binary search over ordered values while the generated source stays alphabetical. Source
+order no longer reaches the machine code. Biasing toward common keywords would also be
+the wrong trade, since every identifier misses and a balanced search costs about five
+comparisons either way.
 
 ### Not yet assigned to a PR
 

@@ -372,8 +372,7 @@ public struct RawSyntax: Sendable {
     )
   }
 
-
-  /// Which of the four shapes this node has, and the arena that owns it.
+  /// Which of the six shapes this node has, and the arena that owns it.
   @inline(__always)
   var header: RawSyntaxData {
     pointer.pointer.pointee
