@@ -754,6 +754,17 @@ switch; the loads tell the story:
 
 Some buckets gain instructions while losing loads, which is the trade taken.
 
+**One shared table for every short keyword is worse, measured, and the depth is why.**
+The packed value identifies a keyword without its length — a shorter keyword's unset
+bytes are zero, and no keyword ends in a zero byte — so the eight per-length tables can
+be one, with `Keyword.init(_:)` rejecting text that ends in a zero byte to keep
+`"let\0"` from answering as `.let`. It measures **half the win**: −1.43%, −0.74%, −0.62%
+and −1.24% against −2.21%, −1.32%, −1.04% and −2.56%. One table of 136 values is about
+7.1 comparisons deep where eight of about 17 are 4.1, and the switch on the length that
+picks between them is a jump table costing nearly nothing. Fewer, larger tables buy
+instruction cache and pay for it in depth, and depth wins here. Dropped, and with it the
+precondition, which only the shared table needed.
+
 **Ordering the cases by frequency is not worth trying on top of this**, which it would
 have been before: LLVM sorts case values when lowering a `switch`, so the emitted code is
 a binary search over ordered values while the generated source stays alphabetical. Source
