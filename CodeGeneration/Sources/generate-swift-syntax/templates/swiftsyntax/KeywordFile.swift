@@ -50,13 +50,34 @@ let keywordFile = SourceFileSyntax(leadingTrivia: copyrightHeader) {
     // Split into individual initializers by length to reduce stack use
     for (length, keywords) in keywordsByLength() {
       try! InitializerDeclSyntax("private init?(_length\(raw: length) text: SyntaxText)") {
-        try! SwitchExprSyntax("switch text") {
-          for keyword in keywords {
-            SwitchCaseSyntax("case \(literal: keyword.name):") {
-              ExprSyntax("self = .\(keyword.enumCaseCallName)")
-            }
+        if length <= 8 {
+          // A switch over text is a chain of comparisons that reloads the bytes for
+          // every candidate it rejects — a length-3 identifier is turned away by
+          // eleven of them, at seven instructions each. The same bytes read once into
+          // an integer give the compiler a switch it can search instead.
+          let terms = (0..<length).map { i in
+            i == 0 ? "UInt64(text[0])" : "UInt64(text[\(i)]) << \(i * 8)"
           }
-          SwitchCaseSyntax("default: return nil")
+          DeclSyntax("let packed = \(raw: terms.joined(separator: " | "))")
+          try! SwitchExprSyntax("switch packed") {
+            for keyword in keywords {
+              let packed = Array(keyword.name.utf8).enumerated()
+                .reduce(UInt64(0)) { $0 | UInt64($1.element) << (8 * $1.offset) }
+              SwitchCaseSyntax("case \(raw: "0x" + String(packed, radix: 16)):  // \(raw: keyword.name)") {
+                ExprSyntax("self = .\(keyword.enumCaseCallName)")
+              }
+            }
+            SwitchCaseSyntax("default: return nil")
+          }
+        } else {
+          try! SwitchExprSyntax("switch text") {
+            for keyword in keywords {
+              SwitchCaseSyntax("case \(literal: keyword.name):") {
+                ExprSyntax("self = .\(keyword.enumCaseCallName)")
+              }
+            }
+            SwitchCaseSyntax("default: return nil")
+          }
         }
       }
     }
