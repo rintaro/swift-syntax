@@ -68,22 +68,29 @@ happened.
 
 ## Progress
 
-`origin/main` is `f04893882`. Read the state from git rather than from this prose,
+`origin/main` is `e9289aa44`. Read the state from git rather than from this prose,
 which has fallen behind twice; the tables below carry `[x]` for built and this
 section for what has landed.
 
-**Merged upstream:** P2, P4, P5+P6, P7, P10, P14, P15, P22 (3437), P28 (3434),
-P29 (3435), P11+P12 (3420), and the string literal run scan (3427).
+**Merged upstream:** P2, P4, P5+P6, P7, P8+P9 (3425), P10, P11+P12 (3420), P14, P15,
+P22 (3437), P28 (3434), P29 (3435), and the string literal run scan (3427).
 
 **Open as pull requests,** and not to be rebased unless they conflict:
 
 | | | branch | what it blocks |
 |---|---|---|---|
-| 3425 | P8+P9 | `perf-parser-09-state-allocator` | P3, the Cursor/Position split, the parsed-token PR — all touch `Cursor.swift` or `Parser.swift` |
 | 3426 | header and tail | `perf-parser-30-tail-alloc` | the parsed-token PR and the layout PR, by construction |
+| 3447 | P16 | `perf-parser-16-lookahead-ranges` | nothing |
 
-Both apply cleanly to `f04893882`, checked with `git merge-tree`, and both are 62
-commits behind it.
+3426 applies cleanly to `e9289aa44` and is 64 commits behind it. 3447 was rebased onto it
+as `832894e03` — 3425 touched the same initializer — and is worth more there than it was:
+**−3.75%, −3.11%, −3.63%, −0.10%** over two pairs, against −2.86%, −2.51%, −3.02% and
+−0.17% on the base before. Nothing about the commit changed; 3425 made the parse faster,
+so a fixed cost per node is a larger share of it.
+
+**Landing 3425 clears the queue in `Cursor.swift`.** P3, the Cursor/Position split and
+the parsed-token PR were all waiting on it. The split's hold is over; it is next in the
+order below.
 
 **What landing 3420 unblocked:** P13, P18 and P19, which share the parser's declaration
 and expression files with it. **What landing 3437 settled:** the layout PR's read
@@ -95,17 +102,21 @@ read path no longer needs the benchmark grafted on from elsewhere.
 **What landing 3427 unblocked:** P3 and the Cursor/Position split were waiting on it for
 `Cursor.swift`, and both now apply cleanly.
 
-**Cut, verified, unpushed.** P3 and P16 sit on `1f995c731`, ten commits back; the rest
-predate `f04893882` by 62. Only the layout branch conflicts, and only in generated files
-— `main` has gained syntax nodes, so regenerating after the rebase settles it. Every
-measurement quoted here was taken against the base it was cut from, so a rebase means
-re-measuring before posting; P3 is the standing warning about that, having read −0.5% on
-its old base and −1.4% to −3.3% on `1f995c731`.
+**Cut, verified, unpushed.** P3 sits on `1f995c731`, twelve commits back and still
+conflict-free; the tail-allocation chain and the split predate `e9289aa44` by 64. What
+3425 left behind is a conflict in `Tests/SwiftParserTest/MemoryLayoutTest.swift` for the
+split, the parsed-token branch and the layout branch — it changed `Lexer.Cursor`'s size,
+so the expected numbers moved — and the layout branch additionally conflicts in generated
+files, which regenerating settles.
+
+Every measurement quoted here was taken against the base it was cut from, and rebasing
+onto `e9289aa44` means re-measuring: P16 went from −2.86% to −3.75% on one input by
+moving base alone, and P3 from −0.5% to −1.4% earlier. Neither commit changed.
 
 | branch | commit | what it is |
 |---|---|---|
 | `perf-parser-03-diagnostic-combine` | `f2c0b794a` | P3 on `1f995c731`, **−1.4% / −1.5% / −1.0% / −3.3%** across the four inputs |
-| `perf-parser-16-lookahead-ranges` | `5cd2106ab` | P16 on `1f995c731`, **−2.9% / −2.5% / −3.0% / −0.1%** across the four inputs; posted as 3447, red once, fixed |
+| `perf-parser-16-lookahead-ranges` | `832894e03` | P16 on `e9289aa44`, **−3.8% / −3.1% / −3.6% / −0.1%** across the four inputs; posted as 3447, red once, fixed |
 | `perf-parser-09-state-allocator` | `694044db4` | P8+P9 as one commit, **−15.20% / −7.78%** |
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
 | `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
@@ -263,11 +274,10 @@ scanning work is a larger share of a slow parse.
 insertions and 129 deletions over six files. It applies to current `main` with one
 conflict, in the layout test's numbers, and passes the suite.
 
-**Held deliberately**, not blocked: it overlaps `perf-parser-09-state-allocator`
-in `Cursor.swift`, `LexemeSequence.swift`,
-`StringLiteralRepresentedLiteralValue.swift` and the layout test, so whichever of
-the two lands second needs a fixup. Land P8+P9 first, since it is the larger
-result, then rebase this.
+**The hold is over:** it waited on `perf-parser-09-state-allocator`, which landed as
+3425. What that leaves is a rebase whose only conflict is the layout test's numbers,
+since 3425 changed `Lexer.Cursor`'s size — and a re-measurement, because the size claim
+below was about the shape `Cursor` had before it.
 
 **One finding that changes what to claim for it.** On `main`,
 `Lexer.Cursor.Position` goes from 17/24 bytes to 16/16, but `Lexer.Cursor` stays
@@ -733,14 +743,11 @@ automatically. They want saying in prose.
 
 ## Suggested order
 
-1. **P16**, cut on `1f995c731` and measured at −2.9% / −2.5% / −3.1% / −0.1%. It
-   touches `Parser.swift`, `ParseSourceFile.swift` and `IncrementalParseTransition.swift`
-   and overlaps nothing else that is cut, so it can go out whenever. Needs the sign-off
-   on `Parser.lookaheadRanges`.
-2. **P8+P9** (3425), open and measured at −15.20% / −7.78%, the largest single result
-   left, and the thing three other branches are queued behind in `Cursor.swift`.
-3. **P3**, cut on `1f995c731` and measured at −1.4% / −1.5% / −1.0% / −3.3%. One
-   commit in one file, but that file is `Cursor.swift`, so it follows 3425.
+1. **P16** is up as 3447 on `e9289aa44`, measured at −3.8% / −3.1% / −3.6% / −0.1%.
+2. **P3**, cut and measured at −1.4% / −1.5% / −1.0% / −3.3% against `1f995c731`. One
+   commit in one file, conflict-free on `e9289aa44`, wants re-measuring there.
+3. **The Cursor/Position split**, whose hold ended with 3425. Six commits, or one
+   squashed; its `MemoryLayoutTest` numbers move because 3425 changed `Cursor`.
 4. **The header-and-tail PR** (3426). Everything below assumes it.
 5. **The parsed-token PR**, cut and measured: the tree from 24.23× the source to
    18.91×, the parse 0.5% to 1.2% faster depending on the input. It sits on 3426 and
@@ -755,10 +762,7 @@ automatically. They want saying in prose.
    reshape `RawSyntax.swift`, and it is cut on top of the parsed-token branch, so it
    goes out once that one has. Its read figures are measured through the benchmark
    3437 put upstream, so they can be reproduced by anyone.
-9. **The Cursor/Position split**, after 3425, which it overlaps in four files. Its end
-   state merges onto `main` cleanly and passes the suite; replaying its six commits
-   does not, so it either goes out squashed or gets a hand-resolved rebase.
-10. Group 9 whenever convenient. Two small diffs in two files, dependent on
+9. Group 9 whenever convenient. Two small diffs in two files, dependent on
    nothing, and between them worth more on the declaration-heavy input than most
    of Group 1.
 
