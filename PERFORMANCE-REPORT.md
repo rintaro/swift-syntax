@@ -1551,33 +1551,40 @@ was caught by a compiler warning, the second by another. Anything named after an
 ## What is left
 
 Re-profiled at the branch head, leaf samples over a parse of the 468 KB
-declaration-heavy input, 4.64 ms:
+declaration-heavy input, 3.7 ms, pooled over two runs of 11,903 samples together:
 
 | | |
 |---|---|
-| lexing bytes | **31.3%** |
-| parser control flow | 18.0% |
-| string literal lexing | 11.3% |
-| building nodes | 10.7% |
-| arena and allocation | 8.0% |
-| keyword and text matching | 7.2% |
-| unattributed, mostly `<deduplicated_symbol>` | 6.7% |
-| reference counting | 5.5% |
-| copying bytes | 1.0% |
+| lexing bytes | **36.5%** |
+| parser control flow | 21.3% |
+| building nodes | 10.2% |
+| unattributed, mostly `<deduplicated_symbol>` | 9.4% |
+| keyword and text matching | 7.1% |
+| arena and allocation | 6.4% |
+| reference counting | 5.4% |
+| string literal lexing | 2.8% |
+| copying bytes | 0.6% |
 | syntax tree wrapper | 0.4% |
 
 and the heaviest single functions:
 
 | | |
 |---|---|
-| `lexNormal` | 10.3% |
-| `nextToken` | 8.7% |
-| `lexCharacterInStringLiteral` | 6.7% |
-| `RawSyntax.parsedToken` | 4.4% |
-| `lexInStringLiteral` | 4.1% |
-| `RawSyntaxArena.allocateNode` | 3.2% |
-| `lexTriviaByScanning` | 2.9% |
-| `LexemeSequence.next` | 2.8% |
+| `lexNormal` | 12.2% |
+| `nextToken` | 11.8% |
+| `<deduplicated_symbol>` | 6.8% |
+| `RawSyntaxArena.allocateNode` | 3.8% |
+| `lexTriviaByScanning` | 3.7% |
+| `LexemeSequence.next` | 3.6% |
+| `RawSyntax.copyText` | 3.0% |
+| `RawTokenSyntax.init` | 2.9% |
+| `Keyword.init` | 2.5% |
+| `Position.advance` | 2.4% |
+
+The two runs put every cluster within 0.8 points of the other, which is the
+resolution to read these at. One symbol is classified by hand:
+`advanceOverOrdinaryStringLiteralBytes` is the run scan, so it counts as string
+literal lexing rather than as lexing bytes.
 
 A tree is 15.3 times the size of its source, from 26.5 — see *Making the tree
 smaller*. What is left there is no longer dominated by one number: a node is a
@@ -1588,7 +1595,7 @@ padding the allocator inserts to align the next node is now a comparable cost at
 1.3× of the source.
 
 **It is a lexer now, and more so than before.** Lexing plus string literal lexing
-is 42.6% of the parse, and each of those functions has already had a pass.
+is 39.3% of the parse, and each of those functions has already had a pass.
 `memset` has disappeared from the profile entirely — it was zeroing layout
 buffers, which no longer exist as separate allocations — and `malloc`/`free` is
 inside the 8% that all arena work now costs together.
@@ -1596,7 +1603,7 @@ inside the 8% that all arena work now costs together.
 The remaining items, in the order I would look at them, and mostly this argues for
 stopping:
 
-- **Parser control flow, which read as 18%, has been looked at and mostly is not
+- **Parser control flow, which reads as 21.3%, has been looked at and mostly is not
   what the label said.** `parseSequenceExpression`, `parsePrimaryExpression` and
   `parseCodeBlockItem` are the parser's own recursive descent, swept into that
   cluster by a regex on `Parser\.`. Removing them leaves `consumeAnyToken` at
@@ -1617,7 +1624,7 @@ stopping:
   calls into a `TokenSpecSet` was abandoned before measurement: it cannot nest in
   the `TokenConsumer` protocol extension where it is used, and moving it to file
   scope for a question this small was not worth the shape.
-- **String literal lexing, which was 11.3%, has now had its pass** —
+- **String literal lexing, which was 11.3% and is 2.8%, has had its pass** —
   `970d1a7ac`, worth 10.7% of that input. What is left of it is the part the run
   scan cannot take: escapes, interpolations, delimiters, and literals whose text
   is outside ASCII. On the last of those the scan matches nothing and costs about
@@ -1634,19 +1641,20 @@ stopping:
   the third time on this branch that a copy has turned out to cost nothing; and
   the functions are named `lex*` because they lex, so they belong on the cursor
   whatever their fields are.
-- **Building nodes at 10.7%, of which `RawSyntax.parsedToken` is 4.4%.** After tail
-  allocation this is the token factory itself: the keyword precondition, the choice
-  of shape, and the text copy. The precondition calls `Keyword.init` on every
+- **Building nodes at 10.2%, of which the token factory is 5.9%** — `copyText` at
+  3.0% and `RawTokenSyntax.init` at 2.9%, with `parsedToken` inlined into the
+  latter. After tail allocation this is the factory itself: the keyword
+  precondition, the choice of shape, and the text copy. The precondition calls `Keyword.init` on every
   keyword token, which the lexer has already resolved once — the same duplication
   that `eb71d5311` removed on the lexer side.
-- **`allocateNode` at 3.2%.** The bump itself, which does not come down by making
+- **`allocateNode` at 3.8%.** The bump itself, which does not come down by making
   one allocation cheaper. Nodes per parse is the lever, and after the collections
   and tail allocation work there is no obvious surplus left.
 - **Reference counting, and it is `Array`, not trivia.** Attributing every
   retain, release, allocation and deallocation to its *caller* over a parse of the
   468 KB input puts reference counting at 13.3%, of which 9.6% is array machinery:
   growth, copy-on-write reallocation and teardown. (That is not a regression
-  against the 5.5% above, which is leaf self time in a named cluster — the two
+  against the 5.4% above, which is leaf self time in a named cluster — the two
   count different things.)
 
   | grown by | % of parse |
@@ -1692,7 +1700,7 @@ stopping:
 Two findings from this branch are worth carrying into whatever comes next.
 `<deduplicated_symbol>` in a profile is not one function: it is the compiler's
 merged-function suffix, so identical generated initializers fold together and the
-name shown is arbitrary among them — here it is 3.8%, and it is why the
+name shown is arbitrary among them — here it is 6.8%, and it is why the
 unattributed row exists at all. And where a small function lands decides whether a
 change is worth anything, in both directions — `@inline(__always)` was the
 difference between 1% and 3.7% for the trivia fast path, its absence hid a 14%
