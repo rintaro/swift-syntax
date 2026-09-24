@@ -1652,10 +1652,13 @@ stopping:
   and tail allocation work there is no obvious surplus left.
 - **Reference counting, and it is `Array`, not trivia.** Attributing every
   retain, release, allocation and deallocation to its *caller* over a parse of the
-  468 KB input puts reference counting at 13.3%, of which 9.6% is array machinery:
+  468 KB input put reference counting at 13.3%, of which 9.6% was array machinery:
   growth, copy-on-write reallocation and teardown. (That is not a regression
   against the 5.4% above, which is leaf self time in a named cluster — the two
-  count different things.)
+  count different things.) At the branch head the same attribution reads **7.94%**
+  and **5.07%**, pooled over two runs of 18,996 samples.
+
+  What motivated the work, before the two commits below:
 
   | grown by | % of parse |
   |---|---|
@@ -1693,9 +1696,25 @@ stopping:
   `static let` per generated spec set, which needs the generator since a protocol
   extension cannot hold stored state.
 
-  Still untouched: `RawUnexpectedNodesSyntax.init(combining:)` at 0.84%, a direct
-  candidate for `RawSyntaxNodeList`, and the attribute and parameter list sites at
-  1.76% together.
+  Re-attributed at the branch head, what the arrays cost now:
+
+  | grown by | % of parse |
+  |---|---|
+  | `Parser.Lookahead.skip(initialState:)` | 1.09% |
+  | `RawUnexpectedNodesSyntax.init(combining:_:arena:)` | 0.85% |
+  | `Parser.parseStringLiteral()` | 0.78% |
+  | `parseTypeAttributeList`, `parseFunctionParameter`, `parseAttributeList`, `parseSwitchCases` | 1.78% together |
+  | `_swift_release_dealloc`, unattributed teardown | 0.32% |
+
+  `skip` keeps its shape and has lost two thirds of its cost; `canRecoverTo` no
+  longer appears at all, the hoist having landed as `a196f3daa`. Still untouched:
+  `RawUnexpectedNodesSyntax.init(combining:)`, a direct candidate for
+  `RawSyntaxNodeList`, and the attribute and parameter list sites, both of which
+  measure what they did before.
+
+  Outside the arrays, the callers reference counting is attributed to are
+  `_ArrayBuffer._consumeAndCreateNew` at 1.38%, `parseStringLiteral` at 1.03% and
+  `Lexer.Cursor.StateStack.perform` at 0.91%.
 
 Two findings from this branch are worth carrying into whatever comes next.
 `<deduplicated_symbol>` in a profile is not one function: it is the compiler's
