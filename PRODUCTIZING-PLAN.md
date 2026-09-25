@@ -122,6 +122,7 @@ moving base alone, and P3 from −0.5% to −1.4% earlier. Neither commit change
 | `perf-parser-30-tail-alloc` | `ac52caf57` | the node header and tail allocation, then reading that tail through one reference and allocating it through one function per shape |
 | `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
 | `perf-parser-35-compact-layout` | `7aa4d8bfc` | the layout node compacted, **tree 18.91× → 10.14× the source**, parse −3.4% / −3.2%, client reads −0.1% to −1.4% — sits on the branch above |
+| `perf-parser-37-nexttoken-locals` | `cb4d06e2f` | `nextToken` tidied: one copy of where a lexeme starts, the previous lexeme's newline held without an `Optional`, and trailing trivia adding a newline rather than replacing one — **−0.35% / −0.35% / −0.23% / −0.49%** across the four inputs |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
@@ -783,6 +784,7 @@ large; it needs homes rather than analysis.
 | ~~`0ae93a368` Derive a lexeme's `start` from the cursor it was lexed from~~ | **folded into `991ee26e3`**, the parsed-token PR: the factory takes the lexer's buffer and lengths, which is the same argument about not storing what the cursor answers |
 | `970d1a7ac` Scan the run of ordinary bytes inside a string literal — −10.7% on the declaration-heavy input | its own PR; independent of everything, and the third instance of the run-scanning shape |
 | `e12075211` Stop tracking `Parser`'s size | fold into P5, which is the PR that introduces the tracking; `Parser` gains stored properties under `SWIFTPARSER_ENABLE_ALTERNATE_TOKEN_INTROSPECTION`, so one expected number cannot describe it |
+| `7577f33f0` Report the first lexeme of a file as beginning a line | **its own PR**: it changes what `Lexer.tokenize` reports and carries 117 updated expectations, which wants a reviewer's attention rather than riding along with a perf change. No tree changes — fingerprints over 722 files and 112 snippets written to start at offset 0 are identical, because every reader of the flag and all 57 `allowAtStartOfLine: false` specs sit after something has been consumed |
 | `c01c36234` List the added sources in the CMake builds | **split across the PRs that add those files** — P5 for `MemoryLayout.swift`, Group 6 for `RawSyntaxNodeList.swift` and `RawSyntaxNodeListBuilder.swift`. A PR that adds a file and not its CMake line breaks the CMake build while SwiftPM stays green |
 
 ## Needs your sign-off
