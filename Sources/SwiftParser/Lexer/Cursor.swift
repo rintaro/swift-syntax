@@ -532,15 +532,15 @@ extension Lexer.Cursor {
     sourceBufferStart: UnsafePointer<UInt8>?,
     stateAllocator: Unmanaged<Lexer.StateAllocator>
   ) -> Lexer.Lexeme {
-    let cursor = self
-    // Leading trivia.
-    let leadingTriviaStart = self
+    // Where this lexeme begins: the first byte of its leading trivia, and the
+    // cursor it records so that it can be lexed again in another state.
+    let lexemeStart = self
     let newlineInLeadingTrivia: NewlinePresence
     var diagnostic: TokenDiagnostic? = nil
     if let leadingTriviaMode = self.currentState.leadingTriviaLexingMode() {
       let triviaResult = self.lexTrivia(mode: leadingTriviaMode)
       newlineInLeadingTrivia = triviaResult.newlinePresence
-      diagnostic = TokenDiagnostic(combining: diagnostic, triviaResult.error?.tokenDiagnostic(tokenStart: cursor))
+      diagnostic = TokenDiagnostic(combining: diagnostic, triviaResult.error?.tokenDiagnostic(tokenStart: lexemeStart))
     } else {
       newlineInLeadingTrivia = .absent
     }
@@ -595,25 +595,25 @@ extension Lexer.Cursor {
     if let trailingTriviaMode = result.trailingTriviaLexingMode ?? currentState.trailingTriviaLexingMode() {
       let triviaResult = self.lexTrivia(mode: trailingTriviaMode)
       self.previousLexemeTrailingNewlinePresence = triviaResult.newlinePresence
-      diagnostic = TokenDiagnostic(combining: diagnostic, triviaResult.error?.tokenDiagnostic(tokenStart: cursor))
+      diagnostic = TokenDiagnostic(combining: diagnostic, triviaResult.error?.tokenDiagnostic(tokenStart: lexemeStart))
     }
 
     if self.currentState.shouldPopStateWhenReachingNewlineInTrailingTrivia && self.is(at: "\r", "\n") {
       self.stateStack.perform(stateTransition: .pop, stateAllocator: stateAllocator)
     }
 
-    diagnostic = TokenDiagnostic(combining: diagnostic, result.error?.tokenDiagnostic(tokenStart: cursor))
+    diagnostic = TokenDiagnostic(combining: diagnostic, result.error?.tokenDiagnostic(tokenStart: lexemeStart))
 
     let lexeme = Lexer.Lexeme(
       tokenKind: result.tokenKind,
       flags: flags,
       diagnostic: diagnostic,
       keyword: result.keywordKind,
-      start: leadingTriviaStart.pointer,
-      leadingTriviaLength: leadingTriviaStart.distance(to: textStart),
+      start: lexemeStart.pointer,
+      leadingTriviaLength: lexemeStart.distance(to: textStart),
       textLength: textStart.distance(to: trailingTriviaStart),
       trailingTriviaLength: trailingTriviaStart.distance(to: self),
-      cursor: cursor
+      cursor: lexemeStart
     )
     self.previousTokenKind = result.tokenKind
     // `keywordKind` is also set for an identifier that spells a keyword, which
