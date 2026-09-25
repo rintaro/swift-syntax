@@ -630,7 +630,12 @@ extension Lexer.Cursor {
     let trailingTriviaStart = self
     if let trailingTriviaMode = result.trailingTriviaLexingMode ?? currentState.trailingTriviaLexingMode() {
       let triviaResult = self.lexTrivia(mode: trailingTriviaMode)
-      self.previousLexemeTrailingNewlinePresence = triviaResult.newlinePresence
+      // A newline that puts the next lexeme at the start of a line can arrive
+      // either inside this lexeme's text or in its trailing trivia, so the
+      // trivia adds to what the text reported rather than replacing it.
+      if triviaResult.newlinePresence == .present {
+        self.previousLexemeTrailingNewlinePresence = .present
+      }
       if let error = triviaResult.error {
         diagnostic = TokenDiagnostic(combining: diagnostic, error.tokenDiagnostic(tokenStart: lexemeStart))
       }
