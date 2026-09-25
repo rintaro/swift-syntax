@@ -285,6 +285,11 @@ belong, and the layout test's numbers. Builds, suite passes, lint clean.
 since 3425 changed `Lexer.Cursor`'s size — and a re-measurement, because the size claim
 below was about the shape `Cursor` had before it.
 
+**It now blocks one thing:** the first-lexeme flag, `7577f33f0`, seeds
+`previousLexemeTrailingNewlinePresence` from `isAtStartOfInput`, which this branch
+introduces. That change is to be cut on top of this one rather than rewritten against
+main's previous-byte cursor.
+
 **Measured on `e9289aa44`**, two pairs agreeing within 0.04 points: **−0.33%** on
 `MinimalCollections`, **−0.48%** on the declaration-heavy input, **−2.26%** on the
 non-ASCII one and **−1.54%** on the corrupted one. That is a fraction of what the parts
@@ -784,7 +789,7 @@ large; it needs homes rather than analysis.
 | ~~`0ae93a368` Derive a lexeme's `start` from the cursor it was lexed from~~ | **folded into `991ee26e3`**, the parsed-token PR: the factory takes the lexer's buffer and lengths, which is the same argument about not storing what the cursor answers |
 | `970d1a7ac` Scan the run of ordinary bytes inside a string literal — −10.7% on the declaration-heavy input | its own PR; independent of everything, and the third instance of the run-scanning shape |
 | `e12075211` Stop tracking `Parser`'s size | fold into P5, which is the PR that introduces the tracking; `Parser` gains stored properties under `SWIFTPARSER_ENABLE_ALTERNATE_TOKEN_INTROSPECTION`, so one expected number cannot describe it |
-| `7577f33f0` Report the first lexeme of a file as beginning a line | **its own PR**: it changes what `Lexer.tokenize` reports and carries 117 updated expectations, which wants a reviewer's attention rather than riding along with a perf change. No tree changes — fingerprints over 722 files and 112 snippets written to start at offset 0 are identical, because every reader of the flag and all 57 `allowAtStartOfLine: false` specs sit after something has been consumed |
+| `7577f33f0` Report the first lexeme of a file as beginning a line | **its own PR, stacked on `perf-parser-32-position-compaction`.** It seeds the flag from `isAtStartOfInput`, which is that branch's invention — main's cursor takes the previous byte instead, so cutting this off main means writing the seed as `previous == "\0"`, which is what main's own `isAtStartOfFile` and conflict-marker check already use. Holding for 32 keeps the commit verbatim. Its 117 updated expectations apply to main's test file unchanged. No tree changes — fingerprints over 722 files and 112 snippets written to start at offset 0 are identical, because every reader of the flag and all 57 `allowAtStartOfLine: false` specs sit after something has been consumed |
 | `c01c36234` List the added sources in the CMake builds | **split across the PRs that add those files** — P5 for `MemoryLayout.swift`, Group 6 for `RawSyntaxNodeList.swift` and `RawSyntaxNodeListBuilder.swift`. A PR that adds a file and not its CMake line breaks the CMake build while SwiftPM stays green |
 
 ## Needs your sign-off
