@@ -238,8 +238,20 @@ public struct SyntaxCollectionIterator<E: SyntaxProtocol>: IteratorProtocol {
   /// The index in `layoutBuffer` that will be returned when `next` is called.
   private var index: Int
 
-  init<Node: SyntaxCollection>(_ node: Node) where Node.Element == Element {
-    let syntax = Syntax(node)
+  /// Takes the node this iterates as a ``Syntax`` rather than as a generic
+  /// ``SyntaxCollection``, so that `makeIterator` performs the conversion where it
+  /// is inlinable: converting a generic node reads `_syntaxNode` through the witness
+  /// table, which hands back an owned value and retains the arena for every list
+  /// iterated, while a caller holding a concrete collection folds that away. What a
+  /// generic parameter would state, this asserts instead.
+  ///
+  /// - Precondition: `syntax` is a collection node, and its children are `Element`.
+  @usableFromInline
+  init(_ syntax: Syntax) {
+    precondition(
+      syntax.kind.isSyntaxCollection,
+      "\(syntax.kind) is not a collection, so it has no elements to iterate"
+    )
     self.arena = syntax.arena
     self.layoutBuffer = syntax.layoutBuffer
     self.index = layoutBuffer.startIndex
@@ -423,8 +435,9 @@ extension SyntaxCollection {
 
 /// Conformance to `BidirectionalCollection`.
 extension SyntaxCollection {
+  @inlinable
   public func makeIterator() -> SyntaxCollectionIterator<Element> {
-    return SyntaxCollectionIterator(self)
+    return SyntaxCollectionIterator(Syntax(self))
   }
 
   var elements: SyntaxDataReferenceBuffer {
