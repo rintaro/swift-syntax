@@ -384,6 +384,7 @@ extension SyntaxProtocol {
 
   /// The absolute position of the starting point of this node, skipping any
   /// leading trivia attached to the first token syntax.
+  @inlinable
   public var positionAfterSkippingLeadingTrivia: AbsolutePosition {
     return Syntax(self).positionAfterSkippingLeadingTrivia
   }
