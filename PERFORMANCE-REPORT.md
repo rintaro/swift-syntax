@@ -1331,7 +1331,18 @@ three read paths then sit slightly below where they started:
 | a tree read through its typed accessors | +1.4% | **−0.1%** |
 | every child through `children(viewMode:)` | +1.4% | **−1.1%** |
 
-Two pairs agreeing within 0.13 points. What to carry: **an inlining decision is a
+Two pairs agreeing within 0.13 points.
+
+**What that typed reader spends a third of its time on is not the tree**, which is worth
+knowing before reading those percentages. Counting reference counting exactly — by
+interposing the runtime's retain and release and attributing every call to its caller —
+one read of the 468 KB declaration-heavy tree makes 555,448 retain and release calls
+over 127,604 nodes, 4.35 per node, and 22% of the run is the runtime performing them.
+Asking each token for `rawText` instead of `text`, which is what ASTGen does and the
+only difference between two builds, removes every `bridgeObject` operation and **26% of
+the read**. The reader here asks for `text`, so every figure it reports is diluted by a
+`String` per token that the client it models does not build. `readbench.swift` measures
+both shapes side by side. What to carry: **an inlining decision is a
 function of the caller's size, so making a caller bigger silently un-inlines what it
 calls** — the same failure as `makeLayout` earlier in this work, found the same way, and
 worth suspecting first whenever a change that should be neutral costs a few percent. Two lessons, and the second is the expensive
