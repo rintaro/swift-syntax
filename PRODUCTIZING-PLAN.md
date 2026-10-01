@@ -72,18 +72,21 @@ happened.
 which has fallen behind twice; the tables below carry `[x]` for built and this
 section for what has landed.
 
-**Merged upstream:** P2, P4, P5+P6, P7, P8+P9 (3425), P10, P11+P12 (3420), P14, P15,
-P22 (3437), P28 (3434), P29 (3435), and the string literal run scan (3427).
+**Merged upstream:** P2, P3 (3448), P4, P5+P6, P7, P8+P9 (3425), P10, P11+P12 (3420),
+P14, P15, P22 (3437), P28 (3434), P29 (3435), the string literal run scan (3427), the
+keyword lookup (3449), and the header and tail (3426).
 
 **Open as pull requests,** and not to be rebased unless they conflict:
 
 | | | branch | what it blocks |
 |---|---|---|---|
-| 3426 | header and tail | `perf-parser-30-tail-alloc` | the parsed-token PR and the layout PR, by construction |
+| 3453 | parsed token | `perf-parser-33-parsed-token` | the layout PR, by construction |
 | 3447 | P16 | `perf-parser-16-lookahead-ranges` | nothing |
 
-3426 applies cleanly to `e9289aa44` and is 64 commits behind it. 3447 was rebased onto it
-as `832894e03` — 3425 touched the same initializer — and is worth more there than it was:
+3453 sits directly on `911061a67`, the merge of 3426, and measures **−1.35%, −1.15%,
+−0.81%, −1.01%** in instructions over two pairs, with the arena allocating 21.9% less over
+the corpus: a tree goes from 24.25× its source to 18.94×. 3447 was rebased onto
+`e9289aa44` as `832894e03` — 3425 touched the same initializer — and is worth more there than it was:
 **−3.75%, −3.11%, −3.63%, −0.10%** over two pairs, against −2.86%, −2.51%, −3.02% and
 −0.17% on the base before. Nothing about the commit changed; 3425 made the parse faster,
 so a fixed cost per node is a larger share of it.
