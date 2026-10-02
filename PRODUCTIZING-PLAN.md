@@ -74,13 +74,16 @@ section for what has landed.
 
 **Merged upstream:** P2, P3 (3448), P4, P5+P6, P7, P8+P9 (3425), P10, P11+P12 (3420),
 P14, P15, P22 (3437), P28 (3434), P29 (3435), the string literal run scan (3427), the
-keyword lookup (3449), and the header and tail (3426).
+keyword lookup (3449), the header and tail (3426), and scanning on a position (3454, cut
+as `perf-parser-38-position-scanning` from the first five commits of the Cursor/Position
+split).
 
 **Open as pull requests,** and not to be rebased unless they conflict:
 
 | | | branch | what it blocks |
 |---|---|---|---|
 | 3453 | parsed token | `perf-parser-33-parsed-token` | the layout PR, by construction |
+| 3455 | position as a pointer and a metadata word | `perf-parser-32-position-compaction` | `perf-parser-39-optional-previous`, which sits on it |
 | 3447 | P16 | `perf-parser-16-lookahead-ranges` | nothing |
 
 3453 sits directly on `911061a67`, the merge of 3426, and measures **−1.35%, −1.15%,
@@ -126,6 +129,7 @@ moving base alone, and P3 from −0.5% to −1.4% earlier. Neither commit change
 | `perf-parser-33-parsed-token` | `eeeee643e` | a parsed token's text in its tail, then the four-byte shape for a short one — sits on the branch above |
 | `perf-parser-35-compact-layout` | `7aa4d8bfc` | the layout node compacted, **tree 18.91× → 10.14× the source**, parse −3.4% / −3.2%, client reads −0.1% to −1.4% — sits on the branch above |
 | `perf-parser-37-nexttoken-locals` | `cb4d06e2f` | `nextToken` tidied: one copy of where a lexeme starts, the previous lexeme's newline held without an `Optional`, and trailing trivia adding a newline rather than replacing one — **−0.35% / −0.35% / −0.23% / −0.49%** across the four inputs |
+| `perf-parser-39-optional-previous` | `167d24103` | a position's `previous` is `nil` at the start of the input rather than nul, so a conflict marker straight after a mid-file nul is no longer taken as one; a test covers it. Neutral: one function, `TriviaParser.parseTrivia`, 12 bytes smaller, and instructions within noise. Sits on 3455 |
 | `perf-parser-28-lookahead-skip` | `65a29f4d0` | P28, capacity reserved at 8 |
 | `perf-parser-29-specset-allcases` | `38ce300d2` | P29, the hoist with its key-path workaround |
 
