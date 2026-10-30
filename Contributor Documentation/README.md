@@ -9,5 +9,6 @@ The following documentation documents are primarily intended for developers of s
 - [Parser Design](Parser%20Design.md)
 - [Parser Recovery](Parser%20Recovery.md)
 - [Parsing Basics](Parsing%20Basics.md)
+- [RawSyntax Memory Layout](RawSyntax%20Memory%20Layout.md)
 - [When to use protocols in SwiftSyntax](When%20to%20use%20protocols%20in%20SwiftSyntax.md)
 - [`@_spi` Attribute](SPI%20Attribute.md)
